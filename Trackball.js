@@ -1,6 +1,6 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer(document.getElementById("myCanvas"));
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
@@ -25,4 +25,3 @@ const line = new THREE.Line( geometry, material );
 
 scene.add( line );
 renderer.render( scene, camera );
-const renderer = new THREE.WebGLRendererf;
