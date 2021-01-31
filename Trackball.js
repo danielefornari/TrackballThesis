@@ -27,7 +27,7 @@ const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 const boxMaterial = new THREE.MeshBasicMaterial({color: 0x44aa88});
 
 //mesh
-const cube = new THREE.Mesh(geometry, material);
+const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 
 scene.add(cube);
 renderer.render(scene, camera);
