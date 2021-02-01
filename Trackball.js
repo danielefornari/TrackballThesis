@@ -5,6 +5,7 @@ import * as THREE from './node_modules/three/src/Three.js';
 const canvas = document.getElementById("myCanvas");
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 
+
 //camera
 const fov = 75;
 const aspect = 2;
