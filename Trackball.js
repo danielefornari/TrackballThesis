@@ -1,6 +1,6 @@
-//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-import * as THREE from 'three';
+//import * as THREE from 'three';
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
@@ -65,6 +65,8 @@ function keyDownListener(event) {
         default:
             alert("default");
             break;
+        renderer.render(scene, camera);
+        requestAnimationFrame(renderer);
     }
 };
 
