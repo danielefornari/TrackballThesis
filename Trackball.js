@@ -1,9 +1,9 @@
-import * as THREE from './node_modules/three';
+import * as THREE from 'three';
 import {GLTFLoader} from './node_modules/three/examples/jsm/loaders/GLTFLoader';
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
-const renderer = new THREE.WebGLRenderer({canvas}); //istanzio il renderer dicendo che lo voglio nel canvas che gli passo
+const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 
 //camera
 const fov = 75;
