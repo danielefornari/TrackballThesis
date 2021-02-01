@@ -46,11 +46,11 @@ function keyDownListener(event) {
     const rotationSpeed = 2;
     switch (event.key) {
         case "ArrowUp":
-            cube.rotateX(rotationSpeed)
+            cube.rotateX(-rotationSpeed)
             break;
 
         case "ArrowDown":
-            cube.rotateX(-rotationSpeed);
+            cube.rotateX(rotationSpeed);
             break;
 
         case "ArrowLeft":
