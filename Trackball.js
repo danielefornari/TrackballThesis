@@ -79,6 +79,7 @@ function keyDownListener(event) {
             alert("default");
             break;
     }
+    resizeRenderer();
     renderer.render(scene, camera);
 };
 
