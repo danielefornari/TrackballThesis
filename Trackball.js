@@ -38,7 +38,7 @@ const boxMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 //mesh
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 
-scene.add(cube);
+//scene.add(cube);
 renderer.render(scene, camera);
 
 //loader
@@ -52,6 +52,7 @@ loader.load( 'Flamingo.glb', function ( gltf ) {
 	console.error( error );
 
 } );
+renderer.render(scene, camera);
 
 function keyDownListener(event) {
     switch (event.key) {
