@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import { GLTFLoader } from 'https://unpkg.com/three.examples/jsm/loaders/GLTFLoader.js';
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
@@ -15,6 +16,13 @@ camera.position.z = 2;
 //scene
 const scene = new THREE.Scene();
 
+//luce
+const lightColor = 0xFFFFFF;
+const lightIntensity = 1;
+const light = new THREE.DirectionalLight(lightColor, lightIntensity);
+light.position.set(-1, 2, 4);
+scene.add(light);
+
 //il cubo
 
 //geometry
@@ -24,10 +32,45 @@ const boxDepth = 1;
 const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
 //material
-const boxMaterial = new THREE.MeshBasicMaterial({color: 0x44aa88});
+//const boxMaterial = new THREE.MeshBasicMaterial({color: 0x44aa88});   //non affetto dalle luci
+const boxMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
 //mesh
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 
 scene.add(cube);
 renderer.render(scene, camera);
+
+//loader
+const loader = new GLTFLoader;
+const objUrl = "untitled.gltf"
+loader.load(objUrl, (gltf)=>{
+    const root = gltf.scene;
+    scene.add(root);
+});
+
+function keyDownListener(event) {
+    switch (event.key) {
+        case "ArrowUp":
+            alert("up");
+            break;
+
+        case "ArrowDown":
+            alert("down");
+            break;
+
+        case "ArrowLeft":
+            alert("left");
+            break;
+
+        case "ArrowRight":
+            alert("right");
+            break;
+   
+        default:
+            alert("default");
+            break;
+    }
+};
+
+window.addEventListener('keydown', keyDownListener);
