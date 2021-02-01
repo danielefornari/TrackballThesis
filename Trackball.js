@@ -43,11 +43,15 @@ renderer.render(scene, camera);
 
 //loader
 const loader = new GLTFLoader();
-const objUrl = './untitled.gltf';
-loader.load(objUrl, (gltf)=>{
-    const root = gltf.scene;
-    scene.add(root);
-});
+loader.load( 'untitled.gltf', function ( gltf ) {
+
+	scene.add( gltf.scene );
+
+}, undefined, function ( error ) {
+
+	console.error( error );
+
+} );
 
 function keyDownListener(event) {
     switch (event.key) {
