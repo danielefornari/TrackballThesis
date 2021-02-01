@@ -65,9 +65,10 @@ function keyDownListener(event) {
         default:
             alert("default");
             break;
-        renderer.render(scene, camera);
-        requestAnimationFrame(renderer);
+
     }
+    renderer.render(scene, camera);
+    requestAnimationFrame(renderer);
 };
 
 window.addEventListener('keydown', keyDownListener);
