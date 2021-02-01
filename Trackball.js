@@ -2,8 +2,8 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
 //import * as THREE from 'three';
 
-//const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
+//canvas.addEventListener('mousedown');
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 
 //camera
@@ -25,7 +25,6 @@ light.position.set(-1, 2, 4);
 scene.add(light);
 
 //il cubo
-
 //geometry
 const boxWidth = 1;
 const boxHeight = 1;
@@ -33,7 +32,7 @@ const boxDepth = 1;
 const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
 //material
-//const boxMaterial = new THREE.MeshBasicMaterial({color: 0x44aa88});   //non affetto dalle luci
+//const boxMaterial = new THREE.MeshBasicMaterial({color: 0x44aa88});   //non è affetto dalle luci
 const boxMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
 //mesh
@@ -44,7 +43,7 @@ renderer.render(scene, camera);
 
 
 function keyDownListener(event) {
-    const rotationSpeed = 10;
+    const rotationSpeed = 2;
     switch (event.key) {
         case "ArrowUp":
             cube.rotateX(rotationSpeed)
@@ -65,10 +64,8 @@ function keyDownListener(event) {
         default:
             alert("default");
             break;
-
     }
     renderer.render(scene, camera);
-    requestAnimationFrame(renderer);
 };
 
 window.addEventListener('keydown', keyDownListener);
