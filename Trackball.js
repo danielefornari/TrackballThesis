@@ -1,5 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-//import {GLTFLoader} from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader';
+import {GLTFLoader} from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader';
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
@@ -42,7 +42,7 @@ scene.add(cube);
 renderer.render(scene, camera);
 
 //loader
-const loader = new THREE.GLTFLoader();
+const loader = new GLTFLoader();
 const objUrl = './untitled.gltf';
 loader.load(objUrl, (gltf)=>{
     const root = gltf.scene;
