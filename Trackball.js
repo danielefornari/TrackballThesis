@@ -1,4 +1,4 @@
-import * as THREE from './node_modules/three';
+import * as THREE from './node_modules/three/src/Three.js';
 
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
