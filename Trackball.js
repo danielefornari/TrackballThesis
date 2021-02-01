@@ -1,5 +1,6 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import {GLTFLoader} from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader';
+import {OrbitControl} from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls'
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
@@ -38,23 +39,26 @@ const boxMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 //mesh
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 
-//scene.add(cube);
+scene.add(cube);
 renderer.render(scene, camera);
+
+//controls
+const controls = new OrbitControl(camera, renderer.domElement)
+controls.update();
+
+function animate() {
+
+	requestAnimationFrame( animate );
+
+	// required if controls.enableDamping or controls.autoRotate are set to true
+	controls.update();
+
+	renderer.render( scene, camera );
 
 //loader
-const loader = new GLTFLoader();
-loader.load( 'Flamingo.glb', function ( gltf ) {
 
-	scene.add( gltf.scene );
 
-}, undefined, function ( error ) {
-
-	console.error( error );
-
-} );
-renderer.render(scene, camera);
-
-function keyDownListener(event) {
+/*function keyDownListener(event) {
     switch (event.key) {
         case "ArrowUp":
             alert("up");
@@ -78,4 +82,4 @@ function keyDownListener(event) {
     }
 };
 
-window.addEventListener('keydown', keyDownListener);
+window.addEventListener('keydown', keyDownListener);*/
