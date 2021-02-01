@@ -44,7 +44,7 @@ renderer.render(scene, camera);
 
 
 function keyDownListener(event) {
-    rotationSpeed = 10;
+    const rotationSpeed = 10;
     switch (event.key) {
         case "ArrowUp":
             cube.rotateX(rotationSpeed)
