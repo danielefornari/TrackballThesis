@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import {GLTFLoader} from 'three.examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from './three';
+import {GLTFLoader} from './three.examples/jsm/loaders/GLTFLoader.js';
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
