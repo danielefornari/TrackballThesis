@@ -42,7 +42,7 @@ scene.add(cube);
 renderer.render(scene, camera);
 
 //loader
-const loader = new THREE.GLTFLoader;
+const loader = new THREE.GLTFLoader();
 const objUrl = './untitled.gltf';
 loader.load(objUrl, (gltf)=>{
     const root = gltf.scene;
