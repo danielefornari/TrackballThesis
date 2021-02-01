@@ -39,6 +39,20 @@ const boxMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 
 scene.add(cube);
+
+function resizeRenderer() {
+    const canvas = renderer.domElement;
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+
+    if(canvas.width != canvasWidth || canvas.height != canvasHeight)
+    {
+        renderer.setSize(width, height, false);
+    }
+
+};
+
+resizeRenderer();
 renderer.render(scene, camera);
 
 
