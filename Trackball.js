@@ -1,4 +1,4 @@
-import * as THREE from '../TrackballThesis/node_modules/three';
+import * as THREE from '/three';
 import {GLTFLoader} from '../TrackballThesis/node_modules/three/examples/jsm/loaders/GLTFLoader';
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
