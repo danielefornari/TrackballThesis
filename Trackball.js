@@ -1,6 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import {GLTFLoader} from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader';
-import {OrbitControl} from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls'
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
