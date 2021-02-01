@@ -1,5 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import {GLTFLoader} from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+
+import * as THREE from 'three';
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
@@ -41,29 +42,24 @@ const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 scene.add(cube);
 renderer.render(scene, camera);
 
-//controls
-//const controls = new OrbitControl(camera, renderer.domElement)
-//controls.update();
 
-//loader
-
-
-/*function keyDownListener(event) {
+function keyDownListener(event) {
+    rotationSpeed = 10;
     switch (event.key) {
         case "ArrowUp":
-            alert("up");
+            cube.rotateX(rotationSpeed)
             break;
 
         case "ArrowDown":
-            alert("down");
+            cube.rotateX(-rotationSpeed);
             break;
 
         case "ArrowLeft":
-            alert("left");
+            cube.rotateY(-rotationSpeed);
             break;
 
         case "ArrowRight":
-            alert("right");
+            cube.rotateY(rotationSpeed);
             break;
    
         default:
@@ -72,4 +68,4 @@ renderer.render(scene, camera);
     }
 };
 
-window.addEventListener('keydown', keyDownListener);*/
+window.addEventListener('keydown', keyDownListener);
