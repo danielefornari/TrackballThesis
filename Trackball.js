@@ -43,7 +43,7 @@ renderer.render(scene, camera);
 
 //loader
 const loader = new THREE.GLTFLoader;
-const objUrl = "./untitled.gltf"
+const objUrl = './untitled.gltf';
 loader.load(objUrl, (gltf)=>{
     const root = gltf.scene;
     scene.add(root);
