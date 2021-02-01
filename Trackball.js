@@ -43,7 +43,7 @@ renderer.render(scene, camera);
 
 //loader
 const loader = new GLTFLoader();
-loader.load( 'untitled.gltf', function ( gltf ) {
+loader.load( 'flamingo.glb', function ( gltf ) {
 
 	scene.add( gltf.scene );
 
