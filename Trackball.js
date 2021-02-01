@@ -1,6 +1,5 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import {GLTFLoader} from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader';
-import {OrbitControl} from 'https://unpkg.com/three/examples/jsm/controls/OrbitControls'
+import * as THREE from 'three';
+
 
 //const canvas = document.querySelector('#myCanvas'); //riferimento al canvas
 const canvas = document.getElementById("myCanvas");
@@ -42,20 +41,7 @@ const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 scene.add(cube);
 renderer.render(scene, camera);
 
-//controls
-const controls = new OrbitControl(camera, renderer.domElement)
-controls.update();
 
-function animate() {
-
-	requestAnimationFrame( animate );
-
-	// required if controls.enableDamping or controls.autoRotate are set to true
-	controls.update();
-
-	renderer.render( scene, camera );
-
-}
 //loader
 
 
