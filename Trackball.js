@@ -47,7 +47,7 @@ function resizeRenderer() {
 
     if(canvas.width != canvasWidth || canvas.height != canvasHeight)
     {
-        renderer.setSize(width, height, false);
+        renderer.setSize(canvasWidth, canvasHeight, false);
     }
 
 };
