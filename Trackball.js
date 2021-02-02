@@ -1,6 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -16,14 +16,14 @@ let cursorData = {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, camera.z);
+            return new THREE.Vector3(this.x, this.y, camera.z).normalize();
         }
     },
     prev: {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, camera.z);
+            return new THREE.Vector3(this.x, this.y, camera.z).normalize();
         }
     },
     updateCursorPositions: function(x, y, canvas) {
@@ -114,7 +114,7 @@ function mouseMoveListener(event) {
 function calculateRotationAxis(cursorData) {
     let rotationAxis = new THREE.Vector3();
     rotationAxis.crossVectors(cursorData.prev.toVector3(), cursorData.current.toVector3());
-    return rotationAxis;
+    return rotationAxis.normalize();
 }
 
 function getObjCoord(obj) {
@@ -122,6 +122,7 @@ function getObjCoord(obj) {
 };
 
 function rotateObj(obj, axis, degrees) {
+    cube.rotation.
     cube.rotateOnWorldAxis(axis, degrees);
     resizeRenderer();
     renderer.render(scene, camera);
