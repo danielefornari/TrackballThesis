@@ -1,17 +1,55 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
-//canvas.addEventListener('mousedown');
+canvas.addEventListener('mouseup', mouseUpListener);
+canvas.addEventListener('mousedown', mouseDownListener);
+canvas.addEventListener('mousemove', mouseMoveListener);
+
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
+let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
+
+//struttura dati che mantiene le coordinate correnti e precedenti del cursore
+let cursorData = {
+    current: {
+        x:0,
+        y:0,
+        toVector3: function() {
+            return new THREE.Vector3(this.x, this.y, camera.z);
+        }
+    },
+    prev: {
+        x:0,
+        y:0,
+        toVector3: function() {
+            return new THREE.Vector3(this.x, this.y, camera.z);
+        }
+    },
+    updateCursorPositions: function(x, y, canvas) {
+        let canvasRect = canvas.getBoundingClientRect();
+        this.prev.x = this.current.x;
+        this.prev.y = this.current.y;
+        this.current.x = x - canvasRect.left;
+        this.current.y = y - canvasRect.top;
+    }
+};
+
 
 //camera
+let cameraOptions = {
+    fov: 75,
+    aspect: 2,
+    near: 0.1,
+    far: 5
+};
+
 const fov = 75;
 const aspect = 2;
 const near = 0.1
 const far = 5;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+
 camera.position.z = 2;
 
 //scene
@@ -49,11 +87,45 @@ function resizeRenderer() {
     {
         renderer.setSize(canvasWidth, canvasHeight, false);
     }
-
 };
 
 resizeRenderer();
 renderer.render(scene, camera);
+
+//listeners
+function mouseUpListener() {
+    tracking = false;
+};
+
+function mouseDownListener(event) {
+    cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
+    tracking = true;
+};
+
+function mouseMoveListener(event) {
+    if(tracking) {
+        cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
+        let rotationAxis = calculateRotationAxis(cursorData);
+        rotateObj(cube, rotationAxis, 1);
+        return mouseCoord;
+    }
+};
+
+
+function calculateRotationAxis(cursorData) {
+    let rotationAxis = new THREE.Vector3();
+    rotationAxis.crossVectors(cursorData.prev.toVector3(), cursorData.current.toVector3());
+    return rotationAxis;
+}
+
+function getObjCoord(obj) {
+    return obj.getWorldPosition();
+};
+
+function rotateObj(obj, axis, degrees) {
+    cube.rotateOnWorldAxis(axis, degrees);
+    cube.setr
+}
 
 
 function keyDownListener(event) {
