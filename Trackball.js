@@ -17,14 +17,14 @@ let cursorData = {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, camera.position.z);
+            return new THREE.Vector3(this.x, this.y, 2);
         }
     },
     prev: {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, camera.position.z);
+            return new THREE.Vector3(this.x, this.y, 2);
         }
     },
     updateCursorPositions: function(x, y, canvas) {
