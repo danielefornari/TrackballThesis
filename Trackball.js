@@ -106,7 +106,7 @@ function mouseMoveListener(event) {
     if(tracking) {
         cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
         let rotationAxis = calculateRotationAxis(cursorData);
-        rotateObj(cube, rotationAxis, 1);
+        rotateObj(cube, rotationAxis, 0.1);
     }
 };
 
