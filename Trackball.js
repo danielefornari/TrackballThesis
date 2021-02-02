@@ -123,8 +123,9 @@ function getObjCoord(obj) {
 
 function rotateObj(obj, axis, degrees) {
     cube.rotateOnWorldAxis(axis, degrees);
-    cube.setr
-}
+    resizeRenderer();
+    renderer.render(scene, camera);
+};
 
 
 function keyDownListener(event) {
