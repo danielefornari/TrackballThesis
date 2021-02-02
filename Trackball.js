@@ -3,6 +3,7 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 //import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
+const paragraph = document.getElementById("testParagraph");
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
@@ -106,6 +107,7 @@ function mouseMoveListener(event) {
     if(tracking) {
         cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
         let rotationAxis = calculateRotationAxis(cursorData);
+        paragraph.innerHTML("Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z);
         rotateObj(cube, rotationAxis, 0.1);
     }
 };
@@ -115,7 +117,7 @@ function calculateRotationAxis(cursorData) {
     let rotationAxis = new THREE.Vector3();
     rotationAxis.crossVectors(cursorData.prev.toVector3(), cursorData.current.toVector3());
     return rotationAxis.normalize();
-}
+};
 
 function getObjCoord(obj) {
     return obj.getWorldPosition();
