@@ -11,6 +11,8 @@ canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
+const rayscaster = new THREE.Raycaster();
+
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 let timeStart = Date.now();
 
@@ -44,13 +46,16 @@ let cursorData = {
     },
     toWorldPosition: function(x, y) {
         let canvasRect = canvas.getBoundingClientRect();
-        let worldPosition = new THREE.Vector3();
+        let worldPosition = new THREE.Vector2();
 
         //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
         worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
-
-        worldPosition.unproject(camera);
+        
+        rayscaster.setFromCamera(worldPosition, camera);
+        //let intersect = rayscaster.intersectObjects(scene.children);
+        //alert(intersect.point);
+        //worldPosition.unproject(camera);
         worldPosition.z = unprojectZ(worldPosition.x, worldPosition.y);
         return worldPosition;
     }
