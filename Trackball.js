@@ -18,6 +18,7 @@ const raycaster = new THREE.Raycaster();
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 let currentCursorPosition = new THREE.Vector3();
 let prevCursorPosition = new THREE.Vector3();
+let rotationAxis = new THREE.Vector3();
 
 function updateCursorPosition(x, y) {
     prevCursorPosition.copy(currentCursorPosition);
@@ -176,7 +177,7 @@ function mouseDownListener(event) {
 function mouseMoveListener(event) {
     if(tracking) {
         updateCursorPosition(event.clientX, event.clientY);
-        let rotationAxis = calculateRotationAxis(cursorData);
+        rotationAxis = calculateRotationAxis();
         let v1 = prevCursorPosition;
         let v2 = currentCursorPosition;
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
@@ -187,8 +188,7 @@ function mouseMoveListener(event) {
 };
 
 
-function calculateRotationAxis(cursorData) {
-    let rotationAxis = new THREE.Vector3();
+function calculateRotationAxis() {
     rotationAxis.crossVectors(prevCursorPosition, currentCursorPosition);
     return rotationAxis.normalize();
 };
