@@ -33,6 +33,7 @@ function updateCursorPosition(x, y) {
     //let intersect = raycaster.intersectObject(scene, true);
     //alert(intersect[0].point);
     currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
+    currentCursorPosition.normalize();
 };
 
 //struttura dati che mantiene le coordinate correnti e precedenti del cursore
