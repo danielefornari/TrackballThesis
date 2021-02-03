@@ -1,6 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
@@ -31,9 +31,13 @@ function CursorData() {
         //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
         self.cursorScreenPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         self.cursorScreenPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
-        raycaster.setFromCamera(self.cursorScreenPosition , camera);
-        let intersect = raycaster.intersectObjects(scene, true);
-        self.current = intersect[0].point;
+        //raycaster.setFromCamera(self.cursorScreenPosition , camera);
+        //let intersect = raycaster.intersectObjects(scene, true);
+        //self.current = intersect[0].point;
+        self.current.x = self.cursorScreenPosition.x;
+        self.current.y = self.cursorScreenPosition.y;
+        self.current.z = 0.5;
+        self.current.unproject(camera);
                 
         self.current.z = unprojectZ(self.current.x, self.current.y);
     };
