@@ -30,7 +30,7 @@ function updateCursorPosition(x, y) {
     //currentCursorPosition.unproject(camera);
     let v = new THREE.Vector2(currentCursorPosition.x, currentCursorPosition.y);
     raycaster.setFromCamera(v, camera);
-    let intersect = raycaster.intersectObjects(scene, true);
+    let intersect = raycaster.intersectObject(scene, true);
     alert(intersect[0].point);
     currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
 };
