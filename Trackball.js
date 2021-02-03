@@ -29,7 +29,7 @@ function updateCursorPosition(x, y) {
     currentCursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
     currentCursorPosition.setZ(0);
     currentCursorPosition.unproject(camera);
-    currentCursorPosition.normalize();
+    //currentCursorPosition.normalize();
 
     //let v = new THREE.Vector2(currentCursorPosition.x, currentCursorPosition.y);
     //raycaster.setFromCamera(v, camera);
