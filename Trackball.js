@@ -9,11 +9,11 @@ const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
+canvas.addEventListener('mouseleave', mouseUpListener);
 
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
-let timeStart = Date.now();
 
 //struttura dati che mantiene le coordinate correnti e precedenti del cursore
 let cursorData = {
@@ -121,18 +121,15 @@ function mouseUpListener() {
 
 function mouseDownListener(event) {
     cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
-    timeStart = Date.now();
     tracking = true;
 };
 
 function mouseMoveListener(event) {
-    let currentTime = Date.now();
-    if(tracking && currentTime - timeStart >= 33) {
+    if(tracking) {
         cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
         let rotationAxis = calculateRotationAxis(cursorData);
         let v1 = cursorData.prev.toVector3();
         let v2 = cursorData.current.toVector3();
-        timeStart = currentTime;
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
