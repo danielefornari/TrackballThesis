@@ -111,8 +111,10 @@ function mouseMoveListener(event) {
     if(tracking && currentTime - timeStart >= 100) {
         cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
         let rotationAxis = calculateRotationAxis(cursorData);
-        paragraph.innerHTML= "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z+" Vector1: "+cursorData.prev.x+ ", "+cursorData.prev.y+", "+cursorData.prev.z+
-        " Vector2: "+cursorData.current.x+", "+cursorData.current.y+", "+cursorData.current.z;
+        let v1 = cursorData.prev.toVector3();
+        let v2 = cursorData.current.toVector3();
+        paragraph.innerHTML= "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z+" Vector1: "+v1.x+ ", "+v1.y+", "+v1.z+
+        " Vector2: "+v2.x+", "+v2.y+", "+v2.z;
         rotateObj(cube, rotationAxis, 0.1);
     }
 };
