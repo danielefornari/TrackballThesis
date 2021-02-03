@@ -3,7 +3,9 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 //import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
-const paragraph = document.getElementById("testParagraph");
+const rotationAxisParagraph = document.getElementById("rotationAxis");
+const cursor1Paragraph = document.getElementById("cursor1Paragraph");
+const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
@@ -31,14 +33,10 @@ let cursorData = {
         }
     },
     updateCursorPositions: function(x, y, canvas) {
-        //let canvasRect = canvas.getBoundingClientRect();
         this.prev.x = this.current.x;
         this.prev.y = this.current.y;
         this.prev.z = this.current.z;
-        //let v = new THREE.Vector3(x, y, 2);
-        //v.unproject(camera);
-        //this.current.x = x - canvasRect.left;
-        //this.current.y = y - canvasRect.top;
+
         let cursorWorldPosition = this.toWorldPosition(x, y, canvas);
         this.current.x = cursorWorldPosition.x;
         this.current.y = cursorWorldPosition.y;
@@ -48,10 +46,10 @@ let cursorData = {
         let canvasRect = canvas.getBoundingClientRect();
         let worldPosition = new THREE.Vector3();
 
-        //coordinate del cursore rispetto al canvas con valori tra [-1, 1]
+        //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
         worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
-        
+
         worldPosition.unproject(camera);
         worldPosition.z = unprojectZ(worldPosition.x, worldPosition.y);
         return worldPosition;
@@ -134,8 +132,9 @@ function mouseMoveListener(event) {
         let v1 = cursorData.prev.toVector3();
         let v2 = cursorData.current.toVector3();
         timeStart = currentTime;
-        paragraph.innerHTML= "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z+" Vector1: "+v1.x+ ", "+v1.y+", "+v1.z+
-        " Vector2: "+v2.x+", "+v2.y+", "+v2.z;
+        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+        cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
+        cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
         rotateObj(cube, rotationAxis, 0.1);
     }
 };
