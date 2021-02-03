@@ -23,7 +23,7 @@ function CursorData() {
     this.current = new THREE.Vector3();
     this.prev = new THREE.Vector3();
     this.updateCursorPositions = function(x, y) {
-        self.prev = self.current;
+        self.prev.copy(self.current);
         self.cursorScreenPosition.x = x;
         self.cursorScreenPosition.y = y;
         let canvasRect = canvas.getClientRects();
