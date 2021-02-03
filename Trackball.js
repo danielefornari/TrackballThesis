@@ -42,16 +42,18 @@ let cursorData = {
         let cursorWorldPosition = this.toWorldPosition(x, y, canvas);
         this.current.x = cursorWorldPosition.x;
         this.current.y = cursorWorldPosition.y;
-        cursorWorldPosition.unproject(camera);
-        this.current.z = unprojectZ(cursorWorldPosition.x ,cursorWorldPosition.y);
+        this.current.z = cursorWorldPosition.z;
     },
     toWorldPosition: function(x, y) {
         let canvasRect = canvas.getBoundingClientRect();
-        worldPosition = new THREE.Vector3();
+        let worldPosition = new THREE.Vector3();
 
         //coordinate del cursore rispetto al canvas con valori tra [-1, 1]
         worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
+        
+        worldPosition.unproject(camera);
+        worldPosition.z = unprojectZ(worldPosition.x, worldPosition.y);
         return worldPosition;
     }
 };
