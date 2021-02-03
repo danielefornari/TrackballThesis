@@ -3,7 +3,7 @@ import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 //import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
-const rotationAxisParagraph = document.getElementById("rotationAxis");
+const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
 const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 canvas.addEventListener('mouseup', mouseUpListener);
