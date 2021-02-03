@@ -175,7 +175,7 @@ function mouseDownListener(event) {
 
 function mouseMoveListener(event) {
     if(tracking) {
-        cursorData.updateCursorPosition(event.clientX, event.clientY);
+        updateCursorPosition(event.clientX, event.clientY);
         let rotationAxis = calculateRotationAxis(cursorData);
         let v1 = prevCursorPosition;
         let v2 = currentCursorPosition;
