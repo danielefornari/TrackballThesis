@@ -16,9 +16,9 @@ const raycaster = new THREE.Raycaster();
 
 
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
-let currentCursorPosition = new THREE.Vector3();
-let prevCursorPosition = new THREE.Vector3();
-let rotationAxis = new THREE.Vector3();
+let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore in world space
+let prevCursorPosition = new THREE.Vector3();   //posizione precedente del cursore in world space
+let rotationAxis = new THREE.Vector3(); //asse di rotazione
 
 function updateCursorPosition(x, y) {
     prevCursorPosition.copy(currentCursorPosition);
@@ -27,7 +27,8 @@ function updateCursorPosition(x, y) {
     //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
     currentCursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
     currentCursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
-    //currentCursorPosition.unproject(camera);
+    alert(currentCursorPosition.x);
+    currentCursorPosition.unproject(camera);
     currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
 };
 
