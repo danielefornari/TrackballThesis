@@ -21,9 +21,8 @@ let prevCursorPosition = new THREE.Vector3();   //posizione precedente del curso
 let rotationAxis = new THREE.Vector3(); //asse di rotazione
 
 function updateCursorPosition(x, y) {
-    alert(x);
     prevCursorPosition.copy(currentCursorPosition);
-    let canvasRect = canvas.getClientRects();
+    let canvasRect = canvas.getBoundingClientRect();
 
     //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
     currentCursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
