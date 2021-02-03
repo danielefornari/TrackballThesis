@@ -1,6 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
@@ -27,7 +27,7 @@ function updateCursorPosition(x, y) {
     //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
     currentCursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
     currentCursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
-    currentCursorPosition.unproject(camera);
+    //currentCursorPosition.unproject(camera);
     currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
 };
 
@@ -177,7 +177,7 @@ function mouseDownListener(event) {
 function mouseMoveListener(event) {
     if(tracking) {
         updateCursorPosition(event.clientX, event.clientY);
-        rotationAxis = calculateRotationAxis();
+        calculateRotationAxis(prevCursorPosition, currentCursorPosition);
         let v1 = prevCursorPosition;
         let v2 = currentCursorPosition;
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
@@ -188,9 +188,9 @@ function mouseMoveListener(event) {
 };
 
 
-function calculateRotationAxis() {
-    rotationAxis.crossVectors(prevCursorPosition, currentCursorPosition);
-    return rotationAxis.normalize();
+function calculateRotationAxis(vec1, vec2) {
+    rotationAxis.crossVectors(vec1, vec2);
+    rotationAxis.normalize();
 };
 
 function getObjCoord(obj) {
