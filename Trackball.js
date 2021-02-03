@@ -11,7 +11,6 @@ canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
-const rayscaster = new THREE.Raycaster();
 
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 let timeStart = Date.now();
