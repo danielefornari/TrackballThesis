@@ -14,7 +14,6 @@ canvas.addEventListener('mouseleave', mouseUpListener);
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 const raycaster = new THREE.Raycaster();
 
-
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore in world space
 let prevCursorPosition = new THREE.Vector3();   //posizione precedente del cursore in world space
@@ -27,8 +26,7 @@ function updateCursorPosition(x, y) {
     //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
     currentCursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
     currentCursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
-    currentCursorPosition.unproject(camera);
-    //currentCursorPosition.normalize();
+    //currentCursorPosition.unproject(camera);
 
     /*let v = new THREE.Vector2(currentCursorPosition.x, currentCursorPosition.y);
     raycaster.setFromCamera(v, camera);
@@ -39,83 +37,7 @@ function updateCursorPosition(x, y) {
         currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
     }*/
     currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
-    currentCursorPosition.normalize();
 };
-
-//struttura dati che mantiene le coordinate correnti e precedenti del cursore
-/*class CursorData {
-    constructor() {
-        let self = this;
-        this.cursorScreenPosition = new THREE.Vector2();
-        this.current = new THREE.Vector3();
-        this.prev = new THREE.Vector3();
-        this.updateCursorPositions = function (x, y) {
-            self.prev.copy(self.current);
-            self.cursorScreenPosition.x = x;
-            self.cursorScreenPosition.y = y;
-            let canvasRect = canvas.getClientRects();
-
-            //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
-            self.cursorScreenPosition.x = ((x - canvasRect.left) / canvasRect.width) * 2 - 1;
-            self.cursorScreenPosition.y = ((y - canvasRect.top) / canvasRect.height) * 2 - 1;
-            //raycaster.setFromCamera(self.cursorScreenPosition , camera);
-            //let intersect = raycaster.intersectObjects(scene, true);
-            //self.current = intersect[0].point;
-            self.current.x = self.cursorScreenPosition.x;
-            self.current.y = self.cursorScreenPosition.y;
-            self.current.z = 0.5;
-            self.current.unproject(camera);
-
-            self.current.z = unprojectZ(self.current.x, self.current.y);
-            self.prev.x = 2;
-        };
-    }
-};*/
-
-//let cursorData = new CursorData();
-/*let cursorData = {
-    current: {
-        x:0,
-        y:0,
-        z:0,
-        toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, this.z);
-        }
-    },
-    prev: {
-        x:0,
-        y:0,
-        z:0,
-        toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, this.z);
-        }
-    },
-    updateCursorPositions: function(cursorScreenPosition) {
-        this.prev.x = this.current.x;
-        this.prev.y = this.current.y;
-        this.prev.z = this.current.z;
-
-        let cursorWorldPosition = this.toWorldPosition(cursorScreenPosition);
-        this.current.x = cursorWorldPosition.x;
-        this.current.y = -cursorWorldPosition.y;
-        this.current.z = cursorWorldPosition.z;
-    },
-    toWorldPosition: function(cursorWorldPosition) {
-        let canvasRect = canvas.getBoundingClientRect();
-
-        //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
-        cursorWorldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
-        cursorWorldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
-        raycaster.setFromCamera(cursorWorldPosition, camera);
-        let intersect = raycaster.intersectObjects(scene.children, true);
-        worldPosition = intersect.point;
-        
-        //worldPosition.unproject(camera);
-        worldPosition.z = unprojectZ(worldPosition.x, worldPosition.y);
-        return worldPosition;
-    }
-};*/
-
 
 //camera
 let cameraOptions = {
@@ -223,7 +145,7 @@ function unprojectZ(x, y) {
         return Math.sqrt(radius2-(x2+y2));
     }
     else {
-        return (radius2/2)/Math.sqrt(x2+y2);
+        return (radius2/2)/(Math.sqrt(x2+y2));
     }
 };
 
