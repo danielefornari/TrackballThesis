@@ -1,5 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import { Vector3 } from 'three';
+//import { Vector3 } from 'three';
 
 //import * as THREE from 'three';
 
