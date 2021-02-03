@@ -18,14 +18,14 @@ let cursorData = {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, 0);
+            return new THREE.Vector3(this.x, this.y, unproject(this.x, this.y));
         }
     },
     prev: {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, 0);
+            return new THREE.Vector3(this.x, this.y, unproject(this.x, this.y));
         }
     },
     updateCursorPositions: function(x, y, canvas) {
@@ -135,6 +135,19 @@ function rotateObj(obj, axis, degrees) {
     resizeRenderer();
     renderer.render(scene, camera);
 };
+
+function unproject(x, y) {
+    let radius = 2;
+    let x2 = Math.pow(x, 2);
+    let y2 = Math.pow(y, 2);
+    let radius2 = Math.pow(radius, 2)
+    if(x2+y2 <= radius2/2) {
+        return Math.sqrt(radius2-(x2+y2));
+    }
+    else {
+        return (radius2/2)/Math.sqrt(x2+y2);
+    }
+}
 
 
 function keyDownListener(event) {
