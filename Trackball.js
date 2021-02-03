@@ -108,7 +108,7 @@ function mouseDownListener(event) {
 
 function mouseMoveListener(event) {
     let currentTime = Date.now();
-    if(tracking && currentTime - timeStart >= 500) {
+    if(tracking && currentTime - timeStart >= 1500) {
         cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
         let rotationAxis = calculateRotationAxis(cursorData);
         let v1 = cursorData.prev.toVector3();
