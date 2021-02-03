@@ -25,7 +25,7 @@ let cursorData = {
     },
     prev: {
         x:0,
-        y:0,65
+        y:0,
         z:0,
         toVector3: function() {
             return new THREE.Vector3(this.x, this.y, this.z);
