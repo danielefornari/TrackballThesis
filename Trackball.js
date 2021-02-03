@@ -27,11 +27,11 @@ function updateCursorPosition(x, y) {
     //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
     currentCursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
     currentCursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
-    //currentCursorPosition.unproject(camera);
-    let v = new THREE.Vector2(currentCursorPosition.x, currentCursorPosition.y);
-    raycaster.setFromCamera(v, camera);
-    let intersect = raycaster.intersectObject(scene, true);
-    alert(intersect[0].point);
+    currentCursorPosition.unproject(camera);
+    //let v = new THREE.Vector2(currentCursorPosition.x, currentCursorPosition.y);
+    //raycaster.setFromCamera(v, camera);
+    //let intersect = raycaster.intersectObject(scene, true);
+    //alert(intersect[0].point);
     currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
 };
 
