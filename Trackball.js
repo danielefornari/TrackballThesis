@@ -1,6 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
@@ -18,22 +18,23 @@ let tracking = false;   //indica se sto eseguendo il tracking del cursore del mo
 
 //struttura dati che mantiene le coordinate correnti e precedenti del cursore
 function CursorData() {
+    let self = this;
     this.cursorScreenPosition = new THREE.Vector2();
     this.current = new THREE.Vector3();
     this.prev = new THREE.Vector3();
     this.updateCursorPositions = function(x, y) {
-        cursorScreenPosition.x = x;
-        cursorScreenPosition.y = y;
+        self.cursorScreenPosition.x = x;
+        self.cursorScreenPosition.y = y;
         let canvasRect = canvas.getClientRects();
 
         //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
-        cursorScreenPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
-        cursorScreenPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
+        self.cursorScreenPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
+        self.cursorScreenPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
         raycaster.setFromCamera(screenPosition, camera);
         let intersect = raycaster.intersectObjects(scene.children, true);
-        this.current = intersect.point;
+        self.current = intersect.point;
                 
-        this.current.z = unprojectZ(this.current.x, this.current.y);
+        self.current.z = unprojectZ(this.current.x, this.current.y);
     };
 };
 
