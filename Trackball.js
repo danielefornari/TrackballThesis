@@ -14,10 +14,24 @@ canvas.addEventListener('mouseleave', mouseUpListener);
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 const raycaster = new THREE.Raycaster();
 
+
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
+let currentCursorPosition = new THREE.Vector3();
+let prevCursorPosition = new THREE.Vector3();
+
+function updateCursorPosition(x, y) {
+    prevCursorPosition.copy(currentCursorPosition);
+    let canvasRect = canvas.getClientRects();
+
+    //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
+    currentCursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
+    currentCursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
+    currentCursorPosition.unproject(camera);
+    currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
+};
 
 //struttura dati che mantiene le coordinate correnti e precedenti del cursore
-class CursorData {
+/*class CursorData {
     constructor() {
         let self = this;
         this.cursorScreenPosition = new THREE.Vector2();
@@ -44,7 +58,7 @@ class CursorData {
             self.prev.x = 2;
         };
     }
-};
+};*/
 
 let cursorData = new CursorData();
 /*let cursorData = {
@@ -155,16 +169,16 @@ function mouseUpListener() {
 function mouseDownListener(event) {
     //cursorScreenPosition.x = event.clientX;
     //cursorScreenPosition.y = event.clientY;
-    cursorData.updateCursorPositions(event.clientX, event.clientY);
+    updateCursorPosition(event.clientX, event.clientY);
     tracking = true;
 };
 
 function mouseMoveListener(event) {
     if(tracking) {
-        cursorData.updateCursorPositions(event.clientX, event.clientY);
+        cursorData.updateCursorPosition(event.clientX, event.clientY);
         let rotationAxis = calculateRotationAxis(cursorData);
-        let v1 = cursorData.prev;
-        let v2 = cursorData.current;
+        let v1 = prevCursorPosition;
+        let v2 = currentCursorPosition;
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
@@ -175,7 +189,7 @@ function mouseMoveListener(event) {
 
 function calculateRotationAxis(cursorData) {
     let rotationAxis = new THREE.Vector3();
-    rotationAxis.crossVectors(cursorData.prev, cursorData.current);
+    rotationAxis.crossVectors(prevCursorPosition, currentCursorPosition);
     return rotationAxis.normalize();
 };
 
