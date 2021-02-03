@@ -1,4 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import { Vector3 } from 'three';
 
 //import * as THREE from 'three';
 
@@ -24,20 +25,24 @@ let cursorData = {
     },
     prev: {
         x:0,
-        y:0,
+        y:0,65
         z:0,
         toVector3: function() {
             return new THREE.Vector3(this.x, this.y, this.z);
         }
     },
     updateCursorPositions: function(x, y, canvas) {
-        let canvasRect = canvas.getBoundingClientRect();
+        //let canvasRect = canvas.getBoundingClientRect();
         this.prev.x = this.current.x;
         this.prev.y = this.current.y;
         this.prev.z = this.current.z
-        this.current.x = x - canvasRect.left;
-        this.current.y = y - canvasRect.top;
-        this.current.z = unproject(this.current.x, this.current.y);
+        let v = new Vector3(x, y, 2);
+        v.unproject(camera);
+        //this.current.x = x - canvasRect.left;
+        //this.current.y = y - canvasRect.top;
+        this.current.x = v.x;
+        this.current.y = v.y
+        this.current.z = unproject(v.x, v.y);
     }
 };
 
