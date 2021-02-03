@@ -51,8 +51,6 @@ let cursorData = {
         worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
         
-        //let intersect = rayscaster.intersectObjects(scene.children);
-        //alert(intersect.point);
         //worldPosition.unproject(camera);
         worldPosition.z = unprojectZ(worldPosition.x, worldPosition.y);
         return worldPosition;
