@@ -19,14 +19,14 @@ let cursorData = {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, 0.1).multiplyScalar(8);
+            return new THREE.Vector3(this.x, this.y, 2).normalize();
         }
     },
     prev: {
         x:0,
         y:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, 0.1).multiplyScalar(8);
+            return new THREE.Vector3(this.x, this.y, 2).normalize;
         }
     },
     updateCursorPositions: function(x, y, canvas) {
@@ -120,8 +120,8 @@ function mouseMoveListener(event) {
 
 function calculateRotationAxis(cursorData) {
     let rotationAxis = new THREE.Vector3();
-    //rotationAxis.crossVectors(cursorData.prev.toVector3(), cursorData.current.toVector3());
-    rotationAxis.crossVectors(new THREE.Vector3(1, 0.5, 0), new THREE.Vector3(0.5, 0, 1))
+    rotationAxis.crossVectors(cursorData.prev.toVector3(), cursorData.current.toVector3());
+    //rotationAxis.crossVectors(new THREE.Vector3(1, 0.5, 0), new THREE.Vector3(0.5, 0, 1))
     return rotationAxis.normalize();
 };
 
