@@ -52,7 +52,7 @@ const near = 0.1
 const far = 5;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-camera.position.z = 4;
+camera.position.z = 2;
 
 //scene
 const scene = new THREE.Scene();
@@ -147,7 +147,7 @@ function unproject(x, y) {
     else {
         return (radius2/2)/Math.sqrt(x2+y2);
     }
-}
+};
 
 
 function keyDownListener(event) {
