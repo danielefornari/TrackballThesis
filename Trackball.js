@@ -51,6 +51,7 @@ let cursorData = {
         //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
         worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
+        raycaster.setFromCamera(camera);
         let intersect = raycaster.intersectObjects(scene.children, true);
         worldPosition = intersect.point;
         
