@@ -17,31 +17,33 @@ const raycaster = new THREE.Raycaster();
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 
 //struttura dati che mantiene le coordinate correnti e precedenti del cursore
-function CursorData() {
-    let self = this;
-    this.cursorScreenPosition = new THREE.Vector2();
-    this.current = new THREE.Vector3();
-    this.prev = new THREE.Vector3();
-    this.updateCursorPositions = function(x, y) {
-        self.prev.copy(self.current);
-        self.cursorScreenPosition.x = x;
-        self.cursorScreenPosition.y = y;
-        let canvasRect = canvas.getClientRects();
+class CursorData {
+    constructor() {
+        let self = this;
+        this.cursorScreenPosition = new THREE.Vector2();
+        this.current = new THREE.Vector3();
+        this.prev = new THREE.Vector3();
+        this.updateCursorPositions = function (x, y) {
+            self.prev.copy(self.current);
+            self.cursorScreenPosition.x = x;
+            self.cursorScreenPosition.y = y;
+            let canvasRect = canvas.getClientRects();
 
-        //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
-        self.cursorScreenPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
-        self.cursorScreenPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
-        //raycaster.setFromCamera(self.cursorScreenPosition , camera);
-        //let intersect = raycaster.intersectObjects(scene, true);
-        //self.current = intersect[0].point;
-        self.current.x = self.cursorScreenPosition.x;
-        self.current.y = self.cursorScreenPosition.y;
-        self.current.z = 0.5;
-        self.current.unproject(camera);
-                
-        self.current.z = unprojectZ(self.current.x, self.current.y);
-        self.prev.x = 2;
-    };
+            //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
+            self.cursorScreenPosition.x = ((x - canvasRect.left) / canvasRect.width) * 2 - 1;
+            self.cursorScreenPosition.y = ((y - canvasRect.top) / canvasRect.height) * 2 - 1;
+            //raycaster.setFromCamera(self.cursorScreenPosition , camera);
+            //let intersect = raycaster.intersectObjects(scene, true);
+            //self.current = intersect[0].point;
+            self.current.x = self.cursorScreenPosition.x;
+            self.current.y = self.cursorScreenPosition.y;
+            self.current.z = 0.5;
+            self.current.unproject(camera);
+
+            self.current.z = unprojectZ(self.current.x, self.current.y);
+            self.prev.x = 2;
+        };
+    }
 };
 
 let cursorData = new CursorData();
