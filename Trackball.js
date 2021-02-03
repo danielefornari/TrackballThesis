@@ -17,7 +17,28 @@ const raycaster = new THREE.Raycaster();
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 
 //struttura dati che mantiene le coordinate correnti e precedenti del cursore
-let cursorData = {
+function CursorData() {
+    this.cursorScreenPosition = new THREE.Vector2();
+    this.current = new THREE.Vector3();
+    this.prev = new THREE.Vector3();
+    this.updateCursorPositions = function(x, y) {
+        cursorScreenPosition.x = x;
+        cursorScreenPosition.y = y;
+        let canvasRect = canvas.getClientRects();
+
+        //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
+        cursorScreenPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
+        cursorScreenPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
+        raycaster.setFromCamera(screenPosition, camera);
+        let intersect = raycaster.intersectObjects(scene.children, true);
+        this.current = intersect.point;
+                
+        this.current.z = unprojectZ(this.current.x, this.current.y);
+    };
+};
+
+let cursorData = new CursorData();
+/*let cursorData = {
     current: {
         x:0,
         y:0,
@@ -34,24 +55,23 @@ let cursorData = {
             return new THREE.Vector3(this.x, this.y, this.z);
         }
     },
-    updateCursorPositions: function(x, y, canvas) {
+    updateCursorPositions: function(cursorScreenPosition) {
         this.prev.x = this.current.x;
         this.prev.y = this.current.y;
         this.prev.z = this.current.z;
 
-        let cursorWorldPosition = this.toWorldPosition(x, y, canvas);
+        let cursorWorldPosition = this.toWorldPosition(cursorScreenPosition);
         this.current.x = cursorWorldPosition.x;
         this.current.y = -cursorWorldPosition.y;
         this.current.z = cursorWorldPosition.z;
     },
-    toWorldPosition: function(x, y) {
+    toWorldPosition: function(cursorWorldPosition) {
         let canvasRect = canvas.getBoundingClientRect();
-        let worldPosition = new THREE.Vector2();
 
         //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
-        worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
-        worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
-        raycaster.setFromCamera(camera);
+        cursorWorldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
+        cursorWorldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
+        raycaster.setFromCamera(cursorWorldPosition, camera);
         let intersect = raycaster.intersectObjects(scene.children, true);
         worldPosition = intersect.point;
         
@@ -59,7 +79,7 @@ let cursorData = {
         worldPosition.z = unprojectZ(worldPosition.x, worldPosition.y);
         return worldPosition;
     }
-};
+};*/
 
 
 //camera
@@ -124,16 +144,18 @@ function mouseUpListener() {
 };
 
 function mouseDownListener(event) {
-    cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
+    //cursorScreenPosition.x = event.clientX;
+    //cursorScreenPosition.y = event.clientY;
+    cursorData.updateCursorPositions(event.clientX, event.clientY);
     tracking = true;
 };
 
 function mouseMoveListener(event) {
     if(tracking) {
-        cursorData.updateCursorPositions(event.clientX, event.clientY, canvas);
+        cursorData.updateCursorPositions(event.clientX, event.clientY);
         let rotationAxis = calculateRotationAxis(cursorData);
-        let v1 = cursorData.prev.toVector3();
-        let v2 = cursorData.current.toVector3();
+        let v1 = cursorData.prev;
+        let v2 = cursorData.current;
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
