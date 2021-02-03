@@ -121,7 +121,7 @@ function mouseMoveListener(event) {
 function calculateRotationAxis(cursorData) {
     let rotationAxis = new THREE.Vector3();
     //rotationAxis.crossVectors(cursorData.prev.toVector3(), cursorData.current.toVector3());
-    rotationAxis.crossVectors(new Vector3(1, 0, 0), new Vector3(-1, 0, 0))
+    rotationAxis.crossVectors(new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0))
     return rotationAxis.normalize();
 };
 
