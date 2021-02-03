@@ -137,7 +137,7 @@ function rotateObj(obj, axis, degrees) {
 };
 
 function unproject(x, y) {
-    let radius = 2;
+    let radius = 1;
     let x2 = Math.pow(x, 2);
     let y2 = Math.pow(y, 2);
     let radius2 = Math.pow(radius, 2)
