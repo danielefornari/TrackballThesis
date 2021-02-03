@@ -32,7 +32,7 @@ function CursorData() {
         self.cursorScreenPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         self.cursorScreenPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
         raycaster.setFromCamera(self.cursorScreenPosition , camera);
-        let intersect = raycaster.intersectObjects(scene.children, true);
+        let intersect = raycaster.intersectObjects(scene, true);
         self.current = intersect[0].point;
                 
         self.current.z = unprojectZ(self.current.x, self.current.y);
