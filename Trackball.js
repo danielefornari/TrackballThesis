@@ -1,6 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 const paragraph = document.getElementById("testParagraph");
@@ -34,14 +34,25 @@ let cursorData = {
         //let canvasRect = canvas.getBoundingClientRect();
         this.prev.x = this.current.x;
         this.prev.y = this.current.y;
-        this.prev.z = this.current.z
-        let v = new THREE.Vector3(x, y, 2);
-        v.unproject(camera);
+        this.prev.z = this.current.z;
+        //let v = new THREE.Vector3(x, y, 2);
+        //v.unproject(camera);
         //this.current.x = x - canvasRect.left;
         //this.current.y = y - canvasRect.top;
-        this.current.x = v.x;
-        this.current.y = v.y
-        this.current.z = unproject(v.x, v.y);
+        let cursorWorldPosition = this.toWorldPosition(x, y, canvas);
+        this.current.x = cursorWorldPosition.x;
+        this.current.y = cursorWorldPosition.y;
+        cursorWorldPosition.unproject(camera);
+        this.current.z = unprojectZ(cursorWorldPosition.x ,cursorWorldPosition.y);
+    },
+    toWorldPosition: function(x, y) {
+        let canvasRect = canvas.getBoundingClientRect();
+        worldPosition = new THREE.Vector3();
+
+        //coordinate del cursore rispetto al canvas con valori tra [-1, 1]
+        worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
+        worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
+        return worldPosition;
     }
 };
 
@@ -144,7 +155,7 @@ function rotateObj(obj, axis, degrees) {
     renderer.render(scene, camera);
 };
 
-function unproject(x, y) {
+function unprojectZ(x, y) {
     let radius = 1;
     let x2 = Math.pow(x, 2);
     let y2 = Math.pow(y, 2);
