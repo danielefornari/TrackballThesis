@@ -34,7 +34,7 @@ function CursorData() {
         let intersect = raycaster.intersectObjects(scene.children, true);
         self.current = intersect.point;
                 
-        self.current.z = unprojectZ(this.current.x, this.current.y);
+        self.current.z = unprojectZ(self.current.x, self.current.y);
     };
 };
 
