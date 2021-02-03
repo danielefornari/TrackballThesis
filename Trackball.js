@@ -1,5 +1,4 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-import { Vector3 } from 'three';
 
 //import * as THREE from 'three';
 
@@ -36,7 +35,7 @@ let cursorData = {
         this.prev.x = this.current.x;
         this.prev.y = this.current.y;
         this.prev.z = this.current.z
-        let v = new Vector3(x, y, 2);
+        let v = new THREE.Vector3(x, y, 2);
         v.unproject(camera);
         //this.current.x = x - canvasRect.left;
         //this.current.y = y - canvasRect.top;
