@@ -41,7 +41,7 @@ let cursorData = {
 
         let cursorWorldPosition = this.toWorldPosition(x, y, canvas);
         this.current.x = cursorWorldPosition.x;
-        this.current.y = cursorWorldPosition.y;
+        this.current.y = -cursorWorldPosition.y;
         this.current.z = cursorWorldPosition.z;
     },
     toWorldPosition: function(x, y) {
@@ -75,7 +75,7 @@ const near = 0.1
 const far = 5;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
-camera.position.z = 2;
+camera.position.z = -2;
 
 //scene
 const scene = new THREE.Scene();
