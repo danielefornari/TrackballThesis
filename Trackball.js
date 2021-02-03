@@ -60,7 +60,7 @@ function updateCursorPosition(x, y) {
     }
 };*/
 
-let cursorData = new CursorData();
+//let cursorData = new CursorData();
 /*let cursorData = {
     current: {
         x:0,
