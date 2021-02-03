@@ -1,6 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
@@ -12,6 +12,7 @@ canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mouseleave', mouseUpListener);
 
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
+const raycaster = new THREE.Raycaster();
 
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 
@@ -50,6 +51,8 @@ let cursorData = {
         //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
         worldPosition.x = ((x-canvasRect.left)/canvasRect.width)*2-1;
         worldPosition.y = ((y-canvasRect.top)/canvasRect.height)*2-1;
+        let intersect = raycaster.intersectObjects(scene.children, true);
+        worldPosition = intersect.point;
         
         //worldPosition.unproject(camera);
         worldPosition.z = unprojectZ(worldPosition.x, worldPosition.y);
