@@ -36,7 +36,8 @@ function updateCursorPosition(x, y) {
     let intersect = raycaster.intersectObject(scene, true);
     //alert(intersect[0].point);
     if(intersect.length > 0) {
-        currentCursorPosition.copy(intersect[0].point)
+        currentCursorPosition.copy(intersect[0].point);
+        alert(currentCursorPosition.x);
         currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
     }
     //currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
