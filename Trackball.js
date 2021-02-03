@@ -40,6 +40,7 @@ function CursorData() {
         self.current.unproject(camera);
                 
         self.current.z = unprojectZ(self.current.x, self.current.y);
+        self.prev.x = 2;
     };
 };
 
