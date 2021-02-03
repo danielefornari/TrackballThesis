@@ -17,23 +17,27 @@ let cursorData = {
     current: {
         x:0,
         y:0,
+        z:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, unproject(this.x, this.y));
+            return new THREE.Vector3(this.x, this.y, this.z);
         }
     },
     prev: {
         x:0,
         y:0,
+        z:0,
         toVector3: function() {
-            return new THREE.Vector3(this.x, this.y, unproject(this.x, this.y));
+            return new THREE.Vector3(this.x, this.y, this.z);
         }
     },
     updateCursorPositions: function(x, y, canvas) {
         let canvasRect = canvas.getBoundingClientRect();
         this.prev.x = this.current.x;
         this.prev.y = this.current.y;
+        this.prev.z = this.current.z
         this.current.x = x - canvasRect.left;
         this.current.y = y - canvasRect.top;
+        this.current.z = unproject(this.current.x, this.current.y);
     }
 };
 
