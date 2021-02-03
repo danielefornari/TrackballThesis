@@ -123,15 +123,15 @@ function mouseMoveListener(event) {
 
 function calculateRotationAxis(vec1, vec2) {
     rotationAxis.crossVectors(vec1, vec2);
-    rotationAxis.normalize();
+    //rotationAxis.normalize();
 };
 
 function getObjCoord(obj) {
     return obj.getWorldPosition();
 };
 
-function rotateObj(obj, axis, degrees) {
-    cube.rotateOnWorldAxis(axis, degrees);
+function rotateObj(obj, axis, rad) {
+    cube.rotateOnWorldAxis(axis, rad);
     resizeRenderer();
     renderer.render(scene, camera);
 };
