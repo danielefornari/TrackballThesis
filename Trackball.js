@@ -15,8 +15,8 @@ const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dice
 const raycaster = new THREE.Raycaster();
 
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
-let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore in world space
-let prevCursorPosition = new THREE.Vector3();   //posizione precedente del cursore in world space
+let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore
+let prevCursorPosition = new THREE.Vector3();   //posizione precedente del cursore
 let rotationAxis = new THREE.Vector3(); //asse di rotazione
 
 function updateCursorPosition(x, y) {
@@ -116,7 +116,7 @@ function mouseMoveListener(event) {
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-        rotateObj(cube, rotationAxis, 0.05);
+        rotateObj(cube, rotationAxis, 0.8);
     }
 };
 
