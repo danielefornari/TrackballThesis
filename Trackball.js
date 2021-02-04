@@ -109,10 +109,12 @@ function mouseDownListener(event) {
     //cursorScreenPosition.x = event.clientX;
     //cursorScreenPosition.y = event.clientY;
     if(cube.quaternion == "undefined") {
-        cube.quaternion = new THREE.Quaternion().identity();
+        quatState = new THREE.Quaternion().identity();
+    }
+    else {
+        cube.quaternion.copy(quatState);
     }
 
-    cube.quaternion.copy(quatState);
     startCursorPosition = getCursorPosition(event.clientX, event.clientY);
     tracking = true;
 };
@@ -143,8 +145,8 @@ function getObjCoord(obj) {
 function rotateObj(obj, axis, rad) {
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
-    cube.quaternion = quatState;
-    cube.quaternion.premultiply(quat);
+    quat.multiply(quatState);
+    cube.matrix.makeRotationFromQuaternion(quat);
     //cube.rotateOnWorldAxis(axis, rad);
     resizeRenderer();
     renderer.render(scene, camera);
