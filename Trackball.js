@@ -112,7 +112,8 @@ function mouseDownListener(event) {
         quatState = new THREE.Quaternion().identity();
     }
     else {
-        cube.quaternion.copy(quatState);
+        //cube.quaternion.copy(quatState);
+        quatState.copy(cube.quaternion);
     }
 
     startCursorPosition = getCursorPosition(event.clientX, event.clientY);
