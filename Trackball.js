@@ -108,7 +108,7 @@ function mouseUpListener() {
 function mouseDownListener(event) {
     //cursorScreenPosition.x = event.clientX;
     //cursorScreenPosition.y = event.clientY;
-    if(cube.quaternion == undefined) {
+    if(cube.quaternion == "undefined") {
         cube.quaternion.identity();
     }
 
