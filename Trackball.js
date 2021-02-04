@@ -21,7 +21,6 @@ let rotationAxis = new THREE.Vector3(); //asse di rotazione
 let quatState = new THREE.Quaternion();
 
 function getCursorPosition(x, y) {
-    //prevCursorPosition.copy(currentCursorPosition);
     let canvasRect = canvas.getBoundingClientRect();
 
     //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
@@ -30,18 +29,6 @@ function getCursorPosition(x, y) {
     cursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
     cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y));
     return cursorPosition;
-
-    //currentCursorPosition.unproject(camera);
-
-    /*let v = new THREE.Vector2(currentCursorPosition.x, currentCursorPosition.y);
-    raycaster.setFromCamera(v, camera);
-    let intersect = raycaster.intersectObject(scene, true);
-    //alert(intersect[0].point);
-    if(intersect.length > 0) {
-        currentCursorPosition.copy(intersect[0].point);
-        currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
-    }*/
-    //currentCursorPosition.setZ(unprojectZ(currentCursorPosition.x, currentCursorPosition.y));
 };
 
 //camera
@@ -106,8 +93,6 @@ function mouseUpListener() {
 };
 
 function mouseDownListener(event) {
-    //cursorScreenPosition.x = event.clientX;
-    //cursorScreenPosition.y = event.clientY;
     if(cube.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
     }
@@ -148,6 +133,7 @@ function rotateObj(obj, axis, rad) {
     quat.setFromAxisAngle(axis, 0.5);
     quat.multiply(quatState);
     cube.matrix.makeRotationFromQuaternion(quat);
+    cube.updateMatrix();
     //cube.rotateOnWorldAxis(axis, rad);
     resizeRenderer();
     renderer.render(scene, camera);
