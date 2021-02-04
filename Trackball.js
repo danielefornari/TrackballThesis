@@ -1,6 +1,6 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-//import * as THREE from 'three';
+import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
@@ -137,7 +137,10 @@ function getObjCoord(obj) {
 };
 
 function rotateObj(obj, axis, rad) {
-    cube.quaternion.setFromAxisAngle(axis, rad);
+    let quat = THREE.Quaternion();
+    quat.setFromAxisAngle(axis, rad);
+    cube.quaternion = quatState;
+    cube.quaternion.premultiply(quat);
     //cube.rotateOnWorldAxis(axis, rad);
     resizeRenderer();
     renderer.render(scene, camera);
