@@ -109,7 +109,7 @@ function mouseDownListener(event) {
     //cursorScreenPosition.x = event.clientX;
     //cursorScreenPosition.y = event.clientY;
     if(cube.quaternion == "undefined") {
-        cube.quaternion.identity();
+        cube.quaternion = new THREE.Quaternion().identity();
     }
 
     cube.quaternion.copy(quatState);
@@ -141,7 +141,7 @@ function getObjCoord(obj) {
 };
 
 function rotateObj(obj, axis, rad) {
-    let quat = THREE.Quaternion();
+    let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
     cube.quaternion = quatState;
     cube.quaternion.premultiply(quat);
