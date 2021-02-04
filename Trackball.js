@@ -1,6 +1,6 @@
-//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 
-import * as THREE from 'three';
+//import * as THREE from 'three';
 
 const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
@@ -122,7 +122,7 @@ function mouseMoveListener(event) {
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-        rotateObj(cube, rotationAxis, v1.distanceTo(v2));
+        rotateObj(cube, rotationAxis, v1.angleTo(v2));
     }
 };
 
