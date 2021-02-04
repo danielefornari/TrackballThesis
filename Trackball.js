@@ -130,7 +130,7 @@ function getObjCoord(obj) {
 
 function rotateObj(obj, axis, rad) {
     let quat = new THREE.Quaternion();
-    quat.setFromAxisAngle(axis, 0.5);
+    quat.setFromAxisAngle(axis, rad);
     quat.multiply(quatState);
     //cube.matrix.applyQuaternion(quat);
     cube.applyQuaternion(quat);
