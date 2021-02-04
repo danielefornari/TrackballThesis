@@ -123,7 +123,7 @@ function mouseMoveListener(event) {
 
 function calculateRotationAxis(vec1, vec2) {
     rotationAxis.crossVectors(vec1, vec2);
-    rotationAxis.normalize();
+    rotationAxis = rotationAxis.normalize();
 };
 
 function getObjCoord(obj) {
