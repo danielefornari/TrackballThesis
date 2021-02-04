@@ -108,6 +108,10 @@ function mouseUpListener() {
 function mouseDownListener(event) {
     //cursorScreenPosition.x = event.clientX;
     //cursorScreenPosition.y = event.clientY;
+    if(cube.quaternion == undefined) {
+        cube.quaternion.identity();
+    }
+
     cube.quaternion.copy(quatState);
     startCursorPosition = getCursorPosition(event.clientX, event.clientY);
     tracking = true;
