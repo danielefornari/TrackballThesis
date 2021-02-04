@@ -18,7 +18,7 @@ let tracking = false;   //indica se sto eseguendo il tracking del cursore del mo
 let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore
 let startCursorPosition = new THREE.Vector3();   //posizione iniziale del cursore
 let rotationAxis = new THREE.Vector3(); //asse di rotazione
-let quatState;
+let quatState = new THREE.Quaternion();
 
 function getCursorPosition(x, y) {
     //prevCursorPosition.copy(currentCursorPosition);
