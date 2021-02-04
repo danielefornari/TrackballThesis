@@ -132,8 +132,7 @@ function rotateObj(obj, axis, rad) {
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, 0.5);
     quat.multiply(quatState);
-    cube.matrix.makeRotationFromQuaternion(quat);
-    cube.updateMatrix();
+    cube.matrix.applyQuaternion(quat);
     //cube.rotateOnWorldAxis(axis, rad);
     resizeRenderer();
     renderer.render(scene, camera);
