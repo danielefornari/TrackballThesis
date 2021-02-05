@@ -10,37 +10,19 @@ canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mouseleave', mouseUpListener);
+window.addEventListener('keydown', keyDownListener);
 
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
-const raycaster = new THREE.Raycaster();
 
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore
 let startCursorPosition = new THREE.Vector3();   //posizione iniziale del cursore
 let rotationAxis = new THREE.Vector3(); //asse di rotazione
-let quatState = new THREE.Quaternion();
-
-function getCursorPosition(x, y) {
-    let canvasRect = canvas.getBoundingClientRect();
-
-    //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
-    let cursorPosition = new THREE.Vector3();
-    cursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
-    cursorPosition.setY(((y - canvasRect.top) / canvasRect.height) * 2 - 1);
-    cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y));
-    return cursorPosition;
-};
+let quatState = new THREE.Quaternion(); //valore del quaternione al momento del click del mouse
 
 //camera
-let cameraOptions = {
-    fov: 75,
-    aspect: 2,
-    near: 0.1,
-    far: 5
-};
-
 const fov = 75;
-const aspect = 2;
+const aspect = canvas.clientWidth/canvas.clientHeight;
 const near = 0.1
 const far = 5;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
@@ -65,27 +47,13 @@ const boxDepth = 1;
 const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
 //material
-//const boxMaterial = new THREE.MeshBasicMaterial({color: 0x44aa88});   //non è affetto dalle luci
 const boxMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
 
 //mesh
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 
 scene.add(cube);
-
-function resizeRenderer() {
-    const canvas = renderer.domElement;
-    const canvasWidth = canvas.clientWidth;
-    const canvasHeight = canvas.clientHeight;
-
-    if(canvas.width != canvasWidth || canvas.height != canvasHeight)
-    {
-        renderer.setSize(canvasWidth, canvasHeight, false);
-    }
-};
-
-resizeRenderer();
-renderer.render(scene, camera);
+renderScene(renderer, scene, camera);
 
 //listeners
 function mouseUpListener() {
@@ -97,7 +65,6 @@ function mouseDownListener(event) {
         quatState = new THREE.Quaternion().identity();
     }
     else {
-        //cube.quaternion.copy(quatState);
         quatState.copy(cube.quaternion);
     }
 
@@ -109,14 +76,24 @@ function mouseMoveListener(event) {
     if(tracking) {
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY);
         calculateRotationAxis(startCursorPosition, currentCursorPosition);
-        let v1 = startCursorPosition;
-        let v2 = currentCursorPosition;
+        let v1 = startCursorPosition.clone();
+        let v2 = currentCursorPosition.clone();
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-        rotateObj(cube, rotationAxis, v1.angleTo(v2));
+        rotateObj(cube, rotationAxis, v1.sub(v2).length()/0.5);
     }
 };
+
+function keyDownListener(event) {
+    if(event.key == "r") {
+        let v1 = startCursorPosition.clone();
+        let v2 = startCursorPosition.clone();
+        calculateRotationAxis(currentCursorPosition, startCursorPosition);
+        rotateObj(cube, rotationAxis, v2.sub(v1).length()/0.5);
+    }
+}
+
 
 
 function calculateRotationAxis(vec1, vec2) {
@@ -124,60 +101,59 @@ function calculateRotationAxis(vec1, vec2) {
     rotationAxis = rotationAxis.normalize();
 };
 
+//restituisce le coordinate x, y, z del cursore normalizzate
+function getCursorPosition(x, y) {
+    let canvasRect = canvas.getBoundingClientRect();
+
+    //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
+    let cursorPosition = new THREE.Vector3();
+    cursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
+    cursorPosition.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
+    cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y));
+    return cursorPosition;
+};
+
 function getObjCoord(obj) {
     return obj.getWorldPosition();
+};
+
+function renderScene(renderer, scene, camera) {
+    resizeRenderer(renderer);
+    renderer.render(scene, camera);
+}
+
+function resizeRenderer(renderer) {
+    const canvas = renderer.domElement;
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
+
+    if(canvas.width != canvasWidth || canvas.height != canvasHeight)
+    {
+        renderer.setSize(canvasWidth, canvasHeight, false);
+    }
 };
 
 function rotateObj(obj, axis, rad) {
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
     quat.multiply(quatState);
-    //cube.matrix.applyQuaternion(quat);
-    cube.applyQuaternion(quat);
-    //cube.rotateOnWorldAxis(axis, rad);
-    resizeRenderer();
-    renderer.render(scene, camera);
+    cube.setRotationFromQuaternion(quat);
+    renderScene(renderer, scene, camera);
 };
 
 function unprojectZ(x, y) {
-    let radius = 1;
+    let radius = 0.5;
+
     let x2 = Math.pow(x, 2);
     let y2 = Math.pow(y, 2);
     let radius2 = Math.pow(radius, 2);
+
     if(x2+y2 <= radius2/2) {
+        boxMaterial.color.setHex(0xFF0000);
         return Math.sqrt(radius2-(x2+y2));
     }
     else {
+        boxMaterial.color.setHex(0x44aa88);
         return (radius2/2)/(Math.sqrt(x2+y2));
     }
 };
-
-
-function keyDownListener(event) {
-    const rotationSpeed = 2;
-    switch (event.key) {
-        case "ArrowUp":
-            cube.rotateX(-rotationSpeed)
-            break;
-
-        case "ArrowDown":
-            cube.rotateX(rotationSpeed);
-            break;
-
-        case "ArrowLeft":
-            cube.rotateY(-rotationSpeed);
-            break;
-
-        case "ArrowRight":
-            cube.rotateY(rotationSpeed);
-            break;
-   
-        default:
-            alert("default");
-            break;
-    }
-    resizeRenderer();
-    renderer.render(scene, camera);
-};
-
-window.addEventListener('keydown', keyDownListener);
