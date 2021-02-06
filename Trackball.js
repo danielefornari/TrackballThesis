@@ -10,7 +10,6 @@ canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mouseleave', mouseUpListener);
-window.addEventListener('keydown', keyDownListener);
 
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 const group = new THREE.Group();
@@ -118,15 +117,6 @@ function mouseMoveListener(event) {
         rotateObj(cube, rotationAxis, v1.angleTo(v2))
     }
 };
-
-function keyDownListener(event) {
-    if(event.key == "r") {
-        let v1 = startCursorPosition.clone();
-        let v2 = startCursorPosition.clone();
-        calculateRotationAxis(currentCursorPosition, startCursorPosition);
-        rotateObj(cube, rotationAxis, v2.sub(v1).length()/0.5);
-    }
-}
 
 
 
