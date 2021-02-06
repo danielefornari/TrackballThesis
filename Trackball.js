@@ -49,8 +49,8 @@ const left = canvas.clientWidth/-2;
 const right = canvas.clientWidth/2;
 const top = canvas.clientHeight/2;
 const bottom = canvas.clientHeight/-2;
-const near = -1000;
-const far = 1000;
+const near = -300;
+const far = 300;
 const camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
 
 camera.position.z = 2;
