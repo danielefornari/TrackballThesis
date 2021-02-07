@@ -26,6 +26,7 @@ manager.on("panup pandown panleft panright", panManager);
 manager.on("pressup", pressUpManager);
 
 function pressUpManager(event) {
+    alert("pressup");
     tracking = false;
 }
 
