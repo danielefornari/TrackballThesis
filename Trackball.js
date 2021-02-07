@@ -10,6 +10,9 @@ canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mouseleave', mouseUpListener);
+canvas.addEventListener('touchend', mouseUpListener, false);
+canvas.addEventListener('touchstart', mouseDownListener, false);
+canvas.addEventListener('touchmove', mouseMoveListener, false);
 
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 const group = new THREE.Group();
