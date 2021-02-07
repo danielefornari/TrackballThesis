@@ -23,7 +23,7 @@ let quatState = new THREE.Quaternion(); //valore del quaternione al momento del 
 const manager = new Hammer(canvas);
 manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
 manager.on("panup pandown panleft panright", panManager);
-manager.on("panstart", panStartManager())
+manager.on("panstart", panStartManager);
 manager.on("panend", function panEnd() {
     tracking = false;
 });
