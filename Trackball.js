@@ -23,39 +23,35 @@ let quatState = new THREE.Quaternion(); //valore del quaternione al momento del 
 const manager = new Hammer(canvas);
 manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
 manager.on("panup pandown panleft panright", panManager);
-manager.on("panend", panEndManager);
-
-function panEndManager(event) {
-    alert("pressup");
+manager.on("panstart", panStartManager())
+manager.on("panend", function panEnd() {
     tracking = false;
-}
+});
+
+function panStartManager(event) {
+    let center = event.center;
+    if(group.quaternion == "undefined") {
+        quatState = new THREE.Quaternion().identity();
+    }
+    else {
+        quatState.copy(group.quaternion);
+    }
+    startCursorPosition = getCursorPosition(center.x, center.y);
+    tracking = true;
+    tracking = false;
+};
 
 function panManager(event) {
     let center = event.center;
-
-    if(event.isFirst)
-
-    if(!tracking) {
-        if(group.quaternion == "undefined") {
-            quatState = new THREE.Quaternion().identity();
-        }
-        else {
-            quatState.copy(group.quaternion);
-        }
-        startCursorPosition = getCursorPosition(center.x, center.y);
-        tracking = true;
-    }
-    else {
-        currentCursorPosition = getCursorPosition(center.x, center.y);
-        calculateRotationAxis(startCursorPosition, currentCursorPosition);
-        let v1 = startCursorPosition.clone();
-        let v2 = currentCursorPosition.clone();
-        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-        cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
-        cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-        //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(canvas.clientHeight/3));
-        rotateObj(cube, rotationAxis, v1.angleTo(v2))
-    }
+    currentCursorPosition = getCursorPosition(center.x, center.y);
+    calculateRotationAxis(startCursorPosition, currentCursorPosition);
+    let v1 = startCursorPosition.clone();
+    let v2 = currentCursorPosition.clone();
+    rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+    cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
+    cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
+    //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(canvas.clientHeight/3));
+    rotateObj(cube, rotationAxis, v1.angleTo(v2))
 };
 
 
