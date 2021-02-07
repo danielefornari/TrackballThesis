@@ -1,6 +1,8 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
 //import * as THREE from 'three';
+//import * as HAMMERJS from 'hammerjs';
 
 const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
@@ -11,14 +13,54 @@ canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mouseleave', mouseUpListener);
 
-const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
-const group = new THREE.Group();
-
 let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
 let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore
 let startCursorPosition = new THREE.Vector3();   //posizione iniziale del cursore
 let rotationAxis = new THREE.Vector3(); //asse di rotazione
 let quatState = new THREE.Quaternion(); //valore del quaternione al momento del click del mouse
+
+
+const manager = new Hammer(canvas);
+manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+manager.on("panup pandown panleft panright", panManager);
+manager.on("pressup", pressUpManager());
+
+function pressUpManager(event) {
+    tracking = false;
+}
+
+function panManager(event) {
+    let center = event.center;
+    startCursorPosition = getCursorPosition(center.x, center.y);
+
+    if(!tracking) {
+        if(group.quaternion == "undefined") {
+            quatState = new THREE.Quaternion().identity();
+        }
+        else {
+            quatState.copy(group.quaternion);
+        }
+        tracking = true;
+    }
+    else {
+        currentCursorPosition = getCursorPosition(center.x, center.y);
+        calculateRotationAxis(startCursorPosition, currentCursorPosition);
+        let v1 = startCursorPosition.clone();
+        let v2 = currentCursorPosition.clone();
+        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+        cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
+        cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
+        //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(canvas.clientHeight/3));
+        rotateObj(cube, rotationAxis, v1.angleTo(v2))
+    }
+};
+
+
+
+const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
+const group = new THREE.Group();
+
+
 
 //i gizmo per la rotazione
 //geometry
