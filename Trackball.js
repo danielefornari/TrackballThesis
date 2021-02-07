@@ -31,7 +31,6 @@ function pressUpManager(event) {
 
 function panManager(event) {
     let center = event.center;
-    startCursorPosition = getCursorPosition(center.x, center.y);
 
     if(!tracking) {
         if(group.quaternion == "undefined") {
@@ -40,6 +39,7 @@ function panManager(event) {
         else {
             quatState.copy(group.quaternion);
         }
+        startCursorPosition = getCursorPosition(center.x, center.y);
         tracking = true;
     }
     else {
