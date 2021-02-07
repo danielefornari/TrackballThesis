@@ -23,14 +23,14 @@ let quatState = new THREE.Quaternion(); //valore del quaternione al momento del 
 //i gizmo per la rotazione
 //geometry
 const radiusOut = canvas.clientHeight/3;
-const radiusIn = radiusOut+3;
+const radiusIn = radiusOut+2;
 const segments = 40;
 const ringGeometry = new THREE.RingGeometry(radiusOut, radiusIn, segments);
 
 //material
-const ringMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00, side:THREE.DoubleSide});
-const ringMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000, side:THREE.DoubleSide});
-const ringMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF, side:THREE.DoubleSide});
+const ringMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00, side:THREE.DoubleSide, linewidth: 2});
+const ringMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000, side:THREE.DoubleSide, linewidth: 2});
+const ringMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF, side:THREE.DoubleSide, linewidth: 2});
 
 //mesh
 const ringX = new THREE.Mesh(ringGeometry, ringMaterialX);
@@ -44,10 +44,11 @@ const near = 0.1
 const far = 5;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);*/
 
-const left = canvas.clientWidth/-2;
-const right = canvas.clientWidth/2;
-const top = canvas.clientHeight/2;
-const bottom = canvas.clientHeight/-2;
+let canvasRect = getCanvasRect(renderer);
+const left = canvasRect.width/-2; //754, 377
+const right = canvasRect.width/2;
+const top = canvasRect.height/2;
+const bottom = canvasRect.height/-2;
 const near = -300;
 const far = 300;
 const camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
@@ -127,18 +128,22 @@ function calculateRotationAxis(vec1, vec2) {
 
 //restituisce le coordinate x, y, z del cursore normalizzate
 function getCursorPosition(x, y) {
-    let canvasRect = canvas.getBoundingClientRect();
+    let canvasRect = getCanvasRect(renderer);
 
     //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
     let cursorPosition = new THREE.Vector3();
     /*cursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
     cursorPosition.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
     cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y));*/
-    cursorPosition.setX((x-canvas.clientLeft)-canvas.clientWidth/2);
-    cursorPosition.setY(((canvas.clientHeight-canvas.clientTop)-y)-canvas.clientHeight/2);
+    cursorPosition.setX((x-canvasRect.left)-canvasRect.width/2);
+    cursorPosition.setY((canvasRect.bottom-y)-canvasRect.height/2);
     cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y));
     return cursorPosition;
 };
+
+function getCanvasRect(renderer) {
+    return renderer.domElement.getBoundingClientRect();
+}
 
 function getObjCoord(obj) {
     return obj.getWorldPosition();
@@ -153,11 +158,16 @@ function resizeRenderer(renderer) {
     const canvas = renderer.domElement;
     const canvasWidth = canvas.clientWidth;
     const canvasHeight = canvas.clientHeight;
+    const canvasRect = getCanvasRect(renderer);
 
-    if(canvas.width != canvasWidth || canvas.height != canvasHeight)
+    if(canvas.width != canvasRect.width || canvas.height != canvasRect.height) {
+        renderer.setSize(canvasRect.width, canvasRect.height, false);
+    }
+
+    /*if(canvas.width != canvasWidth || canvas.height != canvasHeight)
     {
         renderer.setSize(canvasWidth, canvasHeight, false);
-    }
+    }*/
 };
 
 function rotateObj(obj, axis, rad) {
@@ -172,7 +182,7 @@ function unprojectZ(x, y) {
     //provare a calcolare la z tenendo conto di dove cade x/y all'interno del raggio
     //una sfera è composta da tanti cerchi verticali di raggi diversi (0 alle estremità, uguale al raggio della sfera al centro)
     //let radius = 0.5;
-    let radius = canvas.clientHeight/3;
+    let radius = getCanvasRect(renderer).height/3;
 
     let x2 = Math.pow(x, 2);
     let y2 = Math.pow(y, 2);
@@ -185,7 +195,8 @@ function unprojectZ(x, y) {
     }
     else {
         boxMaterial.color.setHex(0x616161);
-        return (radius2/2)/(Math.sqrt(x2+y2));
+        //return (radius2/2)/(Math.sqrt(x2+y2));
+        return 0;
     }
     /*if(x2+y2 <= radius2/2) {
         boxMaterial.color.setHex(0xFF0000);
