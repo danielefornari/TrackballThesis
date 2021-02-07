@@ -72,7 +72,7 @@ const boxDepth = 200;
 const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
 //material
-const boxMaterial = new THREE.MeshPhongMaterial({color: 0x44aa88});
+const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
 
 //mesh
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
