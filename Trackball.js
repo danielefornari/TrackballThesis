@@ -45,7 +45,7 @@ const far = 5;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);*/
 
 let canvasRect = getCanvasRect(renderer);
-const left = canvasRect.width/-2; //754, 377
+const left = canvasRect.width/-2;
 const right = canvasRect.width/2;
 const top = canvasRect.height/2;
 const bottom = canvasRect.height/-2;
@@ -179,9 +179,6 @@ function rotateObj(obj, axis, rad) {
 };
 
 function unprojectZ(x, y) {
-    //provare a calcolare la z tenendo conto di dove cade x/y all'interno del raggio
-    //una sfera è composta da tanti cerchi verticali di raggi diversi (0 alle estremità, uguale al raggio della sfera al centro)
-    //let radius = 0.5;
     let radius = getCanvasRect(renderer).height/3;
 
     let x2 = Math.pow(x, 2);
