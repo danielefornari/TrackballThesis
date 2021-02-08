@@ -158,8 +158,8 @@ function mouseMoveListener(event) {
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-        //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(canvas.clientHeight/3));
-        rotateObj(cube, rotationAxis, v1.angleTo(v2))
+        //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(getCanvasRect(renderer).height/3));
+        rotateObj(cube, rotationAxis, v1.angleTo(v2));
     }
 };
 
@@ -200,18 +200,16 @@ function renderScene(renderer, scene, camera) {
 
 function resizeRenderer(renderer) {
     const canvas = renderer.domElement;
-    //const canvasWidth = canvas.clientWidth;
-    //const canvasHeight = canvas.clientHeight;
+    const canvasWidth = canvas.clientWidth;
+    const canvasHeight = canvas.clientHeight;
     const canvasRect = getCanvasRect(renderer);
 
-    if(canvas.width != canvasRect.width || canvas.height != canvasRect.height) {
+    /*if(canvas.width != canvasRect.width || canvas.height != canvasRect.height) {
         renderer.setSize(canvasRect.width, canvasRect.height, false);
-    }
-
-    /*if(canvas.width != canvasWidth || canvas.height != canvasHeight)
-    {
-        renderer.setSize(canvasWidth, canvasHeight, false);
     }*/
+    if(canvas.width != canvasWidth || canvas.height != canvasHeight) {
+        renderer.setSize(canvasWidth, canvasHeight, false);
+    }
 };
 
 function rotateObj(obj, axis, rad) {
@@ -240,11 +238,11 @@ function unprojectZ(x, y) {
         return 0;
     }
     /*if(x2+y2 <= radius2/2) {
-        boxMaterial.color.setHex(0xFF0000);
+        boxMaterial.color.setHex(0xC2C2C2);
         return Math.sqrt(radius2-(x2+y2));
     }
     else {
-        boxMaterial.color.setHex(0x44aa88);
+        boxMaterial.color.setHex(0x616161);
         return (radius2/2)/(Math.sqrt(x2+y2));
     }*/
 };
