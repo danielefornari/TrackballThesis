@@ -159,7 +159,8 @@ function mouseMoveListener(event) {
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-        rotateObj(cube, rotationAxis, v1.sub(v2).normalize().length()/getCanvasRect(renderer).height/3);
+
+        rotateObj(cube, rotationAxis, v1.sub(v2).length()/getCanvasRect(renderer).height/3);
         //rotateObj(cube, rotationAxis, v1.angleTo(v2));
     }
 };
