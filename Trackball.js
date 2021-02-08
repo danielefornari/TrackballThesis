@@ -59,33 +59,6 @@ function panManager(event) {
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 const group = new THREE.Group();
 
-//gizmo per la rotazione
-const curveCenterX = 0;
-const curveCenterY = 0;
-const curveRadius = getCanvasRect(renderer).height/3;
-const curve = new THREE.EllipseCurve(curveCenterX, curveCenterY, curveRadius, curveRadius, 0, Math.PI*2);
-const points = curve.getPoints(50);
-
-//geometry
-const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
-
-//material
-const curveMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00});
-const curveMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000});
-const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF});
-
-//line
-const rotationGizmoX = new THREE.Line(curveGeometry, curveMaterialX);
-const rotationGizmoY = new THREE.Line(curveGeometry, curveMaterialY);
-const rotationGizmoZ = new THREE.Line(curveGeometry, curveMaterialZ);
-
-rotationGizmoX.rotation.x = Math.PI/2;
-rotationGizmoY.rotation.y = Math.PI/2;
-
-group.add(rotationGizmoX);
-group.add(rotationGizmoY);
-group.add(rotationGizmoZ);
-
 //camera
 /*const fov = 75;
 const aspect = canvas.clientWidth/canvas.clientHeight;
@@ -114,11 +87,39 @@ const light = new THREE.DirectionalLight(lightColor, lightIntensity);
 light.position.set(-1, 2, 4);
 scene.add(light);
 
-//il cubo
+//gizmo per la rotazione
+const curveCenterX = 0;
+const curveCenterY = 0;
+const curveRadius = canvasRect.height/3;
+const curve = new THREE.EllipseCurve(curveCenterX, curveCenterY, curveRadius, curveRadius);
+const points = curve.getPoints(50);
+
 //geometry
+const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+
+//material
+const curveMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00});
+const curveMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000});
+const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF});
+
+//line
+const rotationGizmoX = new THREE.Line(curveGeometry, curveMaterialX);
+const rotationGizmoY = new THREE.Line(curveGeometry, curveMaterialY);
+const rotationGizmoZ = new THREE.Line(curveGeometry, curveMaterialZ);
+
+rotationGizmoX.rotation.x = Math.PI/2;
+rotationGizmoY.rotation.y = Math.PI/2;
+
+group.add(rotationGizmoX);
+group.add(rotationGizmoY);
+group.add(rotationGizmoZ);
+
+//il cubo
 const boxWidth = 200;
 const boxHeight = 200;
 const boxDepth = 200;
+
+//geometry
 const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
 //material
