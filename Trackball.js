@@ -59,24 +59,32 @@ function panManager(event) {
 const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
 const group = new THREE.Group();
 
+//gizmo per la rotazione
+const curveCenterX = 0;
+const curveCenterY = 0;
+const curveRadius = getCanvasRect(renderer).height/3;
+const curve = new THREE.EllipseCurve(curveCenterX, curveCenterY, curveRadius, curveRadius, 0, Math.PI*2);
+const points = curve.getPoints(50);
 
-
-//i gizmo per la rotazione
 //geometry
-const radiusOut = canvas.clientHeight/3;
-const radiusIn = radiusOut+2;
-const segments = 40;
-const ringGeometry = new THREE.RingGeometry(radiusOut, radiusIn, segments);
+const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
 //material
-const ringMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00, side:THREE.DoubleSide, linewidth: 2});
-const ringMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000, side:THREE.DoubleSide, linewidth: 2});
-const ringMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF, side:THREE.DoubleSide, linewidth: 2});
+const curveMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00});
+const curveMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000});
+const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF});
 
-//mesh
-const ringX = new THREE.Mesh(ringGeometry, ringMaterialX);
-const ringY = new THREE.Mesh(ringGeometry, ringMaterialY);
-const ringZ = new THREE.Mesh(ringGeometry, ringMaterialZ);
+//line
+const rotationGizmoX = new THREE.Line(curveGeometry, curveMaterialX);
+const rotationGizmoY = new THREE.Line(curveGeometry, curveMaterialY);
+const rotationGizmoZ = new THREE.Line(curveGeometry, curveMaterialZ);
+
+rotationGizmoX.rotation.x = Math.PI/2;
+rotationGizmoY.rotation.y = Math.PI/2;
+
+group.add(rotationGizmoX);
+group.add(rotationGizmoY);
+group.add(rotationGizmoZ);
 
 //camera
 /*const fov = 75;
@@ -119,13 +127,7 @@ const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
 //mesh
 const cube = new THREE.Mesh(boxGeometry, boxMaterial);
 
-ringX.rotation.x = Math.PI/2;
-ringY.rotation.y = Math.PI/2;
-group.add(ringX);
-group.add(ringY);
-group.add(ringZ);
 group.add(cube);
-
 scene.add(group);
 renderScene(renderer, scene, camera);
 
@@ -197,8 +199,8 @@ function renderScene(renderer, scene, camera) {
 
 function resizeRenderer(renderer) {
     const canvas = renderer.domElement;
-    const canvasWidth = canvas.clientWidth;
-    const canvasHeight = canvas.clientHeight;
+    //const canvasWidth = canvas.clientWidth;
+    //const canvasHeight = canvas.clientHeight;
     const canvasRect = getCanvasRect(renderer);
 
     if(canvas.width != canvasRect.width || canvas.height != canvasRect.height) {
