@@ -151,6 +151,7 @@ function mouseDownListener(event) {
 
 function mouseMoveListener(event) {
     if(tracking) {
+        let canvasRect = getCanvasRect(renderer);
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY);
         calculateRotationAxis(startCursorPosition, currentCursorPosition);
         let v1 = startCursorPosition.clone();
@@ -158,8 +159,8 @@ function mouseMoveListener(event) {
         rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
         cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-        //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(getCanvasRect(renderer).height/3));
-        rotateObj(cube, rotationAxis, v1.angleTo(v2));
+        rotateObj(cube, rotationAxis, v1.sub(v2).normalize().length()/getCanvasRect(renderer).height/3);
+        //rotateObj(cube, rotationAxis, v1.angleTo(v2));
     }
 };
 
@@ -227,7 +228,7 @@ function unprojectZ(x, y) {
     let y2 = Math.pow(y, 2);
     let radius2 = Math.pow(radius, 2);
 
-    if(x2+y2 <= radius2) {   
+   /*if(x2+y2 <= radius2) {   
         boxMaterial.color.setHex(0xC2C2C2);
         return Math.sqrt(radius2-(x2+y2));
 
@@ -236,13 +237,13 @@ function unprojectZ(x, y) {
         boxMaterial.color.setHex(0x616161);
         //return (radius2/2)/(Math.sqrt(x2+y2));
         return 0;
-    }
-    /*if(x2+y2 <= radius2/2) {
+    }*/
+    if(x2+y2 <= radius2/2) {
         boxMaterial.color.setHex(0xC2C2C2);
         return Math.sqrt(radius2-(x2+y2));
     }
     else {
         boxMaterial.color.setHex(0x616161);
         return (radius2/2)/(Math.sqrt(x2+y2));
-    }*/
+    }
 };
