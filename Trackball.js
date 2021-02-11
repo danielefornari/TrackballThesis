@@ -8,6 +8,7 @@ const canvas = document.getElementById("myCanvas");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
 const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
+const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
@@ -25,6 +26,7 @@ let startCursorPosition = new THREE.Vector3();   //posizione iniziale del cursor
 let rotationAxis = new THREE.Vector3(); //asse di rotazione
 let obj;    //il modello 3D
 let quatState = new THREE.Quaternion(); //valore del quaternione al momento del click del mouse
+let canvasRect = getCanvasRect(renderer);
 
 
 const manager = new Hammer(canvas);
@@ -54,7 +56,7 @@ function panManager(event) {
     calculateRotationAxis(startCursorPosition, currentCursorPosition);
     let v1 = startCursorPosition.clone();
     let v2 = currentCursorPosition.clone();
-    rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+    //rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
     cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
     cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
     //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(canvas.clientHeight/3));
@@ -63,25 +65,26 @@ function panManager(event) {
 
 
 //camera
-/*const fov = 75;
+const fov = 45;
 const aspect = canvas.clientWidth/canvas.clientHeight;
-const near = 0.1
-const far = 5;
-const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);*/
+const near = 1;
+const far = 2000;
+const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+camera.position.z = sphereRadius*4;
 
-let canvasRect = getCanvasRect(renderer);
-const left = canvasRect.width/-2;
+/*const left = canvasRect.width/-2;
 const right = canvasRect.width/2;
 const top = canvasRect.height/2;
 const bottom = canvasRect.height/-2;
-const near = -300;
-const far = 300;
+const near = 0.1;
+const far = 2000;
 const camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
-
-camera.position.z = 2;
+camera.position.z = 400;*/
 
 //scene
 const scene = new THREE.Scene();
+scene.add(camera);
+
 
 //luce
 const lightColor = 0xFFFFFF;
@@ -93,9 +96,9 @@ scene.add(light);
 makeGizmos(group);
 
 //il cubo
-const boxWidth = 200;
-const boxHeight = 200;
-const boxDepth = 200;
+const boxWidth = canvasRect.height/4;
+const boxHeight = canvasRect.height/4;
+const boxDepth = canvasRect.height/4;
 
 //geometry
 const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
@@ -198,12 +201,15 @@ function makeGizmos(group) {
 function getCursorPosition(x, y) {
     let canvasRect = getCanvasRect(renderer);
 
-    //coordinate x/y del cursore rispetto al canvas con valori tra [-1, 1]
     let cursorPosition = new THREE.Vector3();
     cursorPosition.setX((x-canvasRect.left)-canvasRect.width/2);
     cursorPosition.setY((canvasRect.bottom-y)-canvasRect.height/2);
-    cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, sphereRadius));
-    return cursorPosition;
+    let worldPosition = unprojection(camera, cursorPosition, new THREE.Vector3(0, 0, 0), sphereRadius);
+    //cursorPosition.setZ(unprojectZ(v.x, v.y, sphereRadius));
+    //cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, sphereRadius));
+    //unprojection(cursorPosition);
+    //return cursorPosition;
+    return worldPosition;
 };
 
 function getCanvasRect(renderer) {
@@ -244,5 +250,55 @@ function unprojectZ(x, y, radius) {
     else {
         boxMaterial.color.setHex(0x616161);
         return (radius2/2)/(Math.sqrt(x2+y2));
+    }
+};
+
+function unprojection(camera, screenSpacePoint, tbCenter, tbRadius) {
+    let r0 = camera.position.clone(); //l'origine del raggio è il punto in cui si trova la camera 
+
+    //dato un punto in screen-space, calcolo il suo corrispondente sul near plane
+    let nearPlanePoint = screenSpacePoint.clone();
+    //coordinate sreen-space x/y del cursore normalizzate
+    nearPlanePoint.x = nearPlanePoint.x/(canvasRect.width/2);
+    nearPlanePoint.y = nearPlanePoint.y/(canvasRect.height/2);
+    nearPlanePoint.z = -1;  //near plane
+    nearPlanePoint.unproject(camera);   //unprojection che mi restituisce le coordinate sul near plane
+
+    //dati i due punti, calcolo il vettore direzione
+    let rDir = new THREE.Vector3(); //il vettore direzione del raggio
+    rDir.subVectors(nearPlanePoint, r0);    //ottengo il vettore direzione
+
+
+    //un punto p sul raggio è determinato da r0+rDir*t
+    //un punto si trova sulla superficie della sfera di raggio r se r^2=length(p)=dot(p, p)
+    //sostituendo si ha: dot(r0+rDir*t, r0+rDir*t)=t^2*dot(rDir, rDir)+2t*dot(r0, rDir)+dot(r0, r0)-r^2=0
+    let a = rDir.dot(rDir);
+    let b = r0.dot(rDir)*2;
+    let c = r0.dot(r0)-Math.pow(tbRadius, 2)/2;
+    let discr = Math.pow(b, 2)-4*a*c;
+    let t;
+    if(discr < 0) {
+        //il raggio non colpisce la sfera, cerco il punto di intersezione con l'iperboloide
+        //equazione iperboloide: x^2+y^2-z^2=1 -> x^2+y^2-z^2-1=0
+        //sostituendo si ha: ((r0.x+rDir.x*t)^2)+((r0.y+rDir.y*t)^2)-((r0.z+rDir.z*t)^2)-1=0
+        //[((rDir.x^2)+(rDir.y)^2-(rDor.z)^2)*t^2]+[(r0.x*rDir.x+r0.y*rDir.y-r0.z*rDir.z)*2t]+[(r0.x^2)+(r0.y^2)-(r0.z^2)-1]=0
+        a = Math.pow(rDir.x, 2)+Math.pow(rDir.y, 2)-Math.pow(rDir.z, 2);
+        b = (r0.x*rDir.x+r0.y*rDir.y-r0.z*rDir.z)*2;
+        c = Math.pow(r0.x, 2)+Math.pow(r0.y, 2)-Math.pow(r0.z, 2)-1;
+        discr = Math.pow(b, 2)-4*a*c;
+        t = (-b+Math.sqrt(discr))/2*a;  //la seconda intersezione
+        rDir.multiplyScalar(t);
+        r0.add(rDir);
+        unprojectionParagraph.innerHTML = "Unprojection: "+r0.x+", "+r0.y+", "+r0.z;
+        return r0;  //va calcolato sull'iperboloide
+    }
+    else {
+        c = r0.dot(r0)-Math.pow(tbRadius, 2);
+        discr = Math.pow(b, 2)-4*a*c;
+        t = (-b-Math.sqrt(discr))/2*a;  //il punto in cui il raggio entra nella sfera
+        rDir.multiplyScalar(t); //trovato t, lo inserisco nella formula del raggio
+        r0.add(rDir);
+        unprojectionParagraph.innerHTML = "Unprojection: "+r0.x+", "+r0.y+", "+r0.z;
+        return r0;
     }
 };
