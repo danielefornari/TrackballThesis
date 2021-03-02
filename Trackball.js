@@ -4,30 +4,33 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 //import * as THREE from 'three';
 //import * as HAMMERJS from 'hammerjs';
 
-const canvas = document.getElementById("myCanvas");
+const canvas = document.getElementById("canvasP");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
 const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
+
+//canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mouseleave', mouseUpListener);
 window.addEventListener('resize', windowResizeListener);
 
-const renderer = new THREE.WebGLRenderer({canvas}); //instanzio il renderer dicendo che lo voglio nel canvas che gli passo
+const renderer = new THREE.WebGLRenderer({canvas});
 const group = new THREE.Group();
+
+//trackball parameters
+const tbCenter = new THREE.Vector3(0, 0, 0);
 const radiusScaleFactor = 3;
+let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
 
-let sphereRadius = calculateRadius(radiusScaleFactor, renderer);
-let tracking = false;   //indica se sto eseguendo il tracking del cursore del mouse
-let currentCursorPosition = new THREE.Vector3();    //posizione corrente del cursore
-let startCursorPosition = new THREE.Vector3();   //posizione iniziale del cursore
-let rotationAxis = new THREE.Vector3(); //asse di rotazione
-let obj;    //il modello 3D
-let quatState = new THREE.Quaternion(); //valore del quaternione al momento del click del mouse
-let canvasRect = getCanvasRect(renderer);
-
+let tracking = false;
+let currentCursorPosition = new THREE.Vector3();
+let startCursorPosition = new THREE.Vector3();
+let rotationAxis = new THREE.Vector3();
+let obj;    //The 3D model
+let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 
 const manager = new Hammer(canvas);
 /*manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
@@ -45,14 +48,14 @@ function panStartManager(event) {
     else {
         quatState.copy(group.quaternion);
     }
-    startCursorPosition = getCursorPosition(center.x, center.y);
+    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     tracking = true;
     tracking = false;
 };
 
 function panManager(event) {
     let center = event.center;
-    currentCursorPosition = getCursorPosition(center.x, center.y);
+    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     calculateRotationAxis(startCursorPosition, currentCursorPosition);
     let v1 = startCursorPosition.clone();
     let v2 = currentCursorPosition.clone();
@@ -70,47 +73,21 @@ const aspect = canvas.clientWidth/canvas.clientHeight;
 const near = 1;
 const far = 2000;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-camera.position.z = sphereRadius*4;
-
-/*const left = canvasRect.width/-2;
-const right = canvasRect.width/2;
-const top = canvasRect.height/2;
-const bottom = canvasRect.height/-2;
-const near = 0.1;
-const far = 2000;
-const camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
-camera.position.z = 400;*/
+camera.position.z = tbRadius*4;
 
 //scene
 const scene = new THREE.Scene();
 scene.add(camera);
 
-
-//luce
+//light
 const lightColor = 0xFFFFFF;
 const lightIntensity = 1;
 const light = new THREE.DirectionalLight(lightColor, lightIntensity);
 light.position.set(-1, 2, 4);
 scene.add(light);
 
-makeGizmos(group);
-
-//il cubo
-const boxWidth = canvasRect.height/4;
-const boxHeight = canvasRect.height/4;
-const boxDepth = canvasRect.height/4;
-
-//geometry
-const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-//material
-const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
-
-//mesh
-const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-obj = cube;
-
-group.add(obj);
+obj = loadObject(renderer.domElement, group);    //load the 3D object
+makeGizmos(tbCenter, tbRadius, group);  //add gizmos
 scene.add(group);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
@@ -127,16 +104,14 @@ function mouseDownListener(event) {
     else {
         quatState.copy(group.quaternion);
     }
-
-    startCursorPosition = getCursorPosition(event.clientX, event.clientY);
+    startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
     tracking = true;
 };
 
 function mouseMoveListener(event) {
     if(tracking) {
-        let canvasRect = getCanvasRect(renderer);
-        currentCursorPosition = getCursorPosition(event.clientX, event.clientY);
-        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+        currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        //rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
         cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
         cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
 
@@ -144,36 +119,58 @@ function mouseMoveListener(event) {
         distanceV.sub(currentCursorPosition);
         let angleV = startCursorPosition.angleTo(currentCursorPosition);
 
-        rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/sphereRadius, angleV));
+        rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+        renderer.render(scene, camera);
     }
 };
 
 function windowResizeListener() {
     resizeRenderer(renderer);
+    tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
+    camera.position.z = tbRadius*4;
+    group.clear();
+    loadObject(renderer.domElement, group);  //replace with scaleObject()
+    makeGizmos(tbCenter, tbRadius, group);
     renderer.render(scene, camera);
-}
+};
 
-
-function calculateRadius(radiusScaleFactor, renderer) {
-    const canvasRect = getCanvasRect(renderer);
+/**
+ * Calculate the trackball radius based on the canvas size and the scaling factor
+ * @param {number} radiusScaleFactor Scaling factor for reducing radius length
+ * @param {HTMLElement} canvas The canvas where the renderer draws its output 
+ * @returns {number} Radius of the trackball
+ */
+function calculateRadius(radiusScaleFactor, canvas) {
+    const canvasRect = canvas.getBoundingClientRect();
     if(canvasRect.height <= canvasRect.width) {
         return canvasRect.height/radiusScaleFactor;
     }
     else {
         return canvasRect.width/radiusScaleFactor;
     }
-}
+};
 
+/**
+ * Calculate the rotation axis as the vector perpendicular vector between two vectors
+ * @param {THREE.Vector3} vec1 The first vector
+ * @param {THREE.Vector3} vec2 The second vector
+ * @returns {THREE.Vector3} The normalized rotation axis
+ */
 function calculateRotationAxis(vec1, vec2) {
     return rotationAxis.crossVectors(vec1, vec2).normalize();
 };
 
-function makeGizmos(group) {
-    //gizmo per la rotazione
-    const curveCenterX = 0;
-    const curveCenterY = 0;
-    const curveRadius = sphereRadius;
-    const curve = new THREE.EllipseCurve(curveCenterX, curveCenterY, curveRadius, curveRadius);
+
+/**
+ * Creates the rotation gizmos with radius equals to the given trackball radius
+ * @param {THREE.Vector3} tbCenter The trackball's center
+ * @param {number} tbRadius The trackball radius
+ * @param {THREE.Group} group The group to add gizmos to
+ */
+function makeGizmos(tbCenter, tbRadius, group) {
+    //rotation gizmos
+
+    const curve = new THREE.EllipseCurve(tbCenter.x, tbCenter.y, tbRadius, tbRadius);
     const points = curve.getPoints(50);
 
     //geometry
@@ -197,29 +194,56 @@ function makeGizmos(group) {
     group.add(rotationGizmoZ);
 };
 
-//restituisce le coordinate x, y, z del cursore normalizzate
-function getCursorPosition(x, y) {
-    let canvasRect = getCanvasRect(renderer);
-
-    let cursorPosition = new THREE.Vector3();
-    cursorPosition.setX((x-canvasRect.left)-canvasRect.width/2);
-    cursorPosition.setY((canvasRect.bottom-y)-canvasRect.height/2);
-    let worldPosition = unprojection(camera, cursorPosition, new THREE.Vector3(0, 0, 0), sphereRadius);
-    //cursorPosition.setZ(unprojectZ(v.x, v.y, sphereRadius));
-    //cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, sphereRadius));
-    //unprojection(cursorPosition);
-    //return cursorPosition;
+/**
+ * Given cursor x/y position within the viewport, return corrensponding position in world space
+ * @param {number} x Cursor x position in screen space 
+ * @param {number} y Cursor y position in screen space
+ * @param {HTMLElement} canvas The canvas where the renderer draws its output
+ * @returns {THREE.Vector3} Cursor position in world space
+ */
+function getCursorPosition(x, y, canvas) {
+    const canvasRect = canvas.getBoundingClientRect();
+    const cursorPosition = new THREE.Vector2();
+    cursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
+    cursorPosition.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
+    let worldPosition = unprojection(camera, cursorPosition, tbCenter, tbRadius);
     return worldPosition;
 };
-
-function getCanvasRect(renderer) {
-    return renderer.domElement.getBoundingClientRect();
-}
 
 function getObjCoord(obj) {
     return obj.getWorldPosition();
 };
 
+/**
+ * load a 3D object and add it to the scene
+ * for testing purpose, builds a cube and add to scene
+ * @param {HTMLElement} canvas The canvas where the renderer draws its output
+ * @param {THREE.Group} group The group to add object to
+ */
+function loadObject(canvas, group) {
+    const canvasRect = canvas.getBoundingClientRect();
+
+    //test cube
+    const boxWidth = canvasRect.height/4;
+    const boxHeight = canvasRect.height/4;
+    const boxDepth = canvasRect.height/4;
+
+    //geometry
+    const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
+
+    //material
+    const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
+
+    //mesh
+    const cube = new THREE.Mesh(boxGeometry, boxMaterial);
+    group.add(cube);
+    return cube;
+}
+
+/**
+ * Set renderer size to correctly match the size of the canvas where renderer is drawing into
+ * @param {THREE.WebGlRenderer} renderer The renderer
+ */
 function resizeRenderer(renderer) {
     const canvas = renderer.domElement;
     const canvasWidth = canvas.clientWidth;
@@ -230,12 +254,17 @@ function resizeRenderer(renderer) {
     }
 };
 
+/**
+ * Rotate an object along given axis by given radians
+ * @param {THREE.Object3D} obj Object to be roteated
+ * @param {THREE.Vector3} axis Rotation axis
+ * @param {number} rad Angle in radians
+ */
 function rotateObj(obj, axis, rad) {
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
     quat.multiply(quatState);
     obj.setRotationFromQuaternion(quat);
-    renderer.render(scene, camera);
 };
 
 function unprojectZ(x, y, radius) {
@@ -253,52 +282,33 @@ function unprojectZ(x, y, radius) {
     }
 };
 
-function unprojection(camera, screenSpacePoint, tbCenter, tbRadius) {
-    let r0 = camera.position.clone(); //l'origine del raggio è il punto in cui si trova la camera 
+/**
+ * Unproject the cursor in screen space into a point in world space on the trackball surface
+ * @param {THREE.Camera} camera The camera
+ * @param {THREE.Vector2} cursor The cursor x/y position in screen space
+ * @param {THREE.Vector3} tbCenter The trackball center
+ * @param {number} tbRadius The trackball radius
+ * @returns {THREE.Vector3} The unprojected cursor coordinates in the trackball surface
+ */
+function unprojection(camera, cursor, tbCenter, tbRadius) {
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(cursor, camera);
+    const ray = raycaster.ray;
+    const r0 = ray.origin;
+    const rDir = ray.direction.normalize();
 
-    //dato un punto in screen-space, calcolo il suo corrispondente sul near plane
-    let nearPlanePoint = screenSpacePoint.clone();
-    //coordinate sreen-space x/y del cursore normalizzate
-    nearPlanePoint.x = nearPlanePoint.x/(canvasRect.width/2);
-    nearPlanePoint.y = nearPlanePoint.y/(canvasRect.height/2);
-    nearPlanePoint.z = -1;  //near plane
-    nearPlanePoint.unproject(camera);   //unprojection che mi restituisce le coordinate sul near plane
+    const t = rDir.dot(new THREE.Vector3().subVectors(tbCenter, r0));
+    const rt = new THREE.Vector3().addVectors(r0, rDir.clone().multiplyScalar(t));
 
-    //dati i due punti, calcolo il vettore direzione
-    let rDir = new THREE.Vector3(); //il vettore direzione del raggio
-    rDir.subVectors(nearPlanePoint, r0);    //ottengo il vettore direzione
+    const x = new THREE.Vector3().subVectors(rt, tbCenter).length();
 
-
-    //un punto p sul raggio è determinato da r0+rDir*t
-    //un punto si trova sulla superficie della sfera di raggio r se r^2=length(p)=dot(p, p)
-    //sostituendo si ha: dot(r0+rDir*t, r0+rDir*t)=t^2*dot(rDir, rDir)+2t*dot(r0, rDir)+dot(r0, r0)-r^2=0
-    let a = rDir.dot(rDir);
-    let b = r0.dot(rDir)*2;
-    let c = r0.dot(r0)-Math.pow(tbRadius, 2)/2;
-    let discr = Math.pow(b, 2)-4*a*c;
-    let t;
-    if(discr < 0) {
-        //il raggio non colpisce la sfera, cerco il punto di intersezione con l'iperboloide
-        //equazione iperboloide: x^2+y^2-z^2=1 -> x^2+y^2-z^2-1=0
-        //sostituendo si ha: ((r0.x+rDir.x*t)^2)+((r0.y+rDir.y*t)^2)-((r0.z+rDir.z*t)^2)-1=0
-        //[((rDir.x^2)+(rDir.y)^2-(rDor.z)^2)*t^2]+[(r0.x*rDir.x+r0.y*rDir.y-r0.z*rDir.z)*2t]+[(r0.x^2)+(r0.y^2)-(r0.z^2)-1]=0
-        a = Math.pow(rDir.x, 2)+Math.pow(rDir.y, 2)-Math.pow(rDir.z, 2);
-        b = (r0.x*rDir.x+r0.y*rDir.y-r0.z*rDir.z)*2;
-        c = Math.pow(r0.x, 2)+Math.pow(r0.y, 2)-Math.pow(r0.z, 2)-1;
-        discr = Math.pow(b, 2)-4*a*c;
-        t = (-b+Math.sqrt(discr))/2*a;  //la seconda intersezione
-        rDir.multiplyScalar(t);
-        r0.add(rDir);
-        unprojectionParagraph.innerHTML = "Unprojection: "+r0.x+", "+r0.y+", "+r0.z;
-        return r0;  //va calcolato sull'iperboloide
+    if(x <= tbRadius) {
+        //intersection with sphere
+        const y = Math.sqrt(Math.pow(tbRadius, 2)-Math.pow(x, 2));
+        const t1 = t-y;
+        return r0.addVectors(r0, rDir.multiplyScalar(t1));
     }
     else {
-        c = r0.dot(r0)-Math.pow(tbRadius, 2);
-        discr = Math.pow(b, 2)-4*a*c;
-        t = (-b-Math.sqrt(discr))/2*a;  //il punto in cui il raggio entra nella sfera
-        rDir.multiplyScalar(t); //trovato t, lo inserisco nella formula del raggio
-        r0.add(rDir);
-        unprojectionParagraph.innerHTML = "Unprojection: "+r0.x+", "+r0.y+", "+r0.z;
-        return r0;
+        //intersection with hyperboloid
     }
 };
