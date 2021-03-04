@@ -11,10 +11,10 @@ const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 
 //canvas events
-canvas.addEventListener('mouseup', mouseUpListener);
+/*canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
-canvas.addEventListener('mouseleave', mouseUpListener);
+canvas.addEventListener('mouseleave', mouseUpListener);*/
 window.addEventListener('resize', windowResizeListener);
 
 const renderer = new THREE.WebGLRenderer({canvas});
@@ -33,14 +33,16 @@ let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 
 const manager = new Hammer(canvas);
-/*manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
 manager.on("panup pandown panleft panright", panManager);
 manager.on("panstart", panStartManager);
 manager.on("panend", function panEnd() {
+    console.log("panEnd");
     tracking = false;
-});*/
+});
 
 function panStartManager(event) {
+    console.log("panStart");
     let center = event.center;
     if(group.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
@@ -48,22 +50,22 @@ function panStartManager(event) {
     else {
         quatState.copy(group.quaternion);
     }
-    startCursorPosition = getCursorPosition(center.x, center.y, render.domElement);
+    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     tracking = true;
-    tracking = false;
 };
 
 function panManager(event) {
+    console.log("onPan");
     let center = event.center;
-    currentCursorPosition = getCursorPosition(center.x, center.y, render.domElement);
-    calculateRotationAxis(startCursorPosition, currentCursorPosition);
-    let v1 = startCursorPosition.clone();
-    let v2 = currentCursorPosition.clone();
+    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    let distanceV = startCursorPosition.clone();
+    distanceV.sub(currentCursorPosition);
+    let angleV = startCursorPosition.angleTo(currentCursorPosition);
     //rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-    cursor1Paragraph.innerHTML = "Vector1: "+v1.x+ ", "+v1.y+", "+v1.z;
-    cursor2Paragraph.innerHTML = "Vector2: "+v2.x+", "+v2.y+", "+v2.z;
-    //rotateObj(cube, rotationAxis, v1.sub(v2).length()/(canvas.clientHeight/3));
-    rotateObj(cube, calculateRotationAxis, v1.angleTo(v2))
+    cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
+    cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
+    rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+    renderer.render(scene, camera);
 };
 
 
