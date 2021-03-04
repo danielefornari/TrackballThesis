@@ -33,7 +33,7 @@ let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 
 const manager = new Hammer(canvas);
-manager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+manager.get('pan').set({direction: Hammer.DIRECTION_ALL, threshold: 0});
 manager.on("panup pandown panleft panright", panManager);
 manager.on("panstart", panStartManager);
 manager.on("panend", function panEnd() {
