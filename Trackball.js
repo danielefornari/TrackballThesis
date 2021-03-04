@@ -267,21 +267,6 @@ function rotateObj(obj, axis, rad) {
     obj.setRotationFromQuaternion(quat);
 };
 
-function unprojectZ(x, y, radius) {
-    let x2 = Math.pow(x, 2);
-    let y2 = Math.pow(y, 2);
-    let radius2 = Math.pow(radius, 2);
-
-    if(x2+y2 <= radius2/2) {
-        boxMaterial.color.setHex(0xC2C2C2);
-        return Math.sqrt(radius2-(x2+y2));
-    }
-    else {
-        boxMaterial.color.setHex(0x616161);
-        return (radius2/2)/(Math.sqrt(x2+y2));
-    }
-};
-
 /**
  * Unproject the cursor in screen space into a point in world space on the trackball surface
  * @param {THREE.Camera} camera The camera
@@ -291,24 +276,47 @@ function unprojectZ(x, y, radius) {
  * @returns {THREE.Vector3} The unprojected cursor coordinates in the trackball surface
  */
 function unprojection(camera, cursor, tbCenter, tbRadius) {
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(cursor, camera);
-    const ray = raycaster.ray;
-    const r0 = ray.origin;
-    const rDir = ray.direction.normalize();
+    const nearPlanePoint = new THREE.Vector3(cursor.x, cursor.y, -1);
+    nearPlanePoint.unproject(camera);   //unproject cursor on near plane
+    const r0 = camera.position.clone(); //vector origin
+    const rDir = new THREE.Vector3().subVectors(nearPlanePoint, r0).normalize() ;    //direction vector
+    const hitPoint = new THREE.Vector2();   //intersesction point between the unprojected ray and the trackball surface
+    const radius2 = Math.pow(tbRadius, 2);
 
-    const t = rDir.dot(new THREE.Vector3().subVectors(tbCenter, r0));
-    const rt = new THREE.Vector3().addVectors(r0, rDir.clone().multiplyScalar(t));
+    //for intersection with trackball's surface, consider 2D axes (X', Y') instead of 3D (X, Y, Z)
+    //Y' = Z
+    //X' = asse lungo cui si sviluppa la distanza dal centro della trackball al punto sulla sfera su Z=0
+    const h = nearPlanePoint.z - camera.position.z; //distance from camera to the point on near plane along Y' axis
+    const l = Math.sqrt(Math.pow(nearPlanePoint.x, 2)+Math.pow(nearPlanePoint.y, 2));   //distance from camera to the point on near plane along X' axis
 
-    const x = new THREE.Vector3().subVectors(rt, tbCenter).length();
+    const m = h/l;
+    const q = camera.position.z;
 
-    if(x <= tbRadius) {
+    let a = Math.pow(m, 2)+1;
+    let b = 2*m*q;
+    let c = Math.pow(q, 2)-radius2;
+    let delta = Math.pow(b, 2)-(4*a*c);
+
+    if(delta >= 0) {
         //intersection with sphere
-        const y = Math.sqrt(Math.pow(tbRadius, 2)-Math.pow(x, 2));
-        const t1 = t-y;
-        return r0.addVectors(r0, rDir.multiplyScalar(t1));
+        hitPoint.x = (-b-Math.sqrt(delta))/(2*a);
+        hitPoint.y = m*hitPoint.x+q;
+        let angle = hitPoint.angle()*180/Math.PI;
+        if(angle >= 45) {
+            //if angle between intersection point and X' axis is >= 45°, return that point
+            //otherwise, calculate intersection point with hyperboloid
+            let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
+            return r0.add(rDir.multiplyScalar(d));
+        }
+
     }
-    else {
-        //intersection with hyperboloid
-    }
+    //intersection with hyperboloid
+    a = m;
+    b = q;
+    c = -radius2/2;
+    delta = Math.pow(b, 2)-(4*a*c);
+    hitPoint.x = (-b-Math.sqrt(delta))/(2*a);
+    hitPoint.y = m*hitPoint.x+q;
+    let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
+    return r0.add(rDir.multiplyScalar(d));
 };
