@@ -15,6 +15,7 @@ const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mouseleave', mouseUpListener);*/
+canvas.addEventListener('wheel', wheelListener);
 window.addEventListener('resize', windowResizeListener);
 
 const renderer = new THREE.WebGLRenderer({canvas});
@@ -125,6 +126,20 @@ function mouseMoveListener(event) {
         let angleV = startCursorPosition.angleTo(currentCursorPosition);
 
         rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+        renderer.render(scene, camera);
+    }
+};
+
+function wheelListener(event) {
+    event.preventDefault();
+    const sgn = Math.sign(event.deltaY);
+    if(sgn == -1 && obj.scale.x < 0.1) {
+        //do nothing
+        //avoid scale vector components to become negative
+    }
+    else {
+        const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
+        obj.scale.copy(obj.scale.add(scaleFactor.multiplyScalar(sgn)));
         renderer.render(scene, camera);
     }
 };
@@ -271,9 +286,9 @@ function rotateObj(obj, axis, rad) {
 
 /**
  * Unproject the cursor in screen space into a point in world space on the trackball surface
- * @param {} x The cursor x position
- * @param {*} y The cursor y position
- * @param {*} radius The trackball radius
+ * @param {number} x The cursor x position
+ * @param {number} y The cursor y position
+ * @param {number} radius The trackball radius
  */
 function unprojectZ(x, y, radius) {
     let x2 = Math.pow(x, 2);
