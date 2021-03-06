@@ -33,8 +33,12 @@ let rotationAxis = new THREE.Vector3();
 let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 
-const manager = new Hammer(canvas);
-manager.get('pan').set({direction: Hammer.DIRECTION_ALL, threshold: 0});
+const manager = new Hammer.Manager(canvas);
+
+//pan gesture
+const pan = new Hammer.Pan();
+pan.set({direction: Hammer.DIRECTION_ALL, threshold: 0});
+manager.add(pan);
 manager.on("panup pandown panleft panright", panManager);
 manager.on("panstart", panStartManager);
 manager.on("panend", function panEnd() {
@@ -68,6 +72,13 @@ function panManager(event) {
     rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
     renderer.render(scene, camera);
 };
+
+//pinch gesture
+const pinch = new Hammer.Pinch();
+manager.add(pinch);
+manager.on("pinchmove", function pinchManager(event) {
+    console.log(event.distance);
+});
 
 
 //camera
