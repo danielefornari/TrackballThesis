@@ -76,9 +76,9 @@ function panManager(event) {
 //pinch gesture
 const pinch = new Hammer.Pinch();
 manager.add(pinch);
-manager.on("pinch", function pinchManager(event) {
+/*manager.on("pinch", function pinchManager(event) {
     alert(event.type);
-});
+});*/
 
 
 //camera
