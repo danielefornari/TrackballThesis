@@ -76,8 +76,10 @@ function panManager(event) {
 //pinch gesture
 const pinch = new Hammer.Pinch();
 manager.add(pinch);
-manager.on("pinchmove", function pinchManager(event) {
-    console.log(event.distance);
+manager.on("pinchin pinchout", function pinchManager(event) {
+    const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
+    obj.scale.copy(obj.scale.add(scaleFactor));
+    renderer.render(scene, camera);
 });
 
 
