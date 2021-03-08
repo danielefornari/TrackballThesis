@@ -46,8 +46,9 @@ doublePan.recognizeWith("singlePan");
 singlePan.requireFailure("doublePan");
 manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanListener);
 manager.on("singlePanstart", singlePanStartListener);
-manager.on("singlePanend", function singlePanEnd() {
+manager.on("singlePanend", function singlePanEnd(ev) {
     console.log("singlePanEnd");
+    console.log(ev.center.);
 });
 
 manager.on("doublePanup, doublePandown, doublePanleft, doublePanright", doublePanListener);
@@ -85,14 +86,16 @@ function singlePanListener(event) {
 
 function doublePanStartListener(event) {
     console.log("doublePanStart");
-    startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+    const center = event.center;
+    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     tracking = true;
 };
 
 function doublePanListener(event) {
     if(tracking) {
         console.log("doublePan");
-        currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        const center = event.center;
+        currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
         let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         const xAxis = new THREE.Vector3(1, 0, 0);
         const yAxis = new THREE.Vector3(0, 1, 0);
