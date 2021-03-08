@@ -11,10 +11,10 @@ const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 
 //canvas events
-/*canvas.addEventListener('mouseup', mouseUpListener);
+canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
-canvas.addEventListener('mouseleave', mouseUpListener);*/
+canvas.addEventListener('mousedown', mouseClickListener);
 canvas.addEventListener('wheel', wheelListener);
 window.addEventListener('resize', windowResizeListener);
 
@@ -32,6 +32,7 @@ let startCursorPosition = new THREE.Vector3();
 let rotationAxis = new THREE.Vector3();
 let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
+let posState = new THREE.Vector3(); //object's position vector
 
 const manager = new Hammer.Manager(canvas);
 
@@ -43,7 +44,6 @@ manager.on("panup pandown panleft panright", panManager);
 manager.on("panstart", panStartManager);
 manager.on("panend", function panEnd() {
     console.log("panEnd");
-    tracking = false;
 });
 
 function panStartManager(event) {
@@ -56,7 +56,6 @@ function panStartManager(event) {
         quatState.copy(group.quaternion);
     }
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    tracking = true;
 };
 
 function panManager(event) {
@@ -88,9 +87,9 @@ const right = canvasRect.width/2;
 const top = canvasRect.height/2;
 const bottom = canvasRect.height/-2;
 const near = 0.1;
-const far = 2000;
+const far = 1000;
 const camera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
-camera.position.z = 400;
+camera.position.z = 500;
 
 //scene
 const scene = new THREE.Scene();
@@ -110,33 +109,41 @@ resizeRenderer(renderer);
 renderer.render(scene, camera);
 
 //listeners
-function mouseUpListener() {
-    tracking = false;
+function mouseClickListener(event) {
+    event.preventDefault();
+    console.log(event.button);
+};
+
+function mouseUpListener(event) {
+    if(event.button == 1) {
+        event.preventDefault();
+        console.log("wheelUp");
+        posState.copy(obj.position);
+        tracking = false;
+    }
 };
 
 function mouseDownListener(event) {
-    if(group.quaternion == "undefined") {
-        quatState = new THREE.Quaternion().identity();
+    if(event.button == 1) {
+        //wheel click
+        event.preventDefault();
+        console.log("wheelDown")
+        startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        tracking = true;
     }
-    else {
-        quatState.copy(group.quaternion);
-    }
-    startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-    tracking = true;
 };
 
 function mouseMoveListener(event) {
     if(tracking) {
+        console.log("wheelMove");
+        event.preventDefault();
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-        cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
-        cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
-
-        let distanceV = startCursorPosition.clone();
-        distanceV.sub(currentCursorPosition);
-        let angleV = startCursorPosition.angleTo(currentCursorPosition);
-
-        rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+        let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+        const xAxis = new THREE.Vector3(1, 0, 0);
+        const yAxis = new THREE.Vector3(0, 1, 0);
+        obj.position.copy(posState);
+        obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
+        obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
         renderer.render(scene, camera);
     }
 };
