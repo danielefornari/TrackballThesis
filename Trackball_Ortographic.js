@@ -48,7 +48,6 @@ manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanLi
 manager.on("singlePanstart", singlePanStartListener);
 manager.on("singlePanend", function singlePanEnd(ev) {
     console.log("singlePanEnd");
-    console.log(ev.center.);
 });
 
 manager.on("doublePanup, doublePandown, doublePanleft, doublePanright", doublePanListener);
@@ -72,7 +71,7 @@ function singlePanStartListener(event) {
 
 function singlePanListener(event) {
     console.log("singlePan");
-    let center = event.center;
+    //let center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     let distanceV = startCursorPosition.clone();
     distanceV.sub(currentCursorPosition);
