@@ -84,6 +84,7 @@ function singlePanListener(event) {
 };
 
 function doublePanStartListener(event) {
+    alert("doublePanStart");
     console.log("doublePanStart");
     startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
     tracking = true;
@@ -92,6 +93,7 @@ function doublePanStartListener(event) {
 function doublePanListener(event) {
     if(tracking) {
         console.log("doublePan");
+        alert("doublePan");
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
         let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         const xAxis = new THREE.Vector3(1, 0, 0);
@@ -102,7 +104,6 @@ function doublePanListener(event) {
         renderer.render(scene, camera);
     }
 };
-
 
 
 //pinch gesture
