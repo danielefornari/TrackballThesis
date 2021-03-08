@@ -37,17 +37,28 @@ let posState = new THREE.Vector3(); //object's position vector
 const manager = new Hammer.Manager(canvas);
 
 //pan gesture
-const pan = new Hammer.Pan();
-pan.set({direction: Hammer.DIRECTION_ALL, threshold: 0});
-manager.add(pan);
-manager.on("panup pandown panleft panright", panManager);
-manager.on("panstart", panStartManager);
-manager.on("panend", function panEnd() {
-    console.log("panEnd");
+const singlePan = new Hammer.Pan();
+const doublePan = new Hammer.Pan();
+singlePan.set({event: "singlePan", pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
+doublePan.set({event: "doublePan", pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
+manager.add([singlePan, doublePan]);
+doublePan.recognizeWith(singlePan);
+singlePan.requireFailure(doublePan);
+manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanListener);
+manager.on("singlePanstart", singlePanStartListener);
+manager.on("singlePanend", function singlePanEnd() {
+    console.log("singlePanEnd");
 });
 
-function panStartManager(event) {
-    console.log("panStart");
+manager.on("doublePanup, doublePandown, doublePanleft, doublePanright", doublePanListener);
+manager.on("doublePanstart", doublePanStartListener);
+manager.on("doublePanend", function doublePanEnd() {
+    console.log("doublePanEnd");
+});
+
+//listeners
+function singlePanStartListener(event) {
+    console.log("singlePanStart");
     let center = event.center;
     if(group.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
@@ -58,8 +69,8 @@ function panStartManager(event) {
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 };
 
-function panManager(event) {
-    console.log("onPan");
+function singlePanListener(event) {
+    console.log("singlePan");
     let center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     let distanceV = startCursorPosition.clone();
@@ -71,6 +82,28 @@ function panManager(event) {
     rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
     renderer.render(scene, camera);
 };
+
+function doublePanStartListener(event) {
+    console.log("doublePanStart");
+    startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+    tracking = true;
+};
+
+function doublePanListener(event) {
+    if(tracking) {
+        console.log("doublePan");
+        currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+        const xAxis = new THREE.Vector3(1, 0, 0);
+        const yAxis = new THREE.Vector3(0, 1, 0);
+        obj.position.copy(posState);
+        obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
+        obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
+        renderer.render(scene, camera);
+    }
+};
+
+
 
 //pinch gesture
 const pinch = new Hammer.Pinch();
