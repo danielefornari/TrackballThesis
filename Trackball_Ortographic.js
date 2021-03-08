@@ -71,7 +71,7 @@ function singlePanStartListener(event) {
 
 function singlePanListener(event) {
     console.log("singlePan");
-    //let center = event.center;
+    let center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     let distanceV = startCursorPosition.clone();
     distanceV.sub(currentCursorPosition);
