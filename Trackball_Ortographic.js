@@ -94,8 +94,7 @@ function doublePanStartListener(event) {
 
 function doublePanListener(event) {
     if(tracking) {
-        i++;
-        alert(i);
+        cursor1Paragraph.innerHTML = i;
     }
     /*if(tracking) {
         console.log("doublePan");
