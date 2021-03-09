@@ -4,7 +4,6 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 //import * as THREE from 'three';
 //import * as HAMMERJS from 'hammerjs';
 
-let i = 0;
 const canvas = document.getElementById("canvasO");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
 const cursor1Paragraph = document.getElementById("cursor1Paragraph");
@@ -43,11 +42,8 @@ const doublePan = new Hammer.Pan();
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 manager.add([singlePan, doublePan]);
-//manager.add([doublePan]);
 manager.get('doublepan').recognizeWith('singlepan');
 manager.get('singlepan').requireFailure('doublepan');
-//doublePan.recognizeWith("singlepan");
-//singlePan.requireFailure("doublepan");
 manager.on("singlepanup singlepandown singlepanleft singlepanright", singlePanListener);
 manager.on("singlepanstart", singlePanStartListener);
 manager.on("singlepanend", function singlePanEnd(ev) {
@@ -88,17 +84,12 @@ function singlePanListener(event) {
 };
 
 function doublePanStartListener(event) {
-    /*cursor1Paragraph.innerHTML = i;
-    i++;*/
     console.log("doublePanStart");
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    tracking = true;
 };
 
 function doublePanListener(event) {
-     /*cursor1Paragraph.innerHTML = i;
-     i++;*/
     console.log("doublePan");
     const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
