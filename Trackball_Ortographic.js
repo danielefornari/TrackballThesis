@@ -122,6 +122,7 @@ manager.on("pinchout", function PinchOutListener(event) {
     event.preventDefault();
     const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
     obj.scale.copy(obj.scale.add(scaleFactor));
+    renderer.render(scene, camera);
 });
 
 
