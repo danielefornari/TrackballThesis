@@ -9,6 +9,7 @@ const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
 const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
+const scaleFactor = 1.1;
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -107,25 +108,17 @@ function doublePanListener(event) {
 //pinch gesture
 const pinch = new Hammer.Pinch();
 manager.add(pinch);
-doublePan.recognizeWith('pinch');
-//pinch.recognizeWith('doublepan');
+//doublePan.recognizeWith('pinch');
+pinch.recognizeWith('doublepan');
 pinch.set({threshold: 16});
 manager.on("pinchin", function pinchInManager(event) {
     event.preventDefault();
-    if(obj.scale.x < 0.1) {
-        //do nothing
-        //avoid scale vector components to become negative
-    }
-    else {
-        const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
-        obj.scale.copy(obj.scale.add(scaleFactor.multiplyScalar(-1)));
-        renderer.render(scene, camera);
-    }
+    obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
+    renderer.render(scene, camera);
 });
 manager.on("pinchout", function PinchOutListener(event) {
     event.preventDefault();
-    const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
-    obj.scale.copy(obj.scale.add(scaleFactor));
+    obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
     renderer.render(scene, camera);
 });
 
@@ -201,15 +194,14 @@ function mouseMoveListener(event) {
 function wheelListener(event) {
     event.preventDefault();
     const sgn = Math.sign(event.deltaY);
-    if(sgn == -1 && obj.scale.x < 0.1) {
-        //do nothing
-        //avoid scale vector components to become negative
+    if(sgn == -1) {
+        obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
+
     }
     else {
-        const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
-        obj.scale.copy(obj.scale.add(scaleFactor.multiplyScalar(sgn)));
-        renderer.render(scene, camera);
+        obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
     }
+    renderer.render(scene, camera);
 };
 
 function windowResizeListener() {
