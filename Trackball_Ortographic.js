@@ -61,7 +61,6 @@ manager.on("doublepanend", function doublePanEnd() {
 //listeners
 function singlePanStartListener(event) {
     console.log("singlepanstart");
-    manager.get('singlepan').set({enable: false});
     let center = event.center;
     if(group.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
@@ -88,6 +87,7 @@ function singlePanListener(event) {
 
 function doublePanStartListener(event) {
     console.log("doublePanStart");
+    manager.get('singlepan').set({enable: false});
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 };
