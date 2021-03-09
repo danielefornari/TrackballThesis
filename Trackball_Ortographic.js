@@ -88,29 +88,27 @@ function singlePanListener(event) {
 };
 
 function doublePanStartListener(event) {
-    cursor1Paragraph.innerHTML = i;
-    i++;
-    /*console.log("doublePanStart");
+    /*cursor1Paragraph.innerHTML = i;
+    i++;*/
+    console.log("doublePanStart");
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    tracking = true;*/
+    tracking = true;
 };
 
 function doublePanListener(event) {
-     cursor1Paragraph.innerHTML = i;
-     i++;
-    /*if(tracking) {
-        console.log("doublePan");
-        const center = event.center;
-        currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-        let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        const xAxis = new THREE.Vector3(1, 0, 0);
-        const yAxis = new THREE.Vector3(0, 1, 0);
-        obj.position.copy(posState);
-        obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
-        obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
-        renderer.render(scene, camera);
-    }*/
+     /*cursor1Paragraph.innerHTML = i;
+     i++;*/
+    console.log("doublePan");
+    const center = event.center;
+    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+    const xAxis = new THREE.Vector3(1, 0, 0);
+    const yAxis = new THREE.Vector3(0, 1, 0);
+    obj.position.copy(posState);
+    obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
+    obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
+    renderer.render(scene, camera);
 };
 
 
