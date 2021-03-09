@@ -54,6 +54,7 @@ manager.on("doublepanup doublepandown doublepanleft doublepanright", doublePanLi
 manager.on("doublepanstart", doublePanStartListener);
 manager.on("doublepanend", function doublePanEnd() {
     console.log("doublepanEnp");
+    posState.copy(obj,position);
 });
 
 //listeners
