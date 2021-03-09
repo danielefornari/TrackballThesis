@@ -4,6 +4,7 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 //import * as THREE from 'three';
 //import * as HAMMERJS from 'hammerjs';
 
+let i = 0;
 const canvas = document.getElementById("canvasO");
 const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
 const cursor1Paragraph = document.getElementById("cursor1Paragraph");
@@ -39,11 +40,11 @@ const manager = new Hammer.Manager(canvas);
 //pan gesture
 const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
-//singlePan.set({event: "singlePan", pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
+singlePan.set({event: "singlePan", pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: "doublePan", pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 manager.add([singlePan, doublePan]);
-//doublePan.recognizeWith("singlePan");
-//singlePan.requireFailure("doublePan");
+doublePan.recognizeWith("singlePan");
+singlePan.requireFailure("doublePan");
 manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanListener);
 manager.on("singlePanstart", singlePanStartListener);
 manager.on("singlePanend", function singlePanEnd(ev) {
@@ -84,14 +85,19 @@ function singlePanListener(event) {
 };
 
 function doublePanStartListener(event) {
-    console.log("doublePanStart");
+    alert("doublePanStart");
+    /*console.log("doublePanStart");
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    tracking = true;
+    tracking = true;*/
 };
 
 function doublePanListener(event) {
     if(tracking) {
+        i++;
+        alert(i);
+    }
+    /*if(tracking) {
         console.log("doublePan");
         const center = event.center;
         currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -102,7 +108,7 @@ function doublePanListener(event) {
         obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
         obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
         renderer.render(scene, camera);
-    }
+    }*/
 };
 
 
