@@ -55,7 +55,6 @@ manager.on("doublepanstart", doublePanStartListener);
 manager.on("doublepanend", function doublePanEnd() {
     console.log("doublepanEnp");
     posState.copy(obj.position);
-    manager.get('singlepan').set({enable: true});
 });
 
 //listeners
@@ -87,7 +86,6 @@ function singlePanListener(event) {
 
 function doublePanStartListener(event) {
     console.log("doublePanStart");
-    manager.get('singlepan').set({enable: false});
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 };
@@ -109,6 +107,7 @@ function doublePanListener(event) {
 //pinch gesture
 const pinch = new Hammer.Pinch();
 manager.add(pinch);
+pinch.recognizeWith('doublepan');
 pinch.set({threshold: 4});
 manager.on("pinchin", function pinchInManager(event) {
     event.preventDefault();
