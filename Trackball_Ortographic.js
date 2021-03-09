@@ -86,7 +86,6 @@ function singlePanListener(event) {
 };
 
 function doublePanStartListener(event) {
-    alert("doublePanStart");
     /*console.log("doublePanStart");
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
