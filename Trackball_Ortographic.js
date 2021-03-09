@@ -40,28 +40,28 @@ const manager = new Hammer.Manager(canvas);
 //pan gesture
 const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
-singlePan.set({event: "singlePan", pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: "doublePan", pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
+singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 manager.add([singlePan, doublePan]);
-manager.get('doublePan').recognizeWith('singlePan');
-manager.get('singlePan').requireFailure('doublePan');
-//doublePan.recognizeWith("singlePan");
-//singlePan.requireFailure("doublePan");
-manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanListener);
-manager.on("singlePanstart", singlePanStartListener);
-manager.on("singlePanend", function singlePanEnd(ev) {
-    console.log("singlePanEnd");
+manager.get('doublepan').recognizeWith('singlepan');
+manager.get('singlepan').requireFailure('doublepan');
+//doublePan.recognizeWith("singlepan");
+//singlePan.requireFailure("doublepan");
+manager.on("singlepanup singlepandown singlepanleft singlepanright", singlePanListener);
+manager.on("singlepanstart", singlePanStartListener);
+manager.on("singlepanend", function singlePanEnd(ev) {
+    console.log("singlepanEnd");
 });
 
-manager.on("doublePanup, doublePandown, doublePanleft, doublePanright", doublePanListener);
-manager.on("doublePanstart", doublePanStartListener);
-manager.on("doublePanend", function doublePanEnd() {
-    console.log("doublePanEnd");
+manager.on("doublepanup, doublepandown, doublepanleft, doublepanright", doublePanListener);
+manager.on("doublepanstart", doublePanStartListener);
+manager.on("doublepanend", function doublePanEnd() {
+    console.log("doublepanEnp");
 });
 
 //listeners
 function singlePanStartListener(event) {
-    console.log("singlePanStart");
+    console.log("singlepanstart");
     let center = event.center;
     if(group.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
@@ -87,6 +87,8 @@ function singlePanListener(event) {
 };
 
 function doublePanStartListener(event) {
+    cursor1Paragraph.innerHTML = i;
+    i++;
     /*console.log("doublePanStart");
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -96,6 +98,7 @@ function doublePanStartListener(event) {
 function doublePanListener(event) {
     if(tracking) {
         cursor1Paragraph.innerHTML = i;
+        i++;
     }
     /*if(tracking) {
         console.log("doublePan");
