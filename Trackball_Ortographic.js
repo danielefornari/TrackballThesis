@@ -47,10 +47,10 @@ manager.add(doublePan);
 //doublePan.recognizeWith("singlePan");
 //singlePan.requireFailure("doublePan");
 //manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanListener);
-manager.on("singlePanstart", singlePanStartListener);
-manager.on("singlePanend", function singlePanEnd(ev) {
+//manager.on("singlePanstart", singlePanStartListener);
+/*manager.on("singlePanend", function singlePanEnd(ev) {
     console.log("singlePanEnd");
-});
+});*/
 
 manager.on("doublePanup, doublePandown, doublePanleft, doublePanright", doublePanListener);
 manager.on("doublePanstart", doublePanStartListener);
