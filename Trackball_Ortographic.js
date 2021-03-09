@@ -106,9 +106,23 @@ function doublePanListener(event) {
 //pinch gesture
 const pinch = new Hammer.Pinch();
 manager.add(pinch);
-/*manager.on("pinch", function pinchManager(event) {
-    alert(event.type);
-});*/
+manager.on("pinchin", function pinchInManager(event) {
+    event.preventDefault();
+    if(obj.scale.x < 0.1) {
+        //do nothing
+        //avoid scale vector components to become negative
+    }
+    else {
+        const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
+        obj.scale.copy(obj.scale.add(scaleFactor.multiplyScalar(-1)));
+        renderer.render(scene, camera);
+    }
+});
+manager.on("pinchout", function PinchOutListener(event) {
+    event.preventDefault();
+    const scaleFactor = new THREE.Vector3(0.1, 0.1, 0.1);
+    obj.scale.copy(obj.scale.add(scaleFactor));
+});
 
 
 //camera
