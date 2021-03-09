@@ -41,7 +41,7 @@ const manager = new Hammer.Manager(canvas);
 const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 //manager.add([singlePan, doublePan]);
 manager.add([doublePan]);
 //manager.get('doublepan').recognizeWith('singlepan');
