@@ -43,7 +43,7 @@ const doublePan = new Hammer.Pan();
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 manager.add([singlePan, doublePan]);
-manager.get('doublepan').recognizeWith('singlepan');
+//manager.get('doublepan').recognizeWith('singlepan');
 manager.get('singlepan').requireFailure('doublepan');
 //doublePan.recognizeWith("singlepan");
 //singlePan.requireFailure("doublepan");
