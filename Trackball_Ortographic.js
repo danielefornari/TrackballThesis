@@ -41,7 +41,7 @@ const manager = new Hammer.Manager(canvas);
 const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
+doublePan.set({event: 'doublepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 //manager.add([singlePan, doublePan]);
 manager.add([doublePan]);
 //manager.get('doublepan').recognizeWith('singlepan');
@@ -54,7 +54,7 @@ manager.on("singlepanend", function singlePanEnd(ev) {
     console.log("singlepanEnd");
 });*/
 
-manager.on("doublepanup, doublepandown, doublepanleft, doublepanright", doublePanListener);
+manager.on("doublepanup doublepandown doublepanleft doublepanright", doublePanListener);
 manager.on("doublepanstart", doublePanStartListener);
 manager.on("doublepanend", function doublePanEnd() {
     console.log("doublepanEnp");
@@ -97,10 +97,8 @@ function doublePanStartListener(event) {
 };
 
 function doublePanListener(event) {
-    if(tracking) {
-        cursor1Paragraph.innerHTML = i;
-        i++;
-    }
+     cursor1Paragraph.innerHTML = i;
+     i++;
     /*if(tracking) {
         console.log("doublePan");
         const center = event.center;
