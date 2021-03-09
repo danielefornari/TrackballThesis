@@ -106,6 +106,7 @@ function doublePanListener(event) {
 //pinch gesture
 const pinch = new Hammer.Pinch();
 manager.add(pinch);
+pinch.set({threshold: 4});
 manager.on("pinchin", function pinchInManager(event) {
     event.preventDefault();
     if(obj.scale.x < 0.1) {
