@@ -42,15 +42,16 @@ const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
 singlePan.set({event: "singlePan", pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: "doublePan", pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
-//manager.add([singlePan, doublePan]);
-manager.add(doublePan);
+manager.add([singlePan, doublePan]);
+manager.get('doublePan').recognizeWith('singlePan');
+manager.get('singlePan').requireFailure('doublePan');
 //doublePan.recognizeWith("singlePan");
 //singlePan.requireFailure("doublePan");
-//manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanListener);
-//manager.on("singlePanstart", singlePanStartListener);
-/*manager.on("singlePanend", function singlePanEnd(ev) {
+manager.on("singlePanup singlePandown singlePanleft singlePanright", singlePanListener);
+manager.on("singlePanstart", singlePanStartListener);
+manager.on("singlePanend", function singlePanEnd(ev) {
     console.log("singlePanEnd");
-});*/
+});
 
 manager.on("doublePanup, doublePandown, doublePanleft, doublePanright", doublePanListener);
 manager.on("doublePanstart", doublePanStartListener);
