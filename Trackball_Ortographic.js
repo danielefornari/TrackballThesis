@@ -55,11 +55,13 @@ manager.on("doublepanstart", doublePanStartListener);
 manager.on("doublepanend", function doublePanEnd() {
     console.log("doublepanEnp");
     posState.copy(obj.position);
+    manager.get('singlepan').set({enable: true});
 });
 
 //listeners
 function singlePanStartListener(event) {
     console.log("singlepanstart");
+    manager.get('singlepan').set({enable: false});
     let center = event.center;
     if(group.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
