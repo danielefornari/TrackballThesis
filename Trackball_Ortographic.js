@@ -48,8 +48,8 @@ doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.
 pinch.set({threshold: 8});
 
 manager.add([singlePan, doublePan, pinch]);
-manager.get('doublepan').recognizeWith('singlepan');
-manager.get('singlepan').requireFailure('doublepan');
+manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
+manager.get('doubleepan').requireFailure('singlepan');
 //manager.get('pinch').recognizeWith('doublepan');
 manager.get('doublepan').recognizeWith('pinch');
 
