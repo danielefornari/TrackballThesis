@@ -35,43 +35,25 @@ let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 let posState = new THREE.Vector3(); //object's position vector
 
+
+//touch gestures
 const manager = new Hammer.Manager(canvas);
 
-//pan gesture
 const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
+const pinch = new Hammer.Pinch();
+
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
-manager.add([singlePan, doublePan]);
+//pinch.set({threshold: 1});
+
+manager.add([singlePan, doublePan, pinch]);
 manager.get('doublepan').recognizeWith('singlepan');
 manager.get('singlepan').requireFailure('doublepan');
-manager.on("singlepanup singlepandown singlepanleft singlepanright", singlePanListener);
-manager.on("singlepanstart", singlePanStartListener);
-manager.on("singlepanend", function singlePanEnd(ev) {
-    console.log("singlepanEnd");
-});
+manager.get('doublepan').requireFailure('pinch');
 
-manager.on("doublepanup doublepandown doublepanleft doublepanright", doublePanListener);
-manager.on("doublepanstart", doublePanStartListener);
-manager.on("doublepanend", function doublePanEnd() {
-    console.log("doublepanEnp");
-    posState.copy(obj.position);
-});
-
-//listeners
-function singlePanStartListener(event) {
-    console.log("singlepanstart");
-    let center = event.center;
-    if(group.quaternion == "undefined") {
-        quatState = new THREE.Quaternion().identity();
-    }
-    else {
-        quatState.copy(group.quaternion);
-    }
-    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-};
-
-function singlePanListener(event) {
+//pan gesture listeners
+manager.on("singlepanup singlepandown singlepanleft singlepanright", function singlePanListener(event) {
     console.log("singlePan");
     let center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -83,15 +65,23 @@ function singlePanListener(event) {
     cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
     rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
     renderer.render(scene, camera);
-};
-
-function doublePanStartListener(event) {
-    console.log("doublePanStart");
-    const center = event.center;
+});
+manager.on("singlepanstart", function singlePanStartListener(event) {
+    console.log("singlepanstart");
+    let center = event.center;
+    if(group.quaternion == "undefined") {
+        quatState = new THREE.Quaternion().identity();
+    }
+    else {
+        quatState.copy(group.quaternion);
+    }
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-};
+});
+manager.on("singlepanend", function singlePanEnd(ev) {
+    console.log("singlepanEnd");
+});
 
-function doublePanListener(event) {
+manager.on("doublepanup doublepandown doublepanleft doublepanright", function doublePanListener(event) {
     console.log("doublePan");
     const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -102,17 +92,18 @@ function doublePanListener(event) {
     obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
     obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
     renderer.render(scene, camera);
-};
+});
+manager.on("doublepanstart", function doublePanStartListener(event) {
+    console.log("doublePanStart");
+    const center = event.center;
+    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+});
+manager.on("doublepanend", function doublePanEnd() {
+    console.log("doublepanEnp");
+    posState.copy(obj.position);
+});
 
-
-//pinch gesture
-const pinch = new Hammer.Pinch();
-manager.add(pinch);
-//doublePan.recognizeWith('pinch');
-pinch.recognizeWith('doublepan');
-pinch.requireFailure('doublepan');
-pinch.set({threshold: 1});
-manager.get('pinch').set({enable: true});
+//pinch gesture listeners
 manager.on("pinchin", function pinchInManager(event) {
     event.preventDefault();
     obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
@@ -123,6 +114,7 @@ manager.on("pinchout", function PinchOutListener(event) {
     obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
     renderer.render(scene, camera);
 });
+
 
 
 //camera
