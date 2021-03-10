@@ -110,7 +110,7 @@ const pinch = new Hammer.Pinch();
 manager.add(pinch);
 //doublePan.recognizeWith('pinch');
 pinch.recognizeWith('doublepan');
-pinch.set({threshold: 0});
+pinch.set({threshold: 1});
 manager.get('pinch').set({enable: true});
 manager.on("pinchin", function pinchInManager(event) {
     event.preventDefault();
