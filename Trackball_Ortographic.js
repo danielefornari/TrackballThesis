@@ -51,7 +51,7 @@ manager.add([singlePan, doublePan, pinch]);
 manager.get('pinch').set({enable: true});
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('doublepan').requireFailure('singlepan');
-//manager.get('pinch').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').recognizeWith('pinch');
 //manager.get('doublepan').recognizeWith('pinch');
 //manager.get('pinch').requireFailure('doublepan');
