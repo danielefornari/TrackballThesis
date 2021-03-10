@@ -45,12 +45,13 @@ const pinch = new Hammer.Pinch();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
-//pinch.set({threshold: 1});
+pinch.set({threshold: 8});
 
 manager.add([singlePan, doublePan, pinch]);
-manager.get('doublepan').recognizeWith('singlepan');
-manager.get('singlepan').requireFailure('doublepan');
-manager.get('doublepan').requireFailure('pinch');
+//manager.get('doublepan').recognizeWith('singlepan');
+//manager.get('singlepan').requireFailure('doublepan');
+manager.get('pinch').recognizeWith('doublepan');
+//manager.get('doublepan').requireFailure('pinch');
 
 //pan gesture listeners
 manager.on("singlepanup singlepandown singlepanleft singlepanright", function singlePanListener(event) {
