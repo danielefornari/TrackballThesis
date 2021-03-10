@@ -52,6 +52,7 @@ manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiu
 manager.get('doublepan').requireFailure('singlepan');
 //manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').recognizeWith('pinch');
+manager.get('doublepan').recognizeWith('pinch');
 manager.get('pinch').requireFailure('doublepan');
 
 //pan gesture listeners
