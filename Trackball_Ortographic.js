@@ -111,6 +111,7 @@ manager.add(pinch);
 //doublePan.recognizeWith('pinch');
 //pinch.recognizeWith('doublepan');
 pinch.set({threshold: 16});
+manager.get('pinch').set({enable: true});
 manager.on("pinchin", function pinchInManager(event) {
     event.preventDefault();
     obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
