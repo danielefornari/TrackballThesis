@@ -103,7 +103,7 @@ manager.on("doublepanstart", function doublePanStartListener(event) {
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 });
 manager.on("doublepanend", function doublePanEnd() {
-    console.log("doublepanEnp");
+    console.log("doublepanEnd");
     posState.copy(obj.position);
 });
 
@@ -336,6 +336,7 @@ function resizeRenderer(renderer) {
  * @param {number} rad Angle in radians
  */
 function rotateObj(obj, axis, rad) {
+    console.log("rotating");
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
     quat.multiply(quatState);
