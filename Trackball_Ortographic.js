@@ -153,6 +153,7 @@ manager.on("pinchmove", function pinchMoveListener(event) {
         //pinch out
         obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
     }
+    renderer.render(scene, camera);
     fingerDistance = newDistance;
 });
 manager.on("pinchend", function pinchEndListener() {
