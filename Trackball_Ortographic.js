@@ -10,6 +10,7 @@ const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 const scaleFactor = 1.1;
+const pinchScaleFactor = 1.02;
 const pinchDelta = 6;
 let pinchCounter = 0;
 let fingerDistance = 0;
@@ -118,25 +119,7 @@ manager.on("doublepanend", function doublePanEnd() {
     posState.copy(obj.position);
 });
 
-//pinch gesture listeners
-/*manager.on("pinchin", function pinchInManager(event) {
-    if(pinchCounter%pinchDelta == 0) {
-        console.log("pinchIn");
-        event.preventDefault();
-        obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
-        renderer.render(scene, camera);
-    }
-    pinchCounter++;
-});*/
-/*manager.on("pinchout", function PinchOutListener(event) {
-    if(pinchCounter%pinchDelta == 0) {
-        console.log("pinchOut");
-        event.preventDefault();
-        obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
-        renderer.render(scene, camera);
-    }
-    pinchCounter++;
-});*/
+//pinch gesture listener
 manager.on("pinchstart", function pinchStartListener(event) {
     console.log("pinchStart");
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
@@ -147,11 +130,11 @@ manager.on("pinchmove", function pinchMoveListener(event) {
     console.log(newDistance);
     if(newDistance < fingerDistance) {
         //pinch in
-        obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
+        obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
     }
     else {
         //pinch out
-        obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
+        obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
     }
     renderer.render(scene, camera);
     fingerDistance = newDistance;
