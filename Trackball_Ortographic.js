@@ -139,7 +139,7 @@ manager.on("doublepanend", function doublePanEnd() {
 });*/
 manager.on("pinchstart", function pinchStartListener(event) {
     console.log("pinchStart");
-    console.log(event.pointers.length);
+    console.log(event.pointers[0]+event.pointers[1]);
     //fingerDistance = 
 });
 manager.on("pinchmove", function pinchMoveListener() {
