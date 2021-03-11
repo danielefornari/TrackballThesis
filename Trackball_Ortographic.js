@@ -12,6 +12,7 @@ const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 const scaleFactor = 1.1;
 const pinchDelta = 6;
 let pinchCounter = 0;
+let fingerDistance = 0;
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -118,7 +119,7 @@ manager.on("doublepanend", function doublePanEnd() {
 });
 
 //pinch gesture listeners
-manager.on("pinchin", function pinchInManager(event) {
+/*manager.on("pinchin", function pinchInManager(event) {
     if(pinchCounter%pinchDelta == 0) {
         console.log("pinchIn");
         event.preventDefault();
@@ -126,8 +127,8 @@ manager.on("pinchin", function pinchInManager(event) {
         renderer.render(scene, camera);
     }
     pinchCounter++;
-});
-manager.on("pinchout", function PinchOutListener(event) {
+});*/
+/*manager.on("pinchout", function PinchOutListener(event) {
     if(pinchCounter%pinchDelta == 0) {
         console.log("pinchOut");
         event.preventDefault();
@@ -135,12 +136,23 @@ manager.on("pinchout", function PinchOutListener(event) {
         renderer.render(scene, camera);
     }
     pinchCounter++;
+});*/
+manager.on("pinchstart", function pinchStartListener(event) {
+    console.log("pinchStart");
+    console.log(event.pointers.length);
+    //fingerDistance = 
+});
+manager.on("pinchmove", function pinchMoveListener() {
+    console.log("pinchMove");
 });
 manager.on("pinchend", function pinchEndListener() {
     console.log("pinchEnd");
     pinchCounter = 0;
 });
-manager.on("pinchmove" ,function pinchMoveListener() {
+manager.on("pinchmove" ,function pinchMoveListener(event) {
+    if(pinchCounter%pinchDelta == 0) {
+        const distance = event.di
+    }
     console.log("pinchMove");
 })
 
