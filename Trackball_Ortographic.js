@@ -147,6 +147,7 @@ manager.on("rotatemove", function rotateMoveListener(event) {
     console.log("rotateMove");
     const rotation = fingerRotation - event.rotation;
     rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
+    renderer.render(scene, camera);
 });
 manager.on("rotateend", function rotateEndListener(event) {
     fingerRotation = event.rotation;
