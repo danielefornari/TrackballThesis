@@ -127,7 +127,7 @@ manager.on("pinchmove", function pinchMoveListener(event) {
     if(newDistance < fingerDistance) {
         //pinch in
         obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
-    }Ma
+    }
     else {
         //pinch out
         obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
