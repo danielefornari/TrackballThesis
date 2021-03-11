@@ -47,7 +47,7 @@ const doublePan = new Hammer.Pan();
 const pinch = new Hammer.Pinch();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 6, direction: Hammer.DIRECTION_ALL});
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 7, direction: Hammer.DIRECTION_ALL});
 pinch.set({threshold: 0.07});
 
 manager.add([singlePan, doublePan, pinch]);
