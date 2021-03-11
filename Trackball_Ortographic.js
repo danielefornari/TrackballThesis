@@ -53,13 +53,14 @@ pinch.set({threshold: 0.05});
 manager.add([singlePan, doublePan, pinch]);
 manager.get('pinch').set({enable: true});
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
+manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').requireFailure('singlepan');
 //manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').recognizeWith('pinch');
 //manager.get('doublepan').requireFailure('pinch');
 //manager.get('pinch').requireFailure('doublepan');
 
-//pan gesture listeners
+//single finger pan gesture listeners
 manager.on("singlepanstart", function singlePanStartListener(event) {
     console.log("singlepanstart");
     let center = event.center;
@@ -87,11 +88,12 @@ manager.on("singlepanup singlepandown singlepanleft singlepanright", function si
         renderer.render(scene, camera);
     }
 });
-manager.on("singlepanend", function singlePanEnd(ev) {
+manager.on("singlepanend", function singlePanEnd() {
     console.log("singlepanEnd");
     rotating = false;
 });
 
+//double finger pan gesture listener
 manager.on("doublepanup doublepandown doublepanleft doublepanright", function doublePanListener(event) {
     console.log("doublePan");
     const center = event.center;
@@ -136,8 +138,7 @@ manager.on("pinchout", function PinchOutListener(event) {
 manager.on("pinchend", function pinchEndManager() {
     console.log("pinchEnd");
     pinchCounter = 0;
-})
-
+});
 
 
 //camera
