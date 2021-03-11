@@ -45,15 +45,16 @@ const manager = new Hammer.Manager(canvas);
 const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
 const pinch = new Hammer.Pinch();
+const rotate = new Hammer.Rotate();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 7.5, direction: Hammer.DIRECTION_ALL});
 pinch.set({threshold: 0.05});
 
-manager.add([singlePan, doublePan, pinch]);
+manager.add([singlePan, doublePan, pinch, rotate]);
 manager.get('pinch').set({enable: true});
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-manager.get('pinch').recognizeWith('doublepan');
+//manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').requireFailure('singlepan');
 //manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').recognizeWith('pinch');
@@ -139,6 +140,9 @@ manager.on("pinchend", function pinchEndManager() {
     console.log("pinchEnd");
     pinchCounter = 0;
 });
+
+//rotate gesture listener
+manager.on('rotatestart')
 
 
 //camera
