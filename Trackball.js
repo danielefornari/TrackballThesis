@@ -10,6 +10,9 @@ const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 const scaleFactor = 1.1;
+const pinchScaleFactor = 1.02;
+let fingerDistance = 0;
+let fingerRotation = 0;
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -35,15 +38,37 @@ let quatState = new THREE.Quaternion(); //object's quaternion value at first mou
 let posState = new THREE.Vector3(); //object's position value
 
 const manager = new Hammer(canvas);
-manager.get('pan').set({direction: Hammer.DIRECTION_ALL, threshold: 0});
-manager.on("panup pandown panleft panright", panManager);
-manager.on("panstart", panStartManager);
-manager.on("panend", function panEnd() {
-    console.log("panEnd");
-});
 
-function panStartManager(event) {
-    console.log("panStart");
+const singlePan = new Hammer.Pan();
+const doublePan = new Hammer.Pan();
+const pinch = new Hammer.Pinch();
+const rotate = new Hammer.Rotate();
+
+singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
+pinch.set({threshold: 0});  //threshold 0.05
+
+manager.add([singlePan, doublePan, pinch, rotate]);
+manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
+manager.get('pinch').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('rotate');
+
+//single finger pan gesture listener
+manager.on('panmove', function panManager(event) {
+    console.log("singlePan");
+    let center = event.center;
+    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    let distanceV = startCursorPosition.clone();
+    distanceV.sub(currentCursorPosition);
+    let angleV = startCursorPosition.angleTo(currentCursorPosition);
+    rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+    cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
+    cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
+    rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+    renderer.render(scene, camera);
+});
+manager.on('panstart', function panStartManager(event) {
+    console.log('panstart');
     let center = event.center;
     if(group.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
@@ -52,21 +77,78 @@ function panStartManager(event) {
         quatState.copy(group.quaternion);
     }
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-};
+});
+manager.on('panend', function panEnd() {
+    console.log('panend');
+});
 
-function panManager(event) {
-    console.log("onPan");
-    let center = event.center;
+//double finger pan gesture listener
+manager.on('doublepanstart', function doublePanStartListener(event) {
+    console.log("doublepanstart");
+    const center = event.center;
+    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+});
+manager.on('doublepanmove', function doublePanListener(event) {
+    console.log("doublePan");
+    const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    let distanceV = startCursorPosition.clone();
-    distanceV.sub(currentCursorPosition);
-    let angleV = startCursorPosition.angleTo(currentCursorPosition);
-    //rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-    cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
-    cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
-    rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+    let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+    const xAxis = new THREE.Vector3(1, 0, 0);
+    const yAxis = new THREE.Vector3(0, 1, 0);
+    obj.position.copy(posState);
+    obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
+    obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
     renderer.render(scene, camera);
-};
+});
+manager.on('doublepanend', function doublePanEnd() {
+    console.log("doublepanend");
+    posState.copy(obj.position);
+});
+
+//pinch gesture listener
+manager.on('pinchstart', function pinchStartListener(event) {
+    console.log("pinchStart");
+    fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
+});
+manager.on('pinchmove', function pinchMoveListener(event) {
+    console.log('pinchmove');
+    let newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
+    console.log(newDistance);
+    if(newDistance < fingerDistance) {
+        //pinch in
+        obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
+    }
+    else {
+        //pinch out
+        obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
+    }
+    renderer.render(scene, camera);
+    fingerDistance = newDistance;
+});
+manager.on('pinchend', function pinchEndListener() {
+    console.log("pinchEnd");
+});
+
+//rotate gesture listener
+manager.on('rotatestart', function rotateStartListener(event) {
+    console.log("rotateStart");
+    if(group.quaternion == "undefined") {
+        quatState = new THREE.Quaternion().identity();
+    }
+    else {
+        quatState.copy(group.quaternion);
+    }    
+    fingerRotation = event.rotation;
+});
+manager.on('rotatemove', function rotateMoveListener(event) {
+    console.log("rotateMove");
+    const rotation = fingerRotation - event.rotation;
+    rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
+    renderer.render(scene, camera);
+});
+manager.on('rotateend', function rotateEndListener(event) {
+    fingerRotation = event.rotation;
+});
 
 
 //camera
