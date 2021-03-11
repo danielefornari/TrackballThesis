@@ -54,8 +54,19 @@ manager.get('pinch').recognizeWith('doublepan');
 manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listener
-manager.on('panmove', function panManager(event) {
-    console.log("singlePan");
+manager.on('singlepanstart', function panStartManager(event) {
+    console.log('singlepanstart');
+    let center = event.center;
+    if(group.quaternion == "undefined") {
+        quatState = new THREE.Quaternion().identity();
+    }
+    else {
+        quatState.copy(group.quaternion);
+    }
+    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+});
+manager.on('singlepanmove', function panManager(event) {
+    console.log('singlepanmove');
     let center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     let distanceV = startCursorPosition.clone();
@@ -67,19 +78,8 @@ manager.on('panmove', function panManager(event) {
     rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
     renderer.render(scene, camera);
 });
-manager.on('panstart', function panStartManager(event) {
-    console.log('panstart');
-    let center = event.center;
-    if(group.quaternion == "undefined") {
-        quatState = new THREE.Quaternion().identity();
-    }
-    else {
-        quatState.copy(group.quaternion);
-    }
-    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-});
-manager.on('panend', function panEnd() {
-    console.log('panend');
+manager.on('singlepanend', function panEnd() {
+    console.log('singlepanend');
 });
 
 //double finger pan gesture listener
