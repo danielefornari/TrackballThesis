@@ -56,7 +56,7 @@ pinch.set({threshold: 0.05});
 manager.add([singlePan, doublePan, pinch]);
 manager.get('pinch').set({enable: true});
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-//manager.get('pinch').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').requireFailure('singlepan');
 //manager.get('pinch').recognizeWith('doublepan');
 //manager.get('doublepan').recognizeWith('pinch');
@@ -246,7 +246,7 @@ function windowResizeListener() {
  */
 function calculateDistance(p0, p1) {
     return Math.sqrt(Math.pow(p1.clientX - p0.clientX, 2)+Math.pow(p1.clientY - p0.clientY, 2));
-}
+};
 
 /**
  * Calculate the trackball radius based on the canvas size and the scaling factor
