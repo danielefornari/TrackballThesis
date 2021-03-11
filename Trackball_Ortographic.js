@@ -136,10 +136,13 @@ manager.on("pinchout", function PinchOutListener(event) {
     }
     pinchCounter++;
 });
-manager.on("pinchend", function pinchEndManager() {
+manager.on("pinchend", function pinchEndListener() {
     console.log("pinchEnd");
     pinchCounter = 0;
 });
+manager.on("pinchmove" ,function pinchMoveListener() {
+    console.log("pinchMove");
+})
 
 //rotate gesture listener
 manager.on('rotatestart')
