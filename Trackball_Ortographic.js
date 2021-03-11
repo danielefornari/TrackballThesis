@@ -149,12 +149,6 @@ manager.on("pinchend", function pinchEndListener() {
     console.log("pinchEnd");
     pinchCounter = 0;
 });
-manager.on("pinchmove" ,function pinchMoveListener(event) {
-    if(pinchCounter%pinchDelta == 0) {
-        const distance = event.di
-    }
-    console.log("pinchMove");
-})
 
 //rotate gesture listener
 manager.on('rotatestart')
