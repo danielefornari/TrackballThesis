@@ -50,13 +50,14 @@ const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
-pinch.set({threshold: 0});
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
+pinch.set({threshold: 0});  //threshold 0.05
 
-manager.add([singlePan, doublePan, pinch]);
+manager.add([singlePan, doublePan, pinch, rotate]);
 manager.get('pinch').set({enable: true});
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
 manager.on("singlepanstart", function singlePanStartListener(event) {
@@ -126,7 +127,7 @@ manager.on("pinchmove", function pinchMoveListener(event) {
     if(newDistance < fingerDistance) {
         //pinch in
         obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
-    }
+    }Ma
     else {
         //pinch out
         obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
@@ -140,7 +141,13 @@ manager.on("pinchend", function pinchEndListener() {
 });
 
 //rotate gesture listener
-manager.on('rotatestart')
+manager.on("rotatestart", function rotateStartListener() {
+    console.log("rotateStart");
+});
+manager.on("rotatemove", function rotateMoveListener(event) {
+    console.log("rotateMove");
+    rotateObj(obj, new THREE.Vector3(0, 0, 1), event.rotation*Math.PI/180);
+});
 
 
 //camera
