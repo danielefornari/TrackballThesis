@@ -239,6 +239,16 @@ function windowResizeListener() {
 };
 
 /**
+ * Calcualte the distance between two pointers
+ * @param {PointerEvent} p0 The first pointer
+ * @param {PointerEvent} p1 The second pointer
+ * @returns {number} The distance between the two pointers 
+ */
+ function calculateDistance(p0, p1) {
+    return Math.sqrt(Math.pow(p1.clientX - p0.clientX, 2)+Math.pow(p1.clientY - p0.clientY, 2));
+};
+
+/**
  * Calculate the trackball radius based on the canvas size and the scaling factor
  * @param {number} radiusScaleFactor Scaling factor for reducing radius length
  * @param {HTMLElement} canvas The canvas where the renderer draws its output 
