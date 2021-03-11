@@ -10,6 +10,8 @@ const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 const scaleFactor = 1.1;
+const pinchDelta = 6;
+let pinchCounter = 0;
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -108,23 +110,33 @@ manager.on("doublepanstart", function doublePanStartListener(event) {
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 });
 manager.on("doublepanend", function doublePanEnd() {
-    console.log("doublepanEnd");
+    console.log("doublePanEnd");
     posState.copy(obj.position);
 });
 
 //pinch gesture listeners
 manager.on("pinchin", function pinchInManager(event) {
-    console.log("pinchIn");
-    event.preventDefault();
-    obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
-    renderer.render(scene, camera);
+    if(pinchCounter%pinchDelta == 0) {
+        console.log("pinchIn");
+        event.preventDefault();
+        obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
+        renderer.render(scene, camera);
+    }
+    pinchCounter++;
 });
 manager.on("pinchout", function PinchOutListener(event) {
-    console.log("pinchOut");
-    event.preventDefault();
-    obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
-    renderer.render(scene, camera);
+    if(pinchCounter%pinchDelta == 0) {
+        console.log("pinchOut");
+        event.preventDefault();
+        obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
+        renderer.render(scene, camera);
+    }
+    pinchCounter++;
 });
+manager.on("pinchend", function pinchEndManager() {
+    console.log("pinchEnd");
+    pinchCounter = 0;
+})
 
 
 
