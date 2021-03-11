@@ -11,9 +11,8 @@ const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 const scaleFactor = 1.1;
 const pinchScaleFactor = 1.02;
-const pinchDelta = 6;
-let pinchCounter = 0;
 let fingerDistance = 0;
+let fingerRotation = 0;
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -141,12 +140,17 @@ manager.on("pinchend", function pinchEndListener() {
 });
 
 //rotate gesture listener
-manager.on("rotatestart", function rotateStartListener() {
+manager.on("rotatestart", function rotateStartListener(event) {
     console.log("rotateStart");
+    fingerRotation = event.rotation;
 });
 manager.on("rotatemove", function rotateMoveListener(event) {
     console.log("rotateMove");
-    rotateObj(group, new THREE.Vector3(0, 0, 1), -event.rotation*Math.PI/180);
+    const rotation = fingerRotation - event.rotation;
+    rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
+});
+manager.on("rotateend", function rotateEndListener(event) {
+    fingerRotation = event.rotation;
 });
 
 
