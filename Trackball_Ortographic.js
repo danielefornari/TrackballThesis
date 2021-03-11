@@ -139,11 +139,21 @@ manager.on("doublepanend", function doublePanEnd() {
 });*/
 manager.on("pinchstart", function pinchStartListener(event) {
     console.log("pinchStart");
-    console.log("pointer1 "+event.pointers[0].clientX+" pointer2 "+event.pointers[1].clientX);
-    //fingerDistance = 
+    fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
 });
-manager.on("pinchmove", function pinchMoveListener() {
+manager.on("pinchmove", function pinchMoveListener(event) {
     console.log("pinchMove");
+    let newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
+    console.log(newDistance);
+    if(newDistance < fingerDistance) {
+        //pinch in
+        obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
+    }
+    else {
+        //pinch out
+        obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
+    }
+    fingerDistance = newDistance;
 });
 manager.on("pinchend", function pinchEndListener() {
     console.log("pinchEnd");
@@ -244,6 +254,15 @@ function windowResizeListener() {
     renderer.render(scene, camera);
 };
 
+/**
+ * Calcualte the distance between two pointers
+ * @param {PointerEvent} p0 The first pointer
+ * @param {PointerEvent} p1 The second pointer
+ * @returns {number} The distance between the two pointers 
+ */
+function calculateDistance(p0, p1) {
+    return Math.sqrt(Math.pow(p1.clientX - p0.clientX)+Math.pow(p1.clientY - p0.clientY));
+}
 
 /**
  * Calculate the trackball radius based on the canvas size and the scaling factor
