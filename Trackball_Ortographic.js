@@ -28,6 +28,7 @@ const radiusScaleFactor = 3;
 let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
 
 let tracking = false;
+let rotating = false;
 let currentCursorPosition = new THREE.Vector3();
 let startCursorPosition = new THREE.Vector3();
 let rotationAxis = new THREE.Vector3();
@@ -57,19 +58,6 @@ manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiu
 //manager.get('pinch').requireFailure('doublepan');
 
 //pan gesture listeners
-manager.on("singlepanup singlepandown singlepanleft singlepanright", function singlePanListener(event) {
-    console.log("singlePan");
-    let center = event.center;
-    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    let distanceV = startCursorPosition.clone();
-    distanceV.sub(currentCursorPosition);
-    let angleV = startCursorPosition.angleTo(currentCursorPosition);
-    //rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-    cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
-    cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
-    rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
-    renderer.render(scene, camera);
-});
 manager.on("singlepanstart", function singlePanStartListener(event) {
     console.log("singlepanstart");
     let center = event.center;
@@ -80,9 +68,26 @@ manager.on("singlepanstart", function singlePanStartListener(event) {
         quatState.copy(group.quaternion);
     }
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    rotating = true;
+});
+manager.on("singlepanup singlepandown singlepanleft singlepanright", function singlePanListener(event) {
+    if(rotating) {
+        console.log("singlePan");
+        let center = event.center;
+        currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+        let distanceV = startCursorPosition.clone();
+        distanceV.sub(currentCursorPosition);
+        let angleV = startCursorPosition.angleTo(currentCursorPosition);
+        //rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+        cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
+        cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
+        rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+        renderer.render(scene, camera);
+    }
 });
 manager.on("singlepanend", function singlePanEnd(ev) {
     console.log("singlepanEnd");
+    rotating = false;
 });
 
 manager.on("doublepanup doublepandown doublepanleft doublepanright", function doublePanListener(event) {
