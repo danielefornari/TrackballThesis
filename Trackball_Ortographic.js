@@ -261,7 +261,7 @@ function windowResizeListener() {
  * @returns {number} The distance between the two pointers 
  */
 function calculateDistance(p0, p1) {
-    return Math.sqrt(Math.pow(p1.clientX - p0.clientX)+Math.pow(p1.clientY - p0.clientY));
+    return Math.sqrt(Math.pow(p1.clientX - p0.clientX, 2)+Math.pow(p1.clientY - p0.clientY, 2));
 }
 
 /**
