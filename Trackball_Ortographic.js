@@ -146,7 +146,7 @@ manager.on("rotatestart", function rotateStartListener() {
 });
 manager.on("rotatemove", function rotateMoveListener(event) {
     console.log("rotateMove");
-    rotateObj(obj, new THREE.Vector3(0, 0, 1), event.rotation*Math.PI/180);
+    rotateObj(group, new THREE.Vector3(0, 0, 1), event.rotation*Math.PI/180);
 });
 
 
