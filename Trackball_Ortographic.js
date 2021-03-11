@@ -114,11 +114,13 @@ manager.on("doublepanend", function doublePanEnd() {
 
 //pinch gesture listeners
 manager.on("pinchin", function pinchInManager(event) {
+    console.log("pinchIn");
     event.preventDefault();
     obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
     renderer.render(scene, camera);
 });
 manager.on("pinchout", function PinchOutListener(event) {
+    console.log("pinchOut");
     event.preventDefault();
     obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
     renderer.render(scene, camera);
