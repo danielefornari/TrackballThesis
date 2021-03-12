@@ -92,7 +92,8 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
         rotating = true;
     }
 });
-manager.on('singlepanmove', function singlePanListener(event) {
+manager.on('singlepanmove', function singlePanMoveListener(event) {
+    console.log("singlepanmove");
     if(panKey) {
         //perform pan instead of rotation
         doublePanListener(event);
@@ -100,7 +101,6 @@ manager.on('singlepanmove', function singlePanListener(event) {
     else {
         //normal trackball rotation
         if(rotating) {
-            console.log("singlepanmove");
             let center = event.center;
             currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             let distanceV = startCursorPosition.clone();
@@ -114,7 +114,7 @@ manager.on('singlepanmove', function singlePanListener(event) {
         }
     }
 });
-manager.on('singlepanend', function singlePanEnd() {
+manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
     if(panKey) {
         posState.copy(obj.position);
@@ -130,8 +130,8 @@ manager.on('doublepanstart', function doublePanStartListener(event) {
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 });
-manager.on('doublepanmove', doublePanListener);
-function doublePanListener(event) {
+manager.on('doublepanmove', doublePanMoveListener);
+function doublePanMoveListener(event) {
     console.log("doublePan");
     const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -143,7 +143,7 @@ function doublePanListener(event) {
     obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
     renderer.render(scene, camera);
 };
-manager.on('doublepanend', function doublePanEnd() {
+manager.on('doublepanend', function doublePanEndListener() {
     console.log("doublepanend");
     posState.copy(obj.position);
 });
