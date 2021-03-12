@@ -96,7 +96,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
     console.log("singlepanmove");
     if(panKey) {
         //perform pan instead of rotation
-        doublePanListener(event);
+        doublePanMoveListener(event);
     }
     else {
         //normal trackball rotation
