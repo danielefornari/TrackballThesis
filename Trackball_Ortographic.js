@@ -60,6 +60,7 @@ let rotationAxis = new THREE.Vector3();
 let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 let posState = new THREE.Vector3(); //object's position vector
+let scaleState = new THREE.Vector3();   //object's scale vector
 
 
 //touch gestures
@@ -181,8 +182,8 @@ manager.on('pinchstart', function pinchStartListener(event) {
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
     let newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    console.log(newDistance);
-    if(newDistance < fingerDistance) {
+    obj.scale.copy(scaleState.clone().multiplyScalar(newDistance/fingerDistance));
+    /*if(newDistance < fingerDistance) {
         //pinch in
         obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
     }
@@ -191,10 +192,10 @@ manager.on('pinchmove', function pinchMoveListener(event) {
         obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
     }
     renderer.render(scene, camera);
-    fingerDistance = newDistance;
-});
+});*/
 manager.on('pinchend', function pinchEndListener() {
     console.log("pinchEnd");
+    scaleState = obj.scale;
 });
 
 //rotate gesture listener
