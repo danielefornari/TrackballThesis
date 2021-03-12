@@ -187,6 +187,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     console.log("scale:"+scaleState.x+scaleState.y+scaleState.z);
     const s = scaleState.clone();
     obj.scale.copy(s.multiplyScalar(newDistance/fingerDistance));
+    renderer.render(scene, camera);
     /*if(newDistance < fingerDistance) {
         //pinch in
         obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
