@@ -13,6 +13,7 @@ const scaleFactor = 1.1;
 const pinchScaleFactor = 1.02;
 let fingerDistance = 0;
 let fingerRotation = 0;
+let panKey = false;
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -54,31 +55,39 @@ manager.get('pinch').recognizeWith('doublepan');
 manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listener
-manager.on('singlepanstart', function panStartManager(event) {
+manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log('singlepanstart');
     let center = event.center;
-    if(group.quaternion == "undefined") {
-        quatState = new THREE.Quaternion().identity();
+    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    if(!panKey) {
+        //normal trackball rotation
+        if(group.quaternion == "undefined") {
+            quatState = new THREE.Quaternion().identity();
+        }
+        else {
+            quatState.copy(group.quaternion);
+        }
+    }
+});
+manager.on('singlepanmove', function singlePanMoveListener(event) {
+    console.log('singlepanmove');
+    if(panKey) {
+        doublePanMoveListener(event);
     }
     else {
-        quatState.copy(group.quaternion);
+        let center = event.center;
+        currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+        let distanceV = startCursorPosition.clone();
+        distanceV.sub(currentCursorPosition);
+        let angleV = startCursorPosition.angleTo(currentCursorPosition);
+        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+        cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
+        cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
+        rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+        renderer.render(scene, camera);
     }
-    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 });
-manager.on('singlepanmove', function panManager(event) {
-    console.log('singlepanmove');
-    let center = event.center;
-    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    let distanceV = startCursorPosition.clone();
-    distanceV.sub(currentCursorPosition);
-    let angleV = startCursorPosition.angleTo(currentCursorPosition);
-    rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-    cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
-    cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
-    rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
-    renderer.render(scene, camera);
-});
-manager.on('singlepanend', function panEnd() {
+manager.on('singlepanend', function singlePanEndListener() {
     console.log('singlepanend');
 });
 
@@ -88,7 +97,8 @@ manager.on('doublepanstart', function doublePanStartListener(event) {
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 });
-manager.on('doublepanmove', function doublePanListener(event) {
+manager.on('doublepanmove', doublePanMoveListener);
+function doublePanMoveListener(event) {
     console.log("doublePan");
     const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -99,8 +109,8 @@ manager.on('doublepanmove', function doublePanListener(event) {
     obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
     obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
     renderer.render(scene, camera);
-});
-manager.on('doublepanend', function doublePanEnd() {
+}
+manager.on('doublepanend', function doublePanEndListener() {
     console.log("doublepanend");
     posState.copy(obj.position);
 });
