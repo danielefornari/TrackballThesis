@@ -191,8 +191,8 @@ manager.on('pinchmove', function pinchMoveListener(event) {
         //pinch out
         obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
     }
-    renderer.render(scene, camera);
-});*/
+    renderer.render(scene, camera);*/
+});
 manager.on('pinchend', function pinchEndListener() {
     console.log("pinchEnd");
     scaleState = obj.scale;
