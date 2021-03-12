@@ -10,7 +10,6 @@ const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 
-
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
@@ -47,13 +46,12 @@ const radiusScaleFactor = 3;
 let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
 
 const scaleFactor = 1.1;
-const pinchScaleFactor = 1.02;
 let fingerDistance = 0;
 let fingerRotation = 0;
-let panKey = false;
-let panning = false;
-let rotating = false;
-let tracking = false;
+let panKey = false; //if key for pan is down
+let panning = false;    //if panning operation is being performed (non touch only)
+let rotating = false;   //probabilmente non serve
+let tracking = false;  
 let currentCursorPosition = new THREE.Vector3();
 let startCursorPosition = new THREE.Vector3();
 let rotationAxis = new THREE.Vector3();
@@ -75,9 +73,10 @@ singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
 pinch.set({threshold: 0});  //threshold 0.05
 
-manager.add([singlePan, doublePan, pinch]);
-manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-manager.get('pinch').recognizeWith('doublepan');
+//manager.add([singlePan, doublePan, pinch]);
+manager.add([pinch]);
+//manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
+//manager.get('pinch').recognizeWith('doublepan');
 //manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
