@@ -20,6 +20,24 @@ canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('wheel', wheelListener);
+document.addEventListener('keydown', function keyDownListener(event) {
+    /*if(event.ctrlKey || event.metaKey) {
+        console.log("keydown");
+        panKey = true;
+    }*/    
+    if(event.key == 'c') {
+        panKey = true;
+    }
+});
+document.addEventListener('keyup', function keyUpListener(event) {
+    /*if(event.ctrlKey || event.metaKey) {
+        console.log("keyup");
+        panKey = false;
+    }*/
+    if(event.key == 'c') {
+        panKey = false;
+    }
+});
 window.addEventListener('resize', windowResizeListener);
 
 const renderer = new THREE.WebGLRenderer({canvas});
