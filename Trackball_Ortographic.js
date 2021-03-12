@@ -13,6 +13,7 @@ const scaleFactor = 1.1;
 const pinchScaleFactor = 1.02;
 let fingerDistance = 0;
 let fingerRotation = 0;
+let panKey = false;
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -20,6 +21,24 @@ canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
 canvas.addEventListener('mousedown', mouseClickListener);
 canvas.addEventListener('wheel', wheelListener);
+document.addEventListener('keydown', function keyDownListener(event) {
+    /*if(event.ctrlKey || event.metaKey) {
+        console.log("keydown");
+        panKey = true;
+    }*/    
+    if(event.key == 'c') {
+        panKey = true;
+    }
+});
+document.addEventListener('keyup', function keyUpListener(event) {
+    /*if(event.ctrlKey || event.metaKey) {
+        console.log("keyup");
+        panKey = false;
+    }*/
+    if(event.key == 'c') {
+        panKey = false;
+    }
+});
 window.addEventListener('resize', windowResizeListener);
 
 const renderer = new THREE.WebGLRenderer({canvas});
@@ -61,33 +80,48 @@ manager.get('pinch').recognizeWith('rotate');
 manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log("singlepanstart");
     let center = event.center;
-    if(group.quaternion == "undefined") {
-        quatState = new THREE.Quaternion().identity();
-    }
-    else {
-        quatState.copy(group.quaternion);
-    }
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    rotating = true;
+    if(!panKey) {
+        //normal trackball rotation
+        if(group.quaternion == "undefined") {
+            quatState = new THREE.Quaternion().identity();
+        }
+        else {
+            quatState.copy(group.quaternion);
+        }
+        rotating = true;
+    }
 });
 manager.on('singlepanmove', function singlePanListener(event) {
-    if(rotating) {
-        console.log("singlepanmove");
-        let center = event.center;
-        currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-        let distanceV = startCursorPosition.clone();
-        distanceV.sub(currentCursorPosition);
-        let angleV = startCursorPosition.angleTo(currentCursorPosition);
-        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-        cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
-        cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
-        rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
-        renderer.render(scene, camera);
+    if(panKey) {
+        //perform pan instead of rotation
+        doublePanListener(event);
+    }
+    else {
+        //normal trackball rotation
+        if(rotating) {
+            console.log("singlepanmove");
+            let center = event.center;
+            currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            let distanceV = startCursorPosition.clone();
+            distanceV.sub(currentCursorPosition);
+            let angleV = startCursorPosition.angleTo(currentCursorPosition);
+            rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
+            cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
+            cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
+            rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+            renderer.render(scene, camera);
+        }
     }
 });
 manager.on('singlepanend', function singlePanEnd() {
     console.log("singlepanend");
-    rotating = false;
+    if(panKey) {
+        posState.copy(obj.position);
+    }
+    else {
+        rotating = false;
+    }
 });
 
 //double finger pan gesture listener
@@ -96,7 +130,8 @@ manager.on('doublepanstart', function doublePanStartListener(event) {
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
 });
-manager.on('doublepanmove', function doublePanListener(event) {
+manager.on('doublepanmove', doublePanListener);
+function doublePanListener(event) {
     console.log("doublePan");
     const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -107,7 +142,7 @@ manager.on('doublepanmove', function doublePanListener(event) {
     obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
     obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
     renderer.render(scene, camera);
-});
+};
 manager.on('doublepanend', function doublePanEnd() {
     console.log("doublepanend");
     posState.copy(obj.position);
