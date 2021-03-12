@@ -178,7 +178,7 @@ manager.on('doublepanend', function doublePanEndListener() {
 //pinch gesture listener
 manager.on('pinchstart', function pinchStartListener(event) {
     console.log("pinchStart");
-    scaleState = obj.scale;
+    scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
