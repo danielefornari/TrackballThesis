@@ -146,7 +146,7 @@ manager.on('singlepanend', function singlePanEndListener() {
         posState.copy(obj.position);
     }
     else {
-        rotating = false;
+        rotating = true;
     }
 });
 
