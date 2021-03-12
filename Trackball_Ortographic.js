@@ -75,11 +75,10 @@ singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
 pinch.set({threshold: 0});  //threshold 0.05
 
-//manager.add([singlePan, doublePan, pinch, rotate]);
-manager.add([pinch]);
-/*manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
+manager.add([singlePan, doublePan, pinch]);
+manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('doublepan');
-manager.get('pinch').recognizeWith('rotate');*/
+//manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
 manager.on('singlepanstart', singlePanStartListener);
@@ -189,15 +188,6 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     obj.scale.copy(scaleState.clone().multiplyScalar(newDistance/fingerDistance));
     renderer.render(scene, camera);
-    /*if(newDistance < fingerDistance) {
-        //pinch in
-        obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
-    }
-    else {
-        //pinch out
-        obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
-    }
-    renderer.render(scene, camera);*/
 });
 manager.on('pinchend', function pinchEndListener() {
     console.log("pinchEnd");
