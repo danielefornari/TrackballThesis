@@ -186,7 +186,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     let newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     console.log(newDistance/fingerDistance);
     console.log("scale:"+scaleState.x+scaleState.y+scaleState.z);
-    const s = scaleState.clone();
+    const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     obj.scale.copy(s.multiplyScalar(newDistance/fingerDistance));
     renderer.render(scene, camera);
     /*if(newDistance < fingerDistance) {
