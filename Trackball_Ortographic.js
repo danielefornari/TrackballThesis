@@ -77,7 +77,7 @@ pinch.set({threshold: 0});  //threshold 0.05
 
 //manager.add([singlePan, doublePan, pinch, rotate]);
 manager.add([pinch]);
-manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
+//manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('doublepan');
 manager.get('pinch').recognizeWith('rotate');
 
