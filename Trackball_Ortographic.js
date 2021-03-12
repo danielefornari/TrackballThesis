@@ -196,7 +196,6 @@ manager.on('pinchmove', function pinchMoveListener(event) {
 });
 manager.on('pinchend', function pinchEndListener() {
     console.log("pinchEnd");
-    scaleState = obj.scale;
 });
 
 //rotate gesture listener
