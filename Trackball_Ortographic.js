@@ -10,6 +10,9 @@ const cursor1Paragraph = document.getElementById("cursor1Paragraph");
 const cursor2Paragraph = document.getElementById("cursor2Paragraph");
 const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 
+const v1 = new THREE.Vector3();
+const v2 = new THREE.Vector3();
+
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
@@ -218,8 +221,8 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
     obj.position.copy(posState);
-    let v1 = group.worldToLocal(xAxis).multiplyScalar( -fingersMiddle.x);
-    let v2 = group.worldToLocal(yAxis).multiplyScalar( -fingersMiddle.y);
+    v1.copy(group.worldToLocal(xAxis).multiplyScalar( -fingersMiddle.x));
+    v2.copy(group.worldToLocal(yAxis).multiplyScalar( -fingersMiddle.y));
     v1.add(v2);
     v1.applyQuaternion(obj.quaternion);
     obj.position.add(v1);
@@ -228,7 +231,9 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     v1 = group.worldToLocal(xAxis).multiplyScalar( fingersMiddle.x);
     v2 = group.worldToLocal(yAxis).multiplyScalar( fingersMiddle.y);
     v1.add(v2);
-    v1.applyQuaternion(obj.quaternion);    renderer.render(scene, camera);
+    v1.applyQuaternion(obj.quaternion);
+    obj.position.add(v1); 
+    renderer.render(scene, camera);
 });
 manager.on('rotateend', function rotateEndListener(event) {
     fingerRotation = event.rotation;
