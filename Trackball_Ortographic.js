@@ -491,7 +491,7 @@ function scale(obj, s) {
  */
 function moveTo(obj, p) {
     console.log("moving");
-    obj.position.copy(p.x, p.y, p.z);
+    obj.position.copy(p);
     posState.copy(obj.position);
 }
 
