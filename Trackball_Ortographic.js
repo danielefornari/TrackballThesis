@@ -215,7 +215,16 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     const rotation = fingerRotation - event.rotation;
     const pos = obj.position.clone();
     fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement);
-    moveTo(obj, fingersMiddle);
+
+    const xAxis = new THREE.Vector3(1, 0, 0);
+    const yAxis = new THREE.Vector3(0, 1, 0);
+    obj.position.copy(posState);
+    const v1 = group.worldToLocal(xAxis).multiplyScalar( -fingersMiddle.x);
+    const v2 = group.worldToLocal(yAxis).multiplyScalar( -fingersMiddle.y);
+    v1.add(v2);
+    v1.applyQuaternion(obj.quaternion);
+    obj.position.add(v1);
+    
     rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
     moveTo(obj, pos);
     renderer.render(scene, camera);
