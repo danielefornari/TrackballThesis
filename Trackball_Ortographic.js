@@ -45,7 +45,6 @@ const tbCenter = new THREE.Vector3(0, 0, 0);
 const radiusScaleFactor = 3;
 let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
 
-const scaleFactor = 1.1;
 let fingerDistance = 0;
 let fingerRotation = 0;
 let panKey = false; //if key for pan is down
@@ -56,10 +55,11 @@ let currentCursorPosition = new THREE.Vector3();
 let startCursorPosition = new THREE.Vector3();
 let fingersMiddle = new THREE.Vector3(); //coordinates of the point between two fingers
 let rotationAxis = new THREE.Vector3();
+let notchCounter = 0;   //represent the number of wheel nothes from the initial position
 let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 let posState = new THREE.Vector3(); //object's position vector
-let scaleState = new THREE.Vector3();   //object's scale vector
+let scaleState = new THREE.Vector3(1, 1, 1);   //object's scale vector
 
 
 //touch gestures
@@ -164,8 +164,13 @@ function doublePanMoveListener(event) {
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
     obj.position.copy(posState);
-    obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
-    obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
+    const v1 = group.worldToLocal(xAxis).multiplyScalar(distanceV.x);
+    const v2 = group.worldToLocal(yAxis).multiplyScalar(distanceV.y);
+    v1.add(v2);
+    v1.applyQuaternion(obj.quaternion);
+    obj.position.add(v1);
+    //obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
+    //obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
     renderer.render(scene, camera);
 };
 manager.on('doublepanend', function doublePanEndListener() {
@@ -285,12 +290,27 @@ function mouseMoveListener(event) {
 
 function wheelListener(event) {
     event.preventDefault();
-    const sgn = Math.sign(event.deltaY);
-    if(sgn == -1) {
-        scale(obj, 1/scaleFactor)
+    const scaleFactor = 1.1;
+    const sgn = Math.sign(event.deltaY);    //the direction of rotation
+
+    notchCounter+=sgn; //update the notch counter
+    /*if(notchCounter > 0) {
+        scale(obj, scaleFactor*notchCounter);
+    }
+    else if(notchCounter < 0) {
+        scale(obj, 1/(scaleFactor*(-notchCounter)));
     }
     else {
-       scale(obj, scaleFactor);
+        scale(obj, 1);
+    }*/
+    if(notchCounter > 0) {
+        scale(obj, Math.pow(scaleFactor, notchCounter));
+    }
+    else if(notchCounter < 0) {
+        scale(obj, 1/(Math.pow(scaleFactor, -notchCounter)));
+    }
+    else {
+        scale(obj, 1);
     }
     renderer.render(scene, camera);
 };
@@ -451,12 +471,13 @@ function rotateObj(obj, axis, rad) {
  * @param {number} s The scale factor
  */
 function scale(obj, s) {
+    console.log("scaling");
     obj.scale.copy(scaleState.clone().multiplyScalar(s));
 }
 
-function translateObj(obj, p) {
+function translate(obj, p) {
     console.log("translating");
-
+    obj.position.copy(p.x, p.y, p.z);
 }
 
 /**
