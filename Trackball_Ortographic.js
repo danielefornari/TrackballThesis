@@ -214,9 +214,9 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     const rotation = fingerRotation - event.rotation;
     const pos = obj.position;
     fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement);
-    obj.moveTo(fingersMiddle);
+    //obj.moveTo(fingersMiddle);
     rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
-    obj.moveTo(pos);
+    //obj.moveTo(pos);
     renderer.render(scene, camera);
 });
 manager.on('rotateend', function rotateEndListener(event) {
