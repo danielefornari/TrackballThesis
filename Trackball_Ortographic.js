@@ -220,7 +220,7 @@ manager.on('rotatemove', function rotateMoveListener(event) {
 
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
-    //obj.position.copy(posState);
+    obj.position.copy(posState);
     v1.copy(group.worldToLocal(xAxis).multiplyScalar( -fingersMiddle.x));
     v2.copy(group.worldToLocal(yAxis).multiplyScalar( -fingersMiddle.y));
     v1.add(v2);
