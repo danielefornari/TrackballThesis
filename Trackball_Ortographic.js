@@ -74,10 +74,11 @@ singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
 pinch.set({threshold: 0});  //threshold 0.05
 
-manager.add([singlePan, doublePan, pinch, rotate]);
-manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
+manager.add([rotate]);
+//manager.add([singlePan, doublePan, pinch, rotate]);
+/*manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('doublepan');
-manager.get('pinch').recognizeWith('rotate');
+manager.get('pinch').recognizeWith('rotate');*/
 
 //single finger pan gesture listeners
 manager.on('singlepanstart', singlePanStartListener);
