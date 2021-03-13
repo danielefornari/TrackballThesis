@@ -77,7 +77,7 @@ pinch.set({threshold: 0});  //threshold 0.05
 manager.add([singlePan, doublePan, pinch, rotate]);
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('doublepan');
-//manager.get('pinch').recognizeWith('rotate');
+manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
 manager.on('singlepanstart', singlePanStartListener);
@@ -164,8 +164,8 @@ function doublePanMoveListener(event) {
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
     obj.position.copy(posState);
-    const v1 = group.worldToLocal(xAxis).multiplyScalar(distanceV.x);
-    const v2 = group.worldToLocal(yAxis).multiplyScalar(distanceV.y);
+    const v1 = group.worldToLocal(xAxis).multiplyScalar( -distanceV.x);
+    const v2 = group.worldToLocal(yAxis).multiplyScalar( -distanceV.y);
     v1.add(v2);
     v1.applyQuaternion(obj.quaternion);
     obj.position.add(v1);
