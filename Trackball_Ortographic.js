@@ -225,8 +225,10 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     obj.position.add(v1);
     
     rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
-    moveTo(obj, pos);
-    renderer.render(scene, camera);
+    const v1 = group.worldToLocal(xAxis).multiplyScalar( fingersMiddle.x);
+    const v2 = group.worldToLocal(yAxis).multiplyScalar( fingersMiddle.y);
+    v1.add(v2);
+    v1.applyQuaternion(obj.quaternion);    renderer.render(scene, camera);
 });
 manager.on('rotateend', function rotateEndListener(event) {
     fingerRotation = event.rotation;
