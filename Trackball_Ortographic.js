@@ -54,6 +54,7 @@ let rotating = false;   //probabilmente non serve
 let tracking = false;  
 let currentCursorPosition = new THREE.Vector3();
 let startCursorPosition = new THREE.Vector3();
+let fingersMiddle = new THREE.Vector3(); //coordinates of the point between two fingers
 let rotationAxis = new THREE.Vector3();
 let obj;    //The 3D model
 let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
@@ -73,7 +74,7 @@ singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
 pinch.set({threshold: 0});  //threshold 0.05
 
-manager.add([singlePan, doublePan, pinch]);
+manager.add([singlePan, doublePan, pinch, rotate]);
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('doublepan');
 //manager.get('pinch').recognizeWith('rotate');
@@ -175,7 +176,7 @@ manager.on('doublepanend', function doublePanEndListener() {
 //pinch gesture listener
 manager.on('pinchstart', function pinchStartListener(event) {
     console.log("pinchStart");
-    scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);   //obj.scane NON FUNZIONA
+    scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);   //obj.scale NON FUNZIONA
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
@@ -184,7 +185,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     console.log(newDistance/fingerDistance);
     console.log("scale:"+scaleState.x+scaleState.y+scaleState.z);
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
-    obj.scale.copy(scaleState.clone().multiplyScalar(newDistance/fingerDistance));
+    scale(obj, newDistance/fingerDistance);
     renderer.render(scene, camera);
 });
 manager.on('pinchend', function pinchEndListener() {
@@ -194,6 +195,7 @@ manager.on('pinchend', function pinchEndListener() {
 //rotate gesture listener
 manager.on('rotatestart', function rotateStartListener(event) {
     console.log("rotateStart");
+    fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement); 
     if(group.quaternion == "undefined") {
         quatState = new THREE.Quaternion().identity();
     }
@@ -285,11 +287,10 @@ function wheelListener(event) {
     event.preventDefault();
     const sgn = Math.sign(event.deltaY);
     if(sgn == -1) {
-        obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
-
+        scale(obj, 1/scaleFactor)
     }
     else {
-        obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
+       scale(obj, scaleFactor);
     }
     renderer.render(scene, camera);
 };
@@ -432,7 +433,7 @@ function resizeRenderer(renderer) {
 
 /**
  * Rotate an object along given axis by given radians
- * @param {THREE.Object3D} obj Object to be roteated
+ * @param {THREE.Object3D} obj Object to be roteted
  * @param {THREE.Vector3} axis Rotation axis
  * @param {number} rad Angle in radians
  */
@@ -443,6 +444,20 @@ function rotateObj(obj, axis, rad) {
     quat.multiply(quatState);
     obj.setRotationFromQuaternion(quat);
 };
+
+/**
+ * Uniformly scale an object by given factor
+ * @param {THREE.Object3D} obj The object to be scaled
+ * @param {number} s The scale factor
+ */
+function scale(obj, s) {
+    obj.scale.copy(scaleState.clone().multiplyScalar(s));
+}
+
+function translateObj(obj, p) {
+    console.log("translating");
+
+}
 
 /**
  * Unproject the cursor in screen space into a point in world space on the trackball surface
