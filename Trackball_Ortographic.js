@@ -212,7 +212,11 @@ manager.on('rotatestart', function rotateStartListener(event) {
 manager.on('rotatemove', function rotateMoveListener(event) {
     console.log("rotateMove");
     const rotation = fingerRotation - event.rotation;
+    const pos = obj.position;
+    fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement);
+    obj.moveTo(fingersMiddle);
     rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
+    obj.moveTo(pos);
     renderer.render(scene, camera);
 });
 manager.on('rotateend', function rotateEndListener(event) {
@@ -282,8 +286,13 @@ function mouseMoveListener(event) {
         const xAxis = new THREE.Vector3(1, 0, 0);
         const yAxis = new THREE.Vector3(0, 1, 0);
         obj.position.copy(posState);
-        obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
-        obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
+        //obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
+        //obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
+        const v1 = group.worldToLocal(xAxis).multiplyScalar(-distanceV.x);
+        const v2 = group.worldToLocal(yAxis).multiplyScalar(-distanceV.y);
+        v1.add(v2);
+        v1.applyQuaternion(obj.quaternion);
+        obj.position.add(v1);
         renderer.render(scene, camera);
     }
 };
@@ -475,10 +484,17 @@ function scale(obj, s) {
     obj.scale.copy(scaleState.clone().multiplyScalar(s));
 }
 
-function translate(obj, p) {
-    console.log("translating");
+/**
+ * Move the object to the new point p
+ * @param {THREE.Object3D} obj The object
+ * @param {THREE.Vector3} p The new center point
+ */
+function moveTo(obj, p) {
+    console.log("moving");
     obj.position.copy(p.x, p.y, p.z);
+    posState.copy(obj.position);
 }
+
 
 /**
  * Unproject the cursor in screen space into a point in world space on the trackball surface
