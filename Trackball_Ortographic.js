@@ -215,7 +215,6 @@ manager.on('rotatestart', function rotateStartListener(event) {
 manager.on('rotatemove', function rotateMoveListener(event) {
     console.log("rotateMove");
     const rotation = fingerRotation - event.rotation;
-    const pos = obj.position.clone();
     fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement);
 
     const xAxis = new THREE.Vector3(1, 0, 0);
@@ -228,6 +227,8 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     obj.position.add(v1);
     
     rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
+    const xAxis = new THREE.Vector3(1, 0, 0);
+    const yAxis = new THREE.Vector3(0, 1, 0);
     v1.copy(group.worldToLocal(xAxis).multiplyScalar( fingersMiddle.x));
     v2.copy(group.worldToLocal(yAxis).multiplyScalar( fingersMiddle.y));
     v1.add(v2);
