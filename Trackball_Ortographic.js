@@ -516,10 +516,10 @@ function rotateObj(obj, axis, rad) {
  */
 function scale(obj, s) {
     console.log("scaling");
-    //m1.makeScale(s, s, s);  //scaling matrix
-    //obj.applyMatrix4(m1);
-    obj.scale.copy(scaleState.clone().multiplyScalar(s));
-    obj.updateMatrix();
+    m1.makeScale(s, s, s);  //scaling matrix
+    obj.applyMatrix4(m1);
+    //obj.scale.copy(scaleState.clone().multiplyScalar(s));
+    //obj.updateMatrix();
 };
 
 /**
