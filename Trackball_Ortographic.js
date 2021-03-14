@@ -215,7 +215,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m2.makeTranslation(-p.x, -p.y, 0);
     m1.premultiply(m2);
     obj.matrix.copy(new THREE.Matrix4());
-    obj.applyMatrix4(objMatrixState);
+    //obj.applyMatrix4(objMatrixState);
     obj.applyMatrix4(m1);
 
     //obj.applyMatrix4(m1);   //T(-p)
