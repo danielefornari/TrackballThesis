@@ -197,8 +197,9 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     m1.makeTranslation(-p.x, -p.y, 0);
     obj.applyMatrix4(m1);   //T(-p)
-    //m1.makeScale(newDistance/fingerDistance);
-    scale(obj, newDistance/fingerDistance);
+    m1.makeScale(newDistance/fingerDistance);
+    obj.applyMatrix4(m1);
+    //scale(obj, newDistance/fingerDistance);
     m1.makeTranslation(p.x, p.y, 0);
     obj.applyMatrix4(m1);  //T(p)
     renderer.render(scene, camera);
