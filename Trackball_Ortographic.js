@@ -214,8 +214,9 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m1.multiply(m2);
     m2.makeTranslation(-p.x, -p.y, 0);
     m1.multiply(m2);
-    obj.matrix.copy(objMatrixState);
-    //obj.applyMatrix4(m1);
+    //obj.matrix.copy(objMatrixState);
+    obj.applyMatrix4(objMatrixState);
+    obj.applyMatrix4(m1);
 
     //obj.applyMatrix4(m1);   //T(-p)
     //m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
