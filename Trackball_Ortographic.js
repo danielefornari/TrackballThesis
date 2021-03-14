@@ -519,6 +519,7 @@ function scale(obj, s) {
     //m1.makeScale(s, s, s);  //scaling matrix
     //obj.applyMatrix4(m1);
     obj.scale.copy(scaleState.clone().multiplyScalar(s));
+    obj.updateMatrix();
 };
 
 /**
