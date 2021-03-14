@@ -13,6 +13,7 @@ const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const m1 = new THREE.Matrix4();
+const m2 = new THREE.Matrix4();
 
 const objMatrixState = new THREE.Matrix4();
 const posStateM = new THREE.Matrix4();
