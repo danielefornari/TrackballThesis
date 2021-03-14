@@ -14,6 +14,7 @@ const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const m1 = new THREE.Matrix4();
 
+const objMatrixState = new THREE.Matrix4();
 const posStateM = new THREE.Matrix4();
 const scaleStateM = new THREE.Matrix4();
 
@@ -197,7 +198,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
     p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
+    //const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     /*obj.position.sub(p);
     obj.updateMatrix();
     scale(obj, newDistance/fingerDistance);
@@ -205,17 +206,26 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     obj.position.add(p);
     obj.updateMatrix();*/
 
+    const s = newDistance/fingerDistance;
     m1.makeTranslation(-p.x, -p.y, 0);
-    obj.applyMatrix4(m1);   //T(-p)
+    m2.makeScale(s, s, s);
+    m1.multiply(m2);
+    m2.makeTranslation(p.x, p.y, p.z);
+    m1.multiply(m2);
+    obj.matrix.copy(objMatrixState);
+    obj.applyMatrix4(m1);
+
+    //obj.applyMatrix4(m1);   //T(-p)
     //m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
     //obj.applyMatrix4(m1);
-    scale(obj, newDistance/fingerDistance);
-    m1.makeTranslation(p.x, p.y, 0);
-    obj.applyMatrix4(m1);  //T(p)
+    //scale(obj, newDistance/fingerDistance);
+    //m1.makeTranslation(p.x, p.y, 0);
+    //obj.applyMatrix4(m1);  //T(p)
     renderer.render(scene, camera);
 });
 manager.on('pinchend', function pinchEndListener() {
     console.log("pinchEnd");
+    objMatrixState.copy(obj.matrix);
 });
 
 //rotate gesture listener
@@ -552,3 +562,9 @@ function unprojectZ(x, y, radius) {
         return (radius2/2)/(Math.sqrt(x2+y2));
     }
 };
+
+
+
+
+
+//FARE PRIMA MOLTIPLICAZIONE TRA LE MATRICI (L'ORDINE CONTA)
