@@ -199,8 +199,11 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     obj.position.sub(p);
+    obj.updateMatrix();
     scale(obj, newDistance/fingerDistance);
+    obj.updateMatrix();
     obj.position.add(p);
+    obj.updateMatrix();
 
     /*m1.makeTranslation(-p.x, -p.y, 0);
     obj.applyMatrix4(m1);   //T(-p)
