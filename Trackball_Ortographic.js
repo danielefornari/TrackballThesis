@@ -210,7 +210,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
     obj.applyMatrix4(m1);
     scale(obj, newDistance/fingerDistance);
-    //m1.makeTranslation(p.x, p.y, 0);
+    m1.makeTranslation(p.x, p.y, 0);
     obj.applyMatrix4(m1);  //T(p)
     renderer.render(scene, camera);
 });
