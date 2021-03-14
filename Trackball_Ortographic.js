@@ -194,14 +194,17 @@ manager.on('pinchstart', function pinchStartListener(event) {
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
-    obj.matrixAutoUpdate = true;
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
     p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     obj.position.copy(obj.position.clone().sub(p));
+    obj.updateMatrix();
     scale(obj, newDistance/fingerDistance);
+    obj.updateMatrix();
     obj.position.copy(obj.position.clone().add(p));
+    obj.updateMatrix();
+
     /*m1.makeTranslation(-p.x, -p.y, 0);
     obj.applyMatrix4(m1);   //T(-p)
     m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
