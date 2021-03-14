@@ -167,9 +167,9 @@ function doublePanMoveListener(event) {
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
     obj.position.copy(posState);
-    const v1 = group.worldToLocal(xAxis).multiplyScalar( -distanceV.x);
-    const v2 = group.worldToLocal(yAxis).multiplyScalar( -distanceV.y);
-    v1.add(v2);
+    const v1 = group.worldToLocal(xAxis).multiplyScalar( -distanceV.x); //direction vector multiplied by the magnitude
+    const v2 = group.worldToLocal(yAxis).multiplyScalar( -distanceV.y); //direction vector multiplied by the magnitude
+    v1.add(v2); //resulting vector
     v1.applyQuaternion(obj.quaternion);
     obj.position.add(v1);
     //obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
@@ -189,11 +189,12 @@ manager.on('pinchstart', function pinchStartListener(event) {
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
-    let newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    console.log(newDistance/fingerDistance);
-    console.log("scale:"+scaleState.x+scaleState.y+scaleState.z);
+    const p = event.center; //center point between fingers
+    const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
+    obj.position.sub(p);
     scale(obj, newDistance/fingerDistance);
+    obj.position.add(p);
     renderer.render(scene, camera);
 });
 manager.on('pinchend', function pinchEndListener() {
@@ -478,7 +479,7 @@ function resizeRenderer(renderer) {
 };
 
 /**
- * Rotate an object along given axis by given radians
+ * Rotate an object around given axis by given radians
  * @param {THREE.Object3D} obj Object to be roteted
  * @param {THREE.Vector3} axis Rotation axis
  * @param {number} rad Angle in radians
