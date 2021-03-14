@@ -190,7 +190,7 @@ manager.on('pinchstart', function pinchStartListener(event) {
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
-    const p = getCursorPosition(event.center); //center point between fingers
+    const p = new THREE.Vector3(event.center.x, event.center.y, 0); //center point between fingers
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     obj.position.sub(p);
