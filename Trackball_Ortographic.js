@@ -195,7 +195,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     obj.position.sub(p);
     scale(obj, newDistance/fingerDistance);
-    obj.position.add(p);
+    //obj.position.add(p);
     renderer.render(scene, camera);
 });
 manager.on('pinchend', function pinchEndListener() {
