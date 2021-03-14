@@ -211,9 +211,9 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const s = newDistance/fingerDistance;
     m1.makeTranslation(p.x, p.y, 0);
     m2.makeScale(s, s, s);
-    m1.preMultiply(m2);
+    m1.premultiply(m2);
     m2.makeTranslation(-p.x, -p.y, 0);
-    m1.preMultiply(m2);
+    m1.premultiply(m2);
     obj.matrix.copy(objMatrixState);
     obj.applyMatrix4(m1);
 
