@@ -220,8 +220,8 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     let xAxis = new THREE.Vector3(1, 0, 0);
     let yAxis = new THREE.Vector3(0, 1, 0);
     obj.position.copy(posState);
-    v1.copy(group.worldToLocal(xAxis).multiplyScalar( -fingersMiddle.x));
-    v2.copy(group.worldToLocal(yAxis).multiplyScalar( -fingersMiddle.y));
+    v1.copy(group.worldToLocal(xAxis).multiplyScalar( fingersMiddle.x));
+    v2.copy(group.worldToLocal(yAxis).multiplyScalar( fingersMiddle.y));
     v1.add(v2);
     v1.applyQuaternion(obj.quaternion);
     obj.position.add(v1);
@@ -229,8 +229,8 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
     xAxis = new THREE.Vector3(1, 0, 0);
     yAxis = new THREE.Vector3(0, 1, 0);
-    v1.copy(group.worldToLocal(xAxis).multiplyScalar( fingersMiddle.x));
-    v2.copy(group.worldToLocal(yAxis).multiplyScalar( fingersMiddle.y));
+    v1.copy(group.worldToLocal(xAxis).multiplyScalar( -fingersMiddle.x));
+    v2.copy(group.worldToLocal(yAxis).multiplyScalar( -fingersMiddle.y));
     v1.add(v2);
     v1.applyQuaternion(obj.quaternion);
     obj.position.add(v1); 
