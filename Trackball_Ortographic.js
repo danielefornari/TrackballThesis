@@ -194,6 +194,7 @@ manager.on('pinchstart', function pinchStartListener(event) {
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
+    obj.matrixAutoUpdate = true;
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
     p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
