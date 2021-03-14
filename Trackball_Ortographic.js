@@ -14,6 +14,9 @@ const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const m1 = new THREE.Matrix4();
 
+const posStateM = new THREE.Matrix4();
+const scaleStateM = new THREE.Matrix4();
+
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
@@ -195,13 +198,16 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
-    m1.makeTranslation(-p.x, -p.y, 0);
+    obj.position.copy(obj.position.sub(p));
+    scale(obj, newDistance/fingerDistance);
+    obj.position.copy(obj.position.add(p));
+    /*m1.makeTranslation(-p.x, -p.y, 0);
     obj.applyMatrix4(m1);   //T(-p)
     m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
     obj.applyMatrix4(m1);
     //scale(obj, newDistance/fingerDistance);
     m1.makeTranslation(p.x, p.y, 0);
-    obj.applyMatrix4(m1);  //T(p)
+    obj.applyMatrix4(m1);  //T(p)*/
     renderer.render(scene, camera);
 });
 manager.on('pinchend', function pinchEndListener() {
@@ -506,8 +512,10 @@ function rotateObj(obj, axis, rad) {
  */
 function scale(obj, s) {
     console.log("scaling");
+    //m1.makeScale(s, s, s);  //scaling matrix
+    //obj.applyMatrix4(m1);
     obj.scale.copy(scaleState.clone().multiplyScalar(s));
-}
+};
 
 /**
  * Move the object to the new point p
@@ -518,7 +526,7 @@ function moveTo(obj, p) {
     console.log("moving");
     obj.position.copy(p);
     posState.copy(obj.position);
-}
+};
 
 
 /**
