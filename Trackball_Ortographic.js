@@ -12,6 +12,7 @@ const unprojectionParagraph = document.getElementById("unprojectionParagraph");
 
 const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
+const m1 = new THREE.Matrix4();
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -194,9 +195,10 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
-    obj.position.sub(p);
+    m1.makeTranslation(-p.x, -p.y, 0);
+    obj.applyMatrix4(m1);   //T(-p)
     scale(obj, newDistance/fingerDistance);
-    obj.position.add(p);
+    obj.applyMatrix4(p.x, p.y, 0);  //T(p)
     renderer.render(scene, camera);
 });
 manager.on('pinchend', function pinchEndListener() {
