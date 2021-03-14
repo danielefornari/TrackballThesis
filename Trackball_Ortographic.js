@@ -200,7 +200,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
     obj.position.sub(p);
     scale(obj, newDistance/fingerDistance);
-    obj.position.add(p));
+    obj.position.add(p);
 
     /*m1.makeTranslation(-p.x, -p.y, 0);
     obj.applyMatrix4(m1);   //T(-p)
