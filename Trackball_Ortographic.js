@@ -83,12 +83,12 @@ singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
 pinch.set({threshold: 0});  //threshold 0.05
 
-//manager.add([singlePan, doublePan, pinch, rotate]);
-manager.add([singlePan, doublePan, pinch]);
+manager.add([singlePan, doublePan, pinch, rotate]);
+//manager.add([singlePan, doublePan, pinch]);
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('doublepan');
 manager.get('doublepan').recognizeWith('pinch');
-//manager.get('pinch').recognizeWith('rotate');
+manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
 manager.on('singlepanstart', singlePanStartListener);
@@ -199,52 +199,22 @@ manager.on('pinchstart', function pinchStartListener(event) {
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
-    p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;
 
-    /*const xAxis = new THREE.Vector3(1, 0, 0);
-    const yAxis = new THREE.Vector3(0, 1, 0);
-    v1.copy(obj.worldToLocal(xAxis)).multiplyScalar(p.x);
-    v2.copy(obj.worldToLocal(yAxis)).multiplyScalar(p.y);
-    v1.add(v2).applyQuaternion(obj.quaternion);*/
-
-    v1.set(p.x, 0, 0);
-    v2.set(0, p.y, 0);
+    v1.set(p.x, 0, 0);  //fingers middle point on x axis
+    v2.set(0, p.y, 0);  //fingers middle point on y axis
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(v1.x, v1.y, v1.z);
-    m2.makeScale(s, s, s);
+    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    m2.makeScale(s, s, s);  //S(s)
     m1.premultiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
 
-
-
-
-   /* p.applyQuaternion(obj.quaternion);
-
-    const s = newDistance/fingerDistance;
-    /*obj.position.add(v1);
-    scale(obj, s);
-    obj.position.sub(v1);*/
-    /*m1.makeTranslation(p.x, p.y, p.z);
-    m2.makeScale(s, s, s);
-    m1.premultiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
-    m1.premultiply(m2);
-    m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);*/
-
-    //obj.applyMatrix4(m1);   //T(-p)
-    //m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
-    //obj.applyMatrix4(m1);
-    //scale(obj, newDistance/fingerDistance);
-    //m1.makeTranslation(p.x, p.y, 0);
-    //obj.applyMatrix4(m1);  //T(p)
     renderer.render(scene, camera);
 });
 manager.on('pinchend', function pinchEndListener() {
@@ -263,13 +233,28 @@ manager.on('rotatestart', function rotateStartListener(event) {
         quatState.copy(group.quaternion);
     }    
     fingerRotation = event.rotation;
+    objMatrixState.copy(obj.matrix);
 });
 manager.on('rotatemove', function rotateMoveListener(event) {
     console.log("rotateMove");
     const rotation = fingerRotation - event.rotation;
     fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement);
 
-    let xAxis = new THREE.Vector3(1, 0, 0);
+    v1.set(fingersMiddle.x, 0, 0);
+    v2.set(0, fingersMiddle.y, 0);
+    v1.add(v2);
+    group.worldToLocal(v1);
+
+    m1.makeTranslation(v1.x, v1.y, v1.z);
+    m2.makeRotationZ(rotation);
+
+    m1.premultiply(m2);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
+    m1.premultiply(m2);
+    m2.copy(objMatrixState).premultiply(m1);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);
+
+    /*let xAxis = new THREE.Vector3(1, 0, 0);
     let yAxis = new THREE.Vector3(0, 1, 0);
     obj.position.copy(posState);
     v1.copy(group.worldToLocal(xAxis).multiplyScalar( fingersMiddle.x));
@@ -285,7 +270,7 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     v2.copy(group.worldToLocal(yAxis).multiplyScalar( -fingersMiddle.y));
     v1.add(v2);
     v1.applyQuaternion(obj.quaternion);
-    obj.position.add(v1); 
+    obj.position.add(v1); */
     renderer.render(scene, camera);
 });
 manager.on('rotateend', function rotateEndListener(event) {
