@@ -252,7 +252,10 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     group.worldToLocal(v1);
 
     m1.makeTranslation(v1.x, v1.y, v1.z);
-    m2.makeRotationZ(rotation);
+    //m2.makeRotationZ(rotation);
+
+    const q = new THREE.Quaternion().setFromAxisAngle(v1, rotation);
+    m2.makeRotartionFromQuaternion(q);
 
     m1.premultiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
