@@ -182,6 +182,7 @@ function doublePanMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
     obj.position.add(v1);
+    obj.updateMatrix();
     renderer.render(scene, camera);
 };
 manager.on('doublepanend', function doublePanEndListener() {
