@@ -213,7 +213,8 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
+    obj.matrixWorld.set(m2);
+    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
 
     renderer.render(scene, camera);
 });
