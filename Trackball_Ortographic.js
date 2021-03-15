@@ -211,21 +211,22 @@ manager.on('pinchmove', function pinchMoveListener(event) {
 
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
+    obj.position.copy(posState);
     v1.copy(obj.worldToLocal(xAxis)).multiplyScalar(p.x);
     v2.copy(obj.worldToLocal(yAxis)).multiplyScalar(p.y);
     v1.add(v2).applyQuaternion(obj.quaternion);
 
     const s = newDistance/fingerDistance;
-    /*obj.position.add(v1);
+    obj.position.add(v1);
     scale(obj, s);
-    obj.position.sub(v1);*/
-    m1.makeTranslation(v1.x, v1.y, 0);
+    obj.position.sub(v1);
+    /*m1.makeTranslation(v1.x, v1.y, 0);
     m2.makeScale(s, s, s);
     m1.premultiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, 0);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);*/
 
     //obj.applyMatrix4(m1);   //T(-p)
     //m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
