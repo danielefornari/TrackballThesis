@@ -175,11 +175,17 @@ function doublePanMoveListener(event) {
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
     obj.position.copy(posState);
-    const v1 = group.worldToLocal(xAxis).multiplyScalar( -distanceV.x); //direction vector multiplied by the magnitude
+
+    v1.set(-distanceV.x, 0, 0);
+    v2.set(0, -distanceV.y, 0);
+    v1.add(v2);
+    group.worldToLocal(v1);
+    obj.position.add(v1);
+    /*const v1 = group.worldToLocal(xAxis).multiplyScalar( -distanceV.x); //direction vector multiplied by the magnitude
     const v2 = group.worldToLocal(yAxis).multiplyScalar( -distanceV.y); //direction vector multiplied by the magnitude
     v1.add(v2); //resulting vector
     v1.applyQuaternion(obj.quaternion);
-    obj.position.add(v1);
+    obj.position.add(v1);*/
     //obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
     //obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
     renderer.render(scene, camera);
