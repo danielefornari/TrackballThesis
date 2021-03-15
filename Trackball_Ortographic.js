@@ -91,7 +91,7 @@ manager.get('singlepan').recognizeWith('doublepan');    //se dal singlepan aggiu
 //manager.get('doublepan').recognizeWith('pinch');
 //manager.get('singlepan').recognizeWith('doublepan');
 //manager.get('rotate').recognizeWith('pinch'); //prima riconosce B, dopo A
-manager.get('pinch').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('singlepan');
 //manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
