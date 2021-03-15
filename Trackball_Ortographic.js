@@ -193,7 +193,7 @@ manager.on('doublepanend', function doublePanEndListener() {
 manager.on('pinchstart', function pinchStartListener(event) {
     console.log("pinchStart");
     //scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);   //obj.scale NON FUNZIONA
-    objMatrixState.copy(obj.matrixWorld);
+    objMatrixState.copy(obj.matrix);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
@@ -213,8 +213,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    obj.matrixWorld.set(m2);
-    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
+    m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
 
     renderer.render(scene, camera);
 });
@@ -234,7 +233,7 @@ manager.on('rotatestart', function rotateStartListener(event) {
         quatState.copy(group.quaternion);
     }    
     fingerRotation = event.rotation;
-    objMatrixState.copy(obj.matrixWorld);
+    objMatrixState.copy(obj.matrix);
 });
 manager.on('rotatemove', function rotateMoveListener(event) {
     console.log("rotateMove");
@@ -253,7 +252,7 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);
+    m2.decompose(obj.position, group.quaternion, obj.scale);
 
     /*let xAxis = new THREE.Vector3(1, 0, 0);
     let yAxis = new THREE.Vector3(0, 1, 0);
