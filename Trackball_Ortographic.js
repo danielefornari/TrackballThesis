@@ -201,6 +201,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
     p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
+    const s = newDistance/fingerDistance;
 
     /*const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
@@ -212,9 +213,15 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v2.set(0, p.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
-    obj.position.add(v1);
-    scale(obj, newDistance/fingerDistance);
-    obj.position.sub(v1);
+
+    m1.makeTranslation(v1.x, v1.y, v1.z);
+    m2.makeScale(s, s, s);
+    m1.premultiply(m2);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
+    m1.premultiply(m2);
+    m2.copy(objMatrixState).premultiply(m1);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);
+
 
 
 
