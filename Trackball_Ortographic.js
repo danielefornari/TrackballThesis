@@ -185,13 +185,14 @@ function doublePanMoveListener(event) {
     group.worldToLocal(v1);
     //obj.position.add(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
-    if(pinching) {
+    /*if(pinching) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
         pinching = false;
     }
     else {
         m2.copy(objMatrixState);
-    }
+    }*/
+    m2.copy(objMatrixState);
     m2.premultiply(m1);
     m2.decompose(obj.position, obj.quaternion, obj.scale);
     renderer.render(scene, camera);
