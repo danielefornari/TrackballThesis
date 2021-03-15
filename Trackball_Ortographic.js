@@ -213,7 +213,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     /*obj.position.add(v1);
     scale(obj, s);
     obj.position.sub(v1);*/
-    v1.makeTranslation(p.x, p.y, 0);
+    m1.makeTranslation(p.x, p.y, 0);
     m2.makeScale(s, s, s);
     m1.premultiply(m2);
     m2.makeTranslation(-p.x, -p.y, 0);
