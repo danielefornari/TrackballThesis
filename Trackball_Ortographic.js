@@ -171,6 +171,7 @@ manager.on('doublepanstart', function doublePanStartListener(event) {
 manager.on('doublepanmove', doublePanMoveListener);
 function doublePanMoveListener(event) {
     console.log("doublePan");
+    panning = true;
     const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
@@ -192,6 +193,7 @@ function doublePanMoveListener(event) {
 manager.on('doublepanend', function doublePanEndListener() {
     console.log("doublepanend");
     posState.copy(obj.position);
+    panning = false;
 });
 
 //pinch gesture listener
@@ -258,7 +260,12 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     m1.premultiply(m2);
     m2.makeTranslation(v1.x, v1.y, v1.z);
     m1.premultiply(m2);
-    m2.copy(objMatrixState).premultiply(m1);
+    if(panning) {
+        m2.copy(obj.matrix).premultiply(m1)
+    }
+    else {
+        m2.copy(objMatrixState).premultiply(m1);
+    }
     m2.decompose(obj.position, obj.quaternion, obj.scale);
     renderer.render(scene, camera);
 });
