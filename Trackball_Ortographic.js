@@ -204,7 +204,6 @@ manager.on('pinchmove', function pinchMoveListener(event) {
 
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
-    obj.position.copy(posState);
     v1.copy(obj.worldToLocal(xAxis)).multiplyScalar(p.x);
     v2.copy(obj.worldToLocal(yAxis)).multiplyScalar(p.y);
     v1.add(v2).applyQuaternion(obj.quaternion);
