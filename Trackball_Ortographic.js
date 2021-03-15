@@ -207,8 +207,9 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v1.copy(obj.worldToLocal(xAxis)).multiplyScalar(p.x);
     v2.copy(obj.worldToLocal(yAxis)).multiplyScalar(p.y);
     v1.add(v2).applyQuaternion(obj.quaternion);*/
-    group.getWorldQuaternion(obj.quaternion);
-    p.applyQuaternion(obj.quaternion);
+    const q = new THREE.Quaternion();
+    group.getWorldQuaternion(q);
+    p.applyQuaternion(q);
 
     const s = newDistance/fingerDistance;
     /*obj.position.add(v1);
