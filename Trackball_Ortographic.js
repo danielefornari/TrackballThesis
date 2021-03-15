@@ -207,21 +207,30 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v1.copy(obj.worldToLocal(xAxis)).multiplyScalar(p.x);
     v2.copy(obj.worldToLocal(yAxis)).multiplyScalar(p.y);
     v1.add(v2).applyQuaternion(obj.quaternion);*/
-    const q = new THREE.Quaternion();
-    group.getWorldQuaternion(q);
-    p.applyQuaternion(q);
+
+    v1.set(p.x, 0, 0);
+    v2.set(0, p.y, 0);
+    v1.add(v2);
+    group.worldToLocal(v1);
+    obj.position.add(v1);
+    scale(obj, newDistance/fingerDistance);
+    obj.position.sub(v1);
+
+
+
+   /* p.applyQuaternion(obj.quaternion);
 
     const s = newDistance/fingerDistance;
     /*obj.position.add(v1);
     scale(obj, s);
     obj.position.sub(v1);*/
-    m1.makeTranslation(p.x, p.y, p.z);
+    /*m1.makeTranslation(p.x, p.y, p.z);
     m2.makeScale(s, s, s);
     m1.premultiply(m2);
-    m2.makeTranslation(-p.x, -p.y, -p.z);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);*/
 
     //obj.applyMatrix4(m1);   //T(-p)
     //m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
@@ -336,15 +345,11 @@ function mouseMoveListener(event) {
         event.preventDefault();
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
         let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        const xAxis = new THREE.Vector3(1, 0, 0);
-        const yAxis = new THREE.Vector3(0, 1, 0);
         obj.position.copy(posState);
-        //obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
-        //obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
-        const v1 = group.worldToLocal(xAxis).multiplyScalar(-distanceV.x);
-        const v2 = group.worldToLocal(yAxis).multiplyScalar(-distanceV.y);
+        v1.set(-distanceV.x, 0, 0); //translation on world X axis
+        v2.set(0, -distanceV.y, 0); //translation on world y axis
         v1.add(v2);
-        v1.applyQuaternion(obj.quaternion);
+        group.worldToLocal(v1); 
         obj.position.add(v1);
         renderer.render(scene, camera);
     }
