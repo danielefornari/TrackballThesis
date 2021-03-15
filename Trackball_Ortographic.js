@@ -263,6 +263,7 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     renderer.render(scene, camera);
 });
 manager.on('rotateend', function rotateEndListener(event) {
+    console.log("rotateend");
     fingerRotation = event.rotation;
 });
 
