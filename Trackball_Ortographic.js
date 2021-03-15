@@ -80,14 +80,15 @@ const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 4, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
 pinch.set({threshold: 0});  //threshold 0.05
+rotate.set({threshold: 2});
 
 manager.add([singlePan, doublePan, pinch, rotate]);
 //manager.add([singlePan, doublePan, pinch]);
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-manager.get('rotate').recognizeWith('pinch');
-manager.get('rotate').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
 manager.on('singlepanstart', singlePanStartListener);
