@@ -82,7 +82,7 @@ const rotate = new Hammer.Rotate();
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
 pinch.set({threshold: 0});  //threshold 0.05
-rotate.set({threshold: 6});
+rotate.set({threshold: 20});
 
 //manager.add([singlePan, doublePan, pinch, rotate]);
 manager.add([singlePan, pinch, rotate]);
