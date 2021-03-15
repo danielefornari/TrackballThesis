@@ -58,6 +58,7 @@ let fingerDistance = 0;
 let fingerRotation = 0;
 let panKey = false; //if key for pan is down
 let panning = false;    //if panning operation is being performed (non touch only)
+let pinching = false;
 let rotating = false;   //probabilmente non serve
 let tracking = false;  
 let currentCursorPosition = new THREE.Vector3();
@@ -184,7 +185,12 @@ function doublePanMoveListener(event) {
     group.worldToLocal(v1);
     //obj.position.add(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
-    m2.copy(objMatrixState);
+    if(pinching) {
+        m2.compose(obj.position, obj.quaternion, obj.scale);
+    }
+    else {
+        m2.copy(objMatrixState);
+    }
     m2.premultiply(m1);
     m2.decompose(obj.position, obj.quaternion, obj.scale);
     renderer.render(scene, camera);
@@ -199,7 +205,8 @@ manager.on('pinchstart', function pinchStartListener(event) {
     console.log("pinchStart");
     //scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);   //obj.scale NON FUNZIONA
     objMatrixState.copy(obj.matrix);
-    fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
+    fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
+    pinching = true;
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
@@ -224,6 +231,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
 });
 manager.on('pinchend', function pinchEndListener() {
     console.log("pinchEnd");
+    pinching = false;
     //objMatrixState.copy(obj.matrix);
 });
 
