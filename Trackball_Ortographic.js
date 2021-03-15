@@ -193,7 +193,7 @@ manager.on('doublepanend', function doublePanEndListener() {
 manager.on('pinchstart', function pinchStartListener(event) {
     console.log("pinchStart");
     //scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);   //obj.scale NON FUNZIONA
-    objMatrixState.copy(obj.matrix);
+    objMatrixState.copy(obj.matrixWorld);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
@@ -233,7 +233,7 @@ manager.on('rotatestart', function rotateStartListener(event) {
         quatState.copy(group.quaternion);
     }    
     fingerRotation = event.rotation;
-    objMatrixState.copy(obj.matrix);
+    objMatrixState.copy(obj.matrixWorld);
 });
 manager.on('rotatemove', function rotateMoveListener(event) {
     console.log("rotateMove");
