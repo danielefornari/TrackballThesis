@@ -201,13 +201,6 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
     p.setZ(0);
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    //const s = new THREE.Vector3(scaleState.x, scaleState.y, scaleState.z);
-    /*obj.position.sub(p);
-    obj.updateMatrix();
-    scale(obj, newDistance/fingerDistance);
-    obj.updateMatrix();
-    obj.position.add(p);
-    obj.updateMatrix();*/
 
     const xAxis = new THREE.Vector3(1, 0, 0);
     const yAxis = new THREE.Vector3(0, 1, 0);
@@ -217,16 +210,16 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v1.add(v2).applyQuaternion(obj.quaternion);
 
     const s = newDistance/fingerDistance;
-    obj.position.add(v1);
+    /*obj.position.add(v1);
     scale(obj, s);
-    obj.position.sub(v1);
-    /*m1.makeTranslation(v1.x, v1.y, 0);
+    obj.position.sub(v1);*/
+    v1.makeTranslation(p.x, p.y, 0);
     m2.makeScale(s, s, s);
     m1.premultiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, 0);
+    m2.makeTranslation(-p.x, -p.y, 0);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);*/
+    m2.decompose(obj.position, obj.quaternion, obj.scale);
 
     //obj.applyMatrix4(m1);   //T(-p)
     //m1.makeScale(newDistance/fingerDistance, newDistance/fingerDistance, newDistance/fingerDistance);
