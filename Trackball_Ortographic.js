@@ -187,6 +187,7 @@ function doublePanMoveListener(event) {
     m1.makeTranslation(v1.x, v1.y, v1.z);
     if(pinching) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
+        pinching = false;
     }
     else {
         m2.copy(objMatrixState);
@@ -206,10 +207,10 @@ manager.on('pinchstart', function pinchStartListener(event) {
     //scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);   //obj.scale NON FUNZIONA
     objMatrixState.copy(obj.matrix);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    pinching = true;
 });
 manager.on('pinchmove', function pinchMoveListener(event) {
     console.log('pinchmove');
+    pinching = true;
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;
