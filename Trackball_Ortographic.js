@@ -166,6 +166,7 @@ manager.on('doublepanstart', function doublePanStartListener(event) {
     console.log("doublepanstart");
     const center = event.center;
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    objMatrixState.copy(obj.matrix);
 });
 manager.on('doublepanmove', doublePanMoveListener);
 function doublePanMoveListener(event) {
@@ -181,8 +182,11 @@ function doublePanMoveListener(event) {
     v2.set(0, -distanceV.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
-    obj.position.add(v1);
-    obj.updateMatrix();
+    //obj.position.add(v1);
+    m1.makeTranslation(v1.x, v1.y, v1.z);
+    m2.copy(objMatrixState);
+    m2.premultiply(m1);
+    m2.decompose(obj.position, obj,quaternion, obj.scale);
     renderer.render(scene, camera);
 };
 manager.on('doublepanend', function doublePanEndListener() {
@@ -312,6 +316,7 @@ function mouseDownListener(event) {
         event.preventDefault();
         console.log("wheelDown")
         startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        objMatrixState.copy(obj.matrix);
         tracking = true;
     }
 };
@@ -326,8 +331,12 @@ function mouseMoveListener(event) {
         v1.set(-distanceV.x, 0, 0); //translation on world X axis
         v2.set(0, -distanceV.y, 0); //translation on world y axis
         v1.add(v2);
-        group.worldToLocal(v1); 
-        obj.position.add(v1);
+        group.worldToLocal(v1);
+        m1.makeTranslation(v1.x, v1.y, v1.z);
+        m2.copy(objMatrixState);
+        m2.premultiply(m1);
+        m2.decompose(obj.position, obj.quaternion, obj.scale);
+        //obj.position.add(v1);
         renderer.render(scene, camera);
     }
 };
