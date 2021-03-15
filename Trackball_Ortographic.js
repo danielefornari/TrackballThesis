@@ -85,10 +85,10 @@ pinch.set({threshold: 0});  //threshold 0.05
 rotate.set({threshold: 0});
 
 //manager.add([singlePan, doublePan, pinch, rotate]);
-manager.add([singlePan, doublePan, rotate]);
+manager.add([singlePan, pinch, rotate]);
 //manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-manager.get('singlepan').recognizeWith('doublepan');
-manager.get('rotate').recognizeWith('doublepan');
+//manager.get('singlepan').recognizeWith('doublepan');
+manager.get('rotate').recognizeWith('pinch');
 //manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
