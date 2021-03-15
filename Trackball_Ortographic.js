@@ -70,9 +70,6 @@ let quatState = new THREE.Quaternion(); //object's quaternion value at first mou
 let posState = new THREE.Vector3(); //object's position vector
 let scaleState = new THREE.Vector3(1, 1, 1);   //object's scale vector
 
-let gizmoQuatState = new THREE.Quaternion();
-let objQuatState = new THREE.Quaternion();
-
 
 //touch gestures
 const manager = new Hammer.Manager(canvas);
@@ -147,8 +144,6 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
                 rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
                 cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
                 cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
-                //rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
-                rotateObj(obj, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
                 rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
                 renderer.render(scene, camera);
             }
@@ -212,6 +207,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v1.copy(obj.worldToLocal(xAxis)).multiplyScalar(p.x);
     v2.copy(obj.worldToLocal(yAxis)).multiplyScalar(p.y);
     v1.add(v2).applyQuaternion(obj.quaternion);*/
+    obj.applyMatrix(group.matrixWorld);
     p.applyQuaternion(obj.quaternion);
 
     const s = newDistance/fingerDistance;
@@ -305,7 +301,6 @@ scene.add(light);
 obj = loadObject(renderer.domElement, group); //load the 3D object
 makeGizmos(tbCenter, tbRadius, group); //add gizmos
 scene.add(group);
-scene.add(obj);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
 
@@ -499,7 +494,7 @@ function loadObject(canvas, group) {
 
     //mesh
     const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-    //group.add(cube);
+    group.add(cube);
     return cube;
 }
 
