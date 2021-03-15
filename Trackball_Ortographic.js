@@ -213,10 +213,10 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     /*obj.position.add(v1);
     scale(obj, s);
     obj.position.sub(v1);*/
-    m1.makeTranslation(p.x, p.y, 0);
+    m1.makeTranslation(v1.x, v1.y, v1.z);
     m2.makeScale(s, s, s);
     m1.premultiply(m2);
-    m2.makeTranslation(-p.x, -p.y, 0);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
     m2.decompose(obj.position, obj.quaternion, obj.scale);
