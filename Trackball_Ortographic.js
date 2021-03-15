@@ -215,8 +215,8 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v2.copy(obj.worldToLocal(yAxis)).multiplyScalar(p.y);
     v1.add(v2).applyQuaternion(obj.quaternion);
 
-    /*const s = newDistance/fingerDistance;
-    obj.position.add(v1);
+    const s = newDistance/fingerDistance;
+    /*obj.position.add(v1);
     scale(obj, s);
     obj.position.sub(v1);*/
     m1.makeTranslation(v1.x, v1.y, 0);
