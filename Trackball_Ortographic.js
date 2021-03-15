@@ -186,7 +186,7 @@ function doublePanMoveListener(event) {
     m1.makeTranslation(v1.x, v1.y, v1.z);
     m2.copy(objMatrixState);
     m2.premultiply(m1);
-    m2.decompose(obj.position, obj,quaternion, obj.scale);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);
     renderer.render(scene, camera);
 };
 manager.on('doublepanend', function doublePanEndListener() {
