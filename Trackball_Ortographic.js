@@ -172,6 +172,7 @@ manager.on('doublepanstart', function doublePanStartListener(event) {
 manager.on('doublepanmove', doublePanMoveListener);
 function doublePanMoveListener(event) {
     console.log("doublePan");
+    panning = true;
     const center = event.center;
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
@@ -185,14 +186,14 @@ function doublePanMoveListener(event) {
     group.worldToLocal(v1);
     //obj.position.add(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
-    /*if(pinching) {
+    if(pinching) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
         pinching = false;
     }
     else {
         m2.copy(objMatrixState);
-    }*/
-    m2.copy(objMatrixState);
+    }
+    //m2.copy(objMatrixState);
     m2.premultiply(m1);
     m2.decompose(obj.position, obj.quaternion, obj.scale);
     renderer.render(scene, camera);
@@ -226,7 +227,15 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m1.premultiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
-    m2.copy(objMatrixState).premultiply(m1);
+    if(panning) {
+        m2.compose(obj.position, obj.quaternion, obj.scale);
+        panning = false;
+    }
+    else {
+        m2.copy(objMatrixState);
+    }
+    //m2.copy(objMatrixState).premultiply(m1);
+    m2.premultiply(m1);
     m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
 
     renderer.render(scene, camera);
