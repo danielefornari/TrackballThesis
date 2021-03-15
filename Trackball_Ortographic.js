@@ -237,7 +237,7 @@ manager.on('rotatestart', function rotateStartListener(event) {
 });
 manager.on('rotatemove', function rotateMoveListener(event) {
     console.log("rotateMove");
-    const rotation = fingerRotation - event.rotation;
+    const rotation = (fingerRotation - event.rotation)*Math.PI/180;
     fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement);
 
     v1.set(fingersMiddle.x, 0, 0);
