@@ -85,13 +85,14 @@ doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.
 pinch.set({threshold: 0});  //threshold 0.05
 rotate.set({threshold: 0});
 
-//manager.add([singlePan, doublePan, pinch, rotate]);
-manager.add([singlePan, doublePan, pinch]);    //conta questo ordine?
+manager.add([singlePan, doublePan, pinch, rotate]);
+//manager.add([singlePan, doublePan, pinch]);    //conta questo ordine?
 manager.get('singlepan').recognizeWith('doublepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-manager.get('doublepan').recognizeWith('pinch');
+//manager.get('doublepan').recognizeWith('pinch');
 //manager.get('singlepan').recognizeWith('doublepan');
 //manager.get('rotate').recognizeWith('pinch'); //prima riconosce B, dopo A
 manager.get('pinch').recognizeWith('doublepan');
+manager.get('pinch').recognizeWith('rotate');
 
 //single finger pan gesture listeners
 manager.on('singlepanstart', singlePanStartListener);
