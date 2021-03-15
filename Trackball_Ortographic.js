@@ -258,7 +258,7 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, group.quaternion, obj.scale);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);
 
     /*let xAxis = new THREE.Vector3(1, 0, 0);
     let yAxis = new THREE.Vector3(0, 1, 0);
