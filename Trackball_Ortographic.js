@@ -71,9 +71,9 @@ let posState = new THREE.Vector3(0, 0, 0); //object's position vector
 let scaleState = 1;   //object's scale factor (uniform scaling)
 
 //object's components state
-const objPosition = new THREE.Matrix4();
-const objRotation = new THREE.Matrix4();
-const objScale = new THREE.Matrix4();
+const pinchMatrix = new THREE.Matrix4();
+const panMatrix = new THREE.Matrix4();
+const rotateZMatrix = new THREE.Matrix4();
 
 //touch gestures
 const manager = new Hammer.Manager(canvas);
@@ -190,15 +190,17 @@ function doublePanMoveListener(event) {
     //obj.position.add(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
     if(pinching) {
-        m2.compose(obj.position, obj.quaternion, obj.scale);
+        //m2.compose(obj.position, obj.quaternion, obj.scale);
+        m2.copy(pinchMatrix);
         pinching = false;
     }
     else {
         m2.copy(objMatrixState);
     }
-    m2.copy(objMatrixState);
+    //m2.copy(objMatrixState);
     m2.premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);
+    //m2.decompose(obj.position, obj.quaternion, obj.scale);
+    panMatrix.copy(m2);
     obj.matrix.copy(m2);
     renderer.render(scene, camera);
 };
@@ -231,16 +233,17 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m1.multiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.multiply(m2);
-    if(panning) {
+    /*if(panning) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
         panning = false;
     }
     else {
         m2.copy(objMatrixState);
-    }
+    }*/
     //m2.copy(objMatrixState).premultiply(m1);
+    pinchMatrix.copy(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
+    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
     obj.matrix.copy(m2);
 
     renderer.render(scene, camera);
