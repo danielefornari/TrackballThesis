@@ -212,14 +212,14 @@ function twoFingersMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(v1.x, v1.y, v1.z);
+    m1.makeTranslation(-v1.x, -v1.y, -v1.z);
     v2.set(0, 0, 1);
     group.worldToLocal(v2);
     m2.makeRotationAxis(v2, rotation);
 
-    m1.premultiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
-    m1.premultiply(m2);
+    m1.multiply(m2);
+    m2.makeTranslation(v1.x, v1.y, v1.z);
+    m1.multiply(m2);
     //m2.copy(objMatrixState).premultiply(m1);
     rotateMatrix.copy(m1);
 
@@ -239,7 +239,7 @@ function twoFingersMoveListener(event) {
     m1.copy(objMatrixState);
     m1.premultiply(scaleMatrix);
     m1.premultiply(rotateMatrix);
-     m1.premultiply(translateMatrix);
+    m1.premultiply(translateMatrix);
     //obj.matrix.copy(m2);
     obj.matrix.copy(m1);
     renderer.render(scene, camera);
