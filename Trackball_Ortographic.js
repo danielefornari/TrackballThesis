@@ -225,10 +225,10 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);   //T(v1)
+    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     m2.makeScale(s, s, s);  //S(s)
     m1.multiply(m2);
-    m2.makeTranslation(v1.x, v1.y, v1.z);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.multiply(m2);
     if(panning) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
