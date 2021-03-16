@@ -239,6 +239,7 @@ function twoFingersMoveListener(event) {
     m1.premultiply(rotateMatrix);
     m1.premultiply(translateMatrix);
     obj.matrix.copy(m1);
+    renderer.render(scene, camera);
 
 };
 
