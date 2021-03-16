@@ -206,7 +206,7 @@ function twoFingersMoveListener(event) {
     scaleMatrix.copy(m2);
 
     //rotation operation
-    const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    /*const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     v1.set(p.x, 0, 0);
     v2.set(0, p.y, 0);
     v1.add(v2);
@@ -221,7 +221,7 @@ function twoFingersMoveListener(event) {
     m2.makeTranslation(v1.x, v1.y, v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    rotateMatrix.copy(m2);
+    rotateMatrix.copy(m2);*/
 
     //panning operation
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
