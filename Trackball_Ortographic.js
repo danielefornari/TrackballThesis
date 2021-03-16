@@ -199,10 +199,10 @@ function twoFingersMoveListener(event) {
 
     m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     m2.makeScale(s, s, s);  //S(s)
-    m2.multiply(m1);
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    m2.multiply(m1);
-    m1.copy(objMatrixState).premultiply(m2);
+    m1.multiply(m2);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
+    m1.multiply(m2);
+    m2.copy(objMatrixState).premultiply(m1);
     scaleMatrix.copy(m2);
 
     //rotation operation
