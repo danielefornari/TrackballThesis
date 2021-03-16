@@ -189,16 +189,17 @@ function doublePanMoveListener(event) {
     group.worldToLocal(v1);
     //obj.position.add(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
-    /*if(pinching) {
+    if(pinching) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
         pinching = false;
     }
     else {
         m2.copy(objMatrixState);
-    }*/
+    }
     m2.copy(objMatrixState);
     m2.premultiply(m1);
     m2.decompose(obj.position, obj.quaternion, obj.scale);
+    obj.matrix.copy(m2);
     renderer.render(scene, camera);
 };
 manager.on('doublepanend', function doublePanEndListener() {
@@ -231,15 +232,15 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.multiply(m2);
     if(panning) {
-        m2.copy(obj.matrix.copyPosition);
+        m2.compose(obj.position, obj.quaternion, obj.scale);
         panning = false;
     }
     else {
         m2.copy(objMatrixState);
     }
-    m2.premultiply(m1);
     //m2.copy(objMatrixState).premultiply(m1);
-    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
+    m2.copy(objMatrixState).premultiply(m1);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
     obj.matrix.copy(m2);
 
     renderer.render(scene, camera);
