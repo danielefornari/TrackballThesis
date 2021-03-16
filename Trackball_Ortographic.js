@@ -165,64 +165,32 @@ manager.on('singlepanend', function singlePanEndListener() {
     }
 });
 
-//double finger pan gesture listener
-manager.on('doublepanstart', function doublePanStartListener(event) {
-    console.log("doublepanstart");
-    const center = event.center;
+//double finger gestures listener
+manager.on("doublepanstart pinchstart rotatestart", twoFingersStartListener);
+manager.on("doublepanmove pinchmove rotatemove", twoFingersMoveListener);
+manager.on("doublepanend pinchend rotateend", twoFingersEndListener);
+
+
+function twoFingersStartListener(event) {
+    console.log('2FE start');
+    const center = event.center;    //middle point between fingers
     startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    objMatrixState.copy(obj.matrix);
-});
-manager.on('doublepanmove', doublePanMoveListener);
-function doublePanMoveListener(event) {
-    console.log("doublePan");
-    panning = true;
-    const center = event.center;
-    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    const xAxis = new THREE.Vector3(1, 0, 0);
-    const yAxis = new THREE.Vector3(0, 1, 0);
-    obj.position.copy(posState);
-
-    v1.set(-distanceV.x, 0, 0);
-    v2.set(0, -distanceV.y, 0);
-    v1.add(v2);
-    group.worldToLocal(v1);
-    //obj.position.add(v1);
-    m1.makeTranslation(v1.x, v1.y, v1.z);
-    if(pinching) {
-        //m2.compose(obj.position, obj.quaternion, obj.scale);
-        m2.copy(objMatrixState).premultiply(pinchMatrix);
-        pinching = false;
-    }
-    else {
-        m2.copy(objMatrixState);
-    }
-    //m2.copy(objMatrixState);
-    m2.premultiply(m1);
-    //m2.decompose(obj.position, obj.quaternion, obj.scale);
-    panMatrix.copy(m2);
-    obj.matrix.copy(m2);
-    renderer.render(scene, camera);
-};
-manager.on('doublepanend', function doublePanEndListener() {
-    console.log("doublepanend");
-    posState.copy(obj.position);
-});
-
-//pinch gesture listener
-manager.on('pinchstart', function pinchStartListener(event) {
-    console.log("pinchStart");
-    //scaleState = new THREE.Vector3().setFromMatrixScale(obj.matrixWorld);   //obj.scale NON FUNZIONA
-    objMatrixState.copy(obj.matrix);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-});
-manager.on('pinchmove', function pinchMoveListener(event) {
-    console.log('pinchmove');
-    pinching = true;
+    fingerRotation = event.rotation;
+    objMatrixState.copy(obj.matrix);
+};
+
+function twoFingersMoveListener(event) {
+    console.log('2FE move');
+    const scaleMatrix = new THREE.Matrix4();
+    const rotateMatrix = new THREE.Matrix4();
+    const translateMatrix = new THREE.Matrix4();
+
     const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    const s = newDistance/fingerDistance;
+    const s = newDistance/fingerDistance;   //how much scale
 
+    //scaling operation
     v1.set(p.x, 0, 0);  //fingers middle point on x axis
     v2.set(0, p.y, 0);  //fingers middle point on y axis
     v1.add(v2);
@@ -231,49 +199,15 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     m2.makeScale(s, s, s);  //S(s)
     m1.multiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     m1.multiply(m2);
-    /*if(panning) {
-        m2.compose(obj.position, obj.quaternion, obj.scale);
-        panning = false;
-    }
-    else {
-        m2.copy(objMatrixState);
-    }*/
-    //m2.copy(objMatrixState).premultiply(m1);
     m2.copy(objMatrixState).premultiply(m1);
-    pinchMatrix.copy(m2);
-    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
-    obj.matrix.copy(m2);
+    scaleMatrix.copy(m2);
 
-    renderer.render(scene, camera);
-});
-manager.on('pinchend', function pinchEndListener() {
-    console.log("pinchEnd");
-    pinching = false;
-    //objMatrixState.copy(obj.matrix);
-});
-
-//rotate gesture listener
-manager.on('rotatestart', function rotateStartListener(event) {
-    console.log("rotateStart");
-    fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement); 
-    if(group.quaternion == "undefined") {
-        quatState = new THREE.Quaternion().identity();
-    }
-    else {
-        quatState.copy(group.quaternion);
-    }    
-    fingerRotation = event.rotation;
-    objMatrixState.copy(obj.matrix);
-});
-manager.on('rotatemove', function rotateMoveListener(event) {
-    console.log("rotateMove");
-    const rotation = (fingerRotation - event.rotation)*Math.PI/180;
-    fingersMiddle = getCursorPosition(event.center.x, event.center.y, renderer.domElement);
-
-    v1.set(fingersMiddle.x, 0, 0);
-    v2.set(0, fingersMiddle.y, 0);
+    //ratation operation
+    const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    v1.set(p.x, 0, 0);
+    v2.set(0, p.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
 
@@ -286,13 +220,32 @@ manager.on('rotatemove', function rotateMoveListener(event) {
     m2.makeTranslation(v1.x, v1.y, v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);
-    renderer.render(scene, camera);
-});
-manager.on('rotateend', function rotateEndListener(event) {
-    console.log("rotateend")
+    rotateMatrix.copy(m2);
+
+    //panning operation
+    const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+    v1.set(-distanceV.x, 0, 0);
+    v2.set(0, -distanceV.y, 0);
+    v1.add(v2);
+    group.worldToLocal(v1);
+    m1.makeTranslation(v1.x, v1.y, v1.z);
+    m2.copy(objMatrixState).premultiply(m1);
+    panMatrix.copy(m2);
+
+
+    //apply matrix
+    m1.copy(objMatrixState);
+    m1.premultiply(scaleMatrix);
+    m1.premultiply(rotateMatrix);
+    m1.premultiply(translateMatrix);
+    obj.matrix.copy(m1);
+
+};
+
+function twoFingersEndListener(event) {
+    console.log('2FE end');
     fingerRotation = event.rotation;
-});
+};
 
 
 //camera
