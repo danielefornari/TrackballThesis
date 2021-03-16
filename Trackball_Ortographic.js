@@ -231,7 +231,7 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.multiply(m2);
     if(panning) {
-        m2.copy(obj.matrix);
+        m2.copy(obj.matrix.copyPosition);
         panning = false;
     }
     else {
