@@ -16,8 +16,6 @@ const m1 = new THREE.Matrix4();
 const m2 = new THREE.Matrix4();
 
 const objMatrixState = new THREE.Matrix4();
-const posStateM = new THREE.Matrix4();
-const scaleStateM = new THREE.Matrix4();
 
 //canvas events
 canvas.addEventListener('mouseup', mouseUpListener);
@@ -86,7 +84,7 @@ pinch.set({threshold: 0});  //threshold 0.05
 rotate.set({threshold: 0});
 
 //manager.add([singlePan, doublePan, pinch, rotate]);
-manager.add([singlePan, doublePan, pinch]);    //conta questo ordine?
+manager.add([singlePan, doublePan, pinch]);
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('singlepan');    //mentre è in corso singlepan, può riconoscere anche pinch
 manager.get('doublepan').recognizeWith('pinch');
@@ -225,10 +223,10 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    m1.makeTranslation(-v1.x, -v1.y, -v1.z);   //T(v1)
     m2.makeScale(s, s, s);  //S(s)
     m1.premultiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
+    m2.makeTranslation(v1.x, v1.y, v1.z);
     m1.premultiply(m2);
     if(panning) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
@@ -328,7 +326,8 @@ function mouseUpListener(event) {
     if(event.button == 1) {
         event.preventDefault();
         console.log("wheelUp");
-        posState.copy(obj.position);
+        //posState.copy(obj.position);
+        objMatrixState.copy(obj.matrix);
         tracking = false;
     }
 };
@@ -337,7 +336,7 @@ function mouseDownListener(event) {
     if(event.button == 1) {
         //wheel click
         event.preventDefault();
-        console.log("wheelDown")
+        console.log("wheelDown");
         startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
         objMatrixState.copy(obj.matrix);
         tracking = true;
@@ -509,6 +508,7 @@ function loadObject(canvas, group) {
 
     //mesh
     const cube = new THREE.Mesh(boxGeometry, boxMaterial);
+    objMatrixState.copy(cube.matrix);
     group.add(cube);
     return cube;
 }
@@ -549,9 +549,9 @@ function rotateObj(obj, axis, rad) {
 function scale(obj, s) {
     console.log("scaling");
     m1.makeScale(s, s, s);  //scaling matrix
-    obj.applyMatrix4(m1);
-    //obj.scale.copy(scaleState.clone().multiplyScalar(s));
-    //obj.updateMatrix();
+    m2.copy(objMatrixState);
+    m2.premultiply(m1);
+    m2.decompose(obj.position, obj.quaternion, obj.scale);
 };
 
 /**
@@ -589,4 +589,5 @@ function unprojectZ(x, y, radius) {
 
 
 
-//FARE PRIMA MOLTIPLICAZIONE TRA LE MATRICI (L'ORDINE CONTA)
+//DA INSERIRE ROTATE, SETTARE IL RICONOSCIMENTO CON ALTRE GESTURE E FARE IN MODO CHE LA MOLTIPLICAZIONE DELLE MATRICI AVVENGA COME DEVE PER ESEGUIRE
+//TUTTE LE COMBINAZIONI DELLE GESTURE
