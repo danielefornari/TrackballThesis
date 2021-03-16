@@ -191,7 +191,7 @@ function doublePanMoveListener(event) {
     m1.makeTranslation(v1.x, v1.y, v1.z);
     if(pinching) {
         //m2.compose(obj.position, obj.quaternion, obj.scale);
-        m2.copy(pinchMatrix);
+        m2.copy(objMatrixState).premultiply(pinchMatrix);
         pinching = false;
     }
     else {
@@ -242,8 +242,8 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     }*/
     //m2.copy(objMatrixState).premultiply(m1);
     m2.copy(objMatrixState).premultiply(m1);
-    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
     pinchMatrix.copy(m2);
+    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
     obj.matrix.copy(m2);
 
     renderer.render(scene, camera);
