@@ -205,7 +205,7 @@ function twoFingersMoveListener(event) {
     scaleMatrix.copy(m2);
 
     //ratation operation
-    const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    /*const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     v1.set(p.x, 0, 0);
     v2.set(0, p.y, 0);
     v1.add(v2);
@@ -238,7 +238,8 @@ function twoFingersMoveListener(event) {
     m1.premultiply(scaleMatrix);
     m1.premultiply(rotateMatrix);
     m1.premultiply(translateMatrix);
-    obj.matrix.copy(m1);
+    obj.matrix.copy(m1);*/
+    obj.matrix.copy(m2);
     renderer.render(scene, camera);
 
 };
