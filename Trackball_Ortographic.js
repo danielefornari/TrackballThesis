@@ -206,22 +206,22 @@ function twoFingersMoveListener(event) {
     scaleMatrix.copy(m1);
 
     //rotation operation
-    /*const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     v1.set(p.x, 0, 0);
     v2.set(0, p.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);
+    m1.makeTranslation(v1.x, v1.y, v1.z);
     v2.set(0, 0, 1);
     group.worldToLocal(v2);
     m2.makeRotationAxis(v2, rotation);
 
     m1.premultiply(m2);
-    m2.makeTranslation(v1.x, v1.y, v1.z);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.premultiply(m2);
-    m2.copy(objMatrixState).premultiply(m1);
-    rotateMatrix.copy(m2);
+    //m2.copy(objMatrixState).premultiply(m1);
+    rotateMatrix.copy(m1);
 
     //panning operation
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
@@ -231,8 +231,8 @@ function twoFingersMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
-    m2.copy(objMatrixState).premultiply(m1);
-    panMatrix.copy(m2);*/
+    //m2.copy(objMatrixState).premultiply(m1);
+    panMatrix.copy(m1);
 
 
     //apply matrix
