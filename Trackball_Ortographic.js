@@ -204,7 +204,7 @@ function twoFingersMoveListener(event) {
     m2.copy(objMatrixState).premultiply(m1);
     scaleMatrix.copy(m2);
 
-    //ratation operation
+    //rotation operation
     /*const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     v1.set(p.x, 0, 0);
     v2.set(0, p.y, 0);
@@ -220,7 +220,7 @@ function twoFingersMoveListener(event) {
     m2.makeTranslation(v1.x, v1.y, v1.z);
     m1.premultiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    rotateMatrix.copy(m2);
+    rotateMatrix.copy(m2);*/
 
     //panning operation
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
@@ -236,10 +236,9 @@ function twoFingersMoveListener(event) {
     //apply matrix
     m1.copy(objMatrixState);
     m1.premultiply(scaleMatrix);
-    m1.premultiply(rotateMatrix);
+    //m1.premultiply(rotateMatrix);
     m1.premultiply(translateMatrix);
-    obj.matrix.copy(m1);*/
-    obj.matrix.copy(m2);
+    obj.matrix.copy(m1);
     renderer.render(scene, camera);
 
 };
