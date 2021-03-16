@@ -224,7 +224,7 @@ function twoFingersMoveListener(event) {
     rotateMatrix.copy(m1);*/
 
     //panning operation
-    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    /*currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v1.set(-distanceV.x, 0, 0);
     v2.set(0, -distanceV.y, 0);
@@ -232,7 +232,7 @@ function twoFingersMoveListener(event) {
     group.worldToLocal(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
     //m2.copy(objMatrixState).premultiply(m1);
-    panMatrix.copy(m1);
+    panMatrix.copy(m1);*/
 
 
     //apply matrix
