@@ -206,7 +206,7 @@ function twoFingersMoveListener(event) {
     scaleMatrix.copy(m1);
 
     //rotation operation
-    /*const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     v1.set(p.x, 0, 0);
     v2.set(0, p.y, 0);
     v1.add(v2);
@@ -221,10 +221,10 @@ function twoFingersMoveListener(event) {
     m2.makeTranslation(v1.x, v1.y, v1.z);
     m1.multiply(m2);
     //m2.copy(objMatrixState).premultiply(m1);
-    rotateMatrix.copy(m1);*/
+    rotateMatrix.copy(m1);
 
-    //panning operation
-    /*currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    //translation operation
+    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v1.set(-distanceV.x, 0, 0);
     v2.set(0, -distanceV.y, 0);
@@ -232,13 +232,13 @@ function twoFingersMoveListener(event) {
     group.worldToLocal(v1);
     m1.makeTranslation(v1.x, v1.y, v1.z);
     //m2.copy(objMatrixState).premultiply(m1);
-    panMatrix.copy(m1);*/
+    translateMatrix.copy(m1);
 
 
     //apply matrix
     m1.copy(objMatrixState);
-    //m1.premultiply(scaleMatrix);
-    //m1.premultiply(rotateMatrix);
+    m1.premultiply(scaleMatrix);
+    m1.premultiply(rotateMatrix);
     m1.premultiply(translateMatrix);
     //obj.matrix.copy(m2);
     obj.matrix.copy(m1);
