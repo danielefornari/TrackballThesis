@@ -191,7 +191,7 @@ function twoFingersMoveListener(event) {
     const s = newDistance/fingerDistance;   //how much scale
 
     //scaling operation
-    v1.set(p.x, 0, 0);  //fingers middle point on x axis
+    /*v1.set(p.x, 0, 0);  //fingers middle point on x axis
     v2.set(0, p.y, 0);  //fingers middle point on y axis
     v1.add(v2);
     group.worldToLocal(v1);
@@ -202,7 +202,7 @@ function twoFingersMoveListener(event) {
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     m1.multiply(m2);
     m2.copy(objMatrixState).premultiply(m1);
-    scaleMatrix.copy(m2);
+    scaleMatrix.copy(m2);*/
 
     //rotation operation
     /*const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
@@ -238,7 +238,8 @@ function twoFingersMoveListener(event) {
     m1.premultiply(scaleMatrix);
     //m1.premultiply(rotateMatrix);
     m1.premultiply(translateMatrix);
-    obj.matrix.copy(m1);
+    obj.matrix.copy(m2);
+    //obj.matrix.copy(m1);
     renderer.render(scene, camera);
 
 };
