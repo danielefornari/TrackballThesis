@@ -223,7 +223,8 @@ function twoFingersMoveListener(event) {
     rotateMatrix.copy(m2);*/
 
     //panning operation
-    let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v1.set(-distanceV.x, 0, 0);
     v2.set(0, -distanceV.y, 0);
     v1.add(v2);
