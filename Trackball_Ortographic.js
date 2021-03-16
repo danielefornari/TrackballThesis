@@ -186,7 +186,8 @@ function twoFingersMoveListener(event) {
     const rotateMatrix = new THREE.Matrix4();
     const translateMatrix = new THREE.Matrix4();
 
-    const p = getCursorPosition(event.center.x, event.center.y, renderer.domElement); //center point between fingers
+    const center = event.center;
+    const p = getCursorPosition(center.x, center.y, renderer.domElement); //center point between fingers
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;   //how much scale
 
