@@ -14,6 +14,7 @@ const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const m1 = new THREE.Matrix4();
 const m2 = new THREE.Matrix4();
+const m3 = new THREE.Matrix4();
 
 const objMatrixState = new THREE.Matrix4();
 
@@ -65,10 +66,14 @@ let fingersMiddle = new THREE.Vector3(); //coordinates of the point between two 
 let rotationAxis = new THREE.Vector3();
 let notchCounter = 0;   //represent the number of wheel nothes from the initial position
 let obj;    //The 3D model
-let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
-let posState = new THREE.Vector3(); //object's position vector
-let scaleState = new THREE.Vector3(1, 1, 1);   //object's scale vector
+let quatState = new THREE.Quaternion().identity(); //object's quaternion value at first mouse click/tap
+let posState = new THREE.Vector3(0, 0, 0); //object's position vector
+let scaleState = 1;   //object's scale factor (uniform scaling)
 
+//object's components state
+const objPosition = new THREE.Matrix4();
+const objRotation = new THREE.Matrix4();
+const objScale = new THREE.Matrix4();
 
 //touch gestures
 const manager = new Hammer.Manager(canvas);
@@ -88,10 +93,7 @@ manager.add([singlePan, doublePan, pinch]);
 manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
 manager.get('pinch').recognizeWith('singlepan');    //mentre è in corso singlepan, può riconoscere anche pinch
 manager.get('doublepan').recognizeWith('pinch');
-//manager.get('doublepan').recognizeWith('pinch');
-//manager.get('singlepan').recognizeWith('doublepan');
-//manager.get('rotate').recognizeWith('pinch');
-//manager.get('pinch').recognizeWith('rotate');
+
 
 //single finger pan gesture listeners
 manager.on('singlepanstart', singlePanStartListener);
@@ -225,9 +227,9 @@ manager.on('pinchmove', function pinchMoveListener(event) {
 
     m1.makeTranslation(-v1.x, -v1.y, -v1.z);   //T(v1)
     m2.makeScale(s, s, s);  //S(s)
-    m1.premultiply(m2);
+    m1.multiply(m2);
     m2.makeTranslation(v1.x, v1.y, v1.z);
-    m1.premultiply(m2);
+    m1.multiply(m2);
     if(panning) {
         m2.compose(obj.position, obj.quaternion, obj.scale);
         panning = false;
@@ -237,7 +239,8 @@ manager.on('pinchmove', function pinchMoveListener(event) {
     }
     //m2.copy(objMatrixState).premultiply(m1);
     m2.premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
+    //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
+    obj.matrix.copy(m2);
 
     renderer.render(scene, camera);
 });
@@ -349,15 +352,15 @@ function mouseMoveListener(event) {
         event.preventDefault();
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
         let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        obj.position.copy(posState);
         v1.set(-distanceV.x, 0, 0); //translation on world X axis
         v2.set(0, -distanceV.y, 0); //translation on world y axis
-        v1.add(v2);
+        v1.add(v2); //translation vector
         group.worldToLocal(v1);
-        m1.makeTranslation(v1.x, v1.y, v1.z);
+        m1.makeTranslation(v1.x, v1.y, v1.z);   //translation matrix
         m2.copy(objMatrixState);
         m2.premultiply(m1);
-        m2.decompose(obj.position, obj.quaternion, obj.scale);
+        obj.matrix.copy(m2);
+        //m2.decompose(obj.position, obj.quaternion, obj.scale);
         //obj.position.add(v1);
         renderer.render(scene, camera);
     }
@@ -509,6 +512,7 @@ function loadObject(canvas, group) {
     //mesh
     const cube = new THREE.Mesh(boxGeometry, boxMaterial);
     objMatrixState.copy(cube.matrix);
+    cube.matrixAutoUpdate = false;
     group.add(cube);
     return cube;
 }
@@ -551,7 +555,8 @@ function scale(obj, s) {
     m1.makeScale(s, s, s);  //scaling matrix
     m2.copy(objMatrixState);
     m2.premultiply(m1);
-    m2.decompose(obj.position, obj.quaternion, obj.scale);
+    obj.matrix.copy(m1);
+    //m2.decompose(obj.position, obj.quaternion, obj.scale);
 };
 
 /**
