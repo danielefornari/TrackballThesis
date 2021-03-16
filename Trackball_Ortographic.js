@@ -212,13 +212,13 @@ function twoFingersMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);
+    m1.makeTranslation(v1.x, v1.y, v1.z);
     v2.set(0, 0, 1);
     group.worldToLocal(v2);
     m2.makeRotationAxis(v2, rotation);
 
     m1.multiply(m2);
-    m2.makeTranslation(v1.x, v1.y, v1.z);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
     m1.multiply(m2);
     //m2.copy(objMatrixState).premultiply(m1);
     rotateMatrix.copy(m1);
