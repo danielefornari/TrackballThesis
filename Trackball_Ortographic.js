@@ -241,9 +241,9 @@ manager.on('pinchmove', function pinchMoveListener(event) {
         m2.copy(objMatrixState);
     }*/
     //m2.copy(objMatrixState).premultiply(m1);
-    pinchMatrix.copy(m2);
     m2.copy(objMatrixState).premultiply(m1);
     //m2.decompose(obj.position, obj.quaternion, obj.scale);  //T(-v1)
+    pinchMatrix.copy(m2);
     obj.matrix.copy(m2);
 
     renderer.render(scene, camera);
