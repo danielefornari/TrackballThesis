@@ -203,7 +203,7 @@ function twoFingersMoveListener(event) {
     m2.makeTranslation(v1.x, v1.y, v1.z);    //T(-v1)
     m1.multiply(m2);
     //m2.copy(objMatrixState).premultiply(m1);
-    scaleMatrix.copy(m2);
+    scaleMatrix.copy(m1);
 
     //rotation operation
     /*const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
