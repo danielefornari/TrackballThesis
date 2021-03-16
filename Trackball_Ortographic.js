@@ -199,7 +199,7 @@ function twoFingersMoveListener(event) {
 
     m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     m2.makeScale(s, s, s);  //S(s)
-    m2.premultiply(m1);
+    m1.premultiply(m2);
     //m1.multiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     //m1.multiply(m2);
