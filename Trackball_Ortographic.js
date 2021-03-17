@@ -235,9 +235,9 @@ function twoFingersMoveListener(event) {
 
     //apply matrix  TRS
     m1.copy(objMatrixState);
-    m1.premultiply(scaleMatrix);
-    m1.premultiply(rotateMatrix);
     m1.premultiply(translateMatrix);
+    m1.premultiply(rotateMatrix);
+    m1.premultiply(scaleMatrix);
 
     /*translateMatrix.multiply(rotateMatrix);
     translateMatrix.multiply(scaleMatrix);
