@@ -204,9 +204,9 @@ function twoFingersMoveListener(event) {
 
     scaleMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     m1.makeScale(s, s, s);  //S(s)
-    scaleMatrix.multiply(m2);
+    scaleMatrix.multiply(m1);
     m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    scaleMatrix.multiply(m2);
+    scaleMatrix.multiply(m1);
     //scaleMatrix.copy(m1);
 
     //rotation operation    X = T(p)R(r)T(-p)
