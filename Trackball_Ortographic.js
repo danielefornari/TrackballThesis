@@ -249,7 +249,7 @@ function twoFingersMoveListener(event) {
 
     translateMatrix.multiply(rotateMatrix);
     translateMatrix.multiply(scaleMatrix);
-    m1.premultiply(translateMatrix);
+    m1.multiply(translateMatrix);
 
     /*m1.premultiply(translateMatrix);
     m1.premultiply(rotateMatrix);
