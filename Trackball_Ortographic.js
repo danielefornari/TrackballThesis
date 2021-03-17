@@ -244,16 +244,11 @@ function twoFingersMoveListener(event) {
     translateMatrix.copy(m1);
 
 
-    //apply matrix  TRS
+    //apply matrix
     m1.copy(objMatrixState);
-
-    translateMatrix.multiply(rotateMatrix);
-    translateMatrix.multiply(scaleMatrix);
-    m1.multiply(translateMatrix);
-
-    /*m1.premultiply(translateMatrix);
+    m1.premultiply(translateMatrix);
     m1.premultiply(rotateMatrix);
-    m1.premultiply(scaleMatrix);*/
+    m1.premultiply(scaleMatrix);
 
 
     //obj.matrix.copy(m2);
