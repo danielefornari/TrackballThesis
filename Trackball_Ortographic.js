@@ -230,8 +230,8 @@ function twoFingersMoveListener(event) {
     v2.set(0, -distanceV.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
-    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-    translateMatrix.copy(m1);
+    translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    //translateMatrix.copy(m1);
 
     //apply matrix  TRS
     m1.copy(objMatrixState);
