@@ -250,8 +250,9 @@ function twoFingersMoveListener(event) {
     //apply matrix
     m1.copy(objMatrixState);
     m1.premultiply(scaleMatrix);
-    m1.premultiply(rotateMatrix);
     m1.premultiply(translateMatrix);
+    m1.premultiply(rotateMatrix);
+
     //obj.matrix.copy(m2);
     obj.matrix.copy(m1);
     renderer.render(scene, camera);
