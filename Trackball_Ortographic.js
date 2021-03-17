@@ -62,18 +62,12 @@ let rotating = false;   //probabilmente non serve
 let tracking = false;  
 let currentCursorPosition = new THREE.Vector3();
 let startCursorPosition = new THREE.Vector3();
-let fingersMiddle = new THREE.Vector3(); //coordinates of the point between two fingers
 let rotationAxis = new THREE.Vector3();
 let notchCounter = 0;   //represent the number of wheel nothes from the initial position
 let obj;    //The 3D model
 let quatState = new THREE.Quaternion().identity(); //object's quaternion value at first mouse click/tap
 let posState = new THREE.Vector3(0, 0, 0); //object's position vector
 let scaleState = 1;   //object's scale factor (uniform scaling)
-
-//object's components state
-const pinchMatrix = new THREE.Matrix4();
-const panMatrix = new THREE.Matrix4();
-const rotateZMatrix = new THREE.Matrix4();
 
 //touch gestures
 const manager = new Hammer.Manager(canvas);
@@ -84,14 +78,13 @@ const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
-pinch.set({threshold: 0});  //threshold 0.05
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
+pinch.set({threshold: 0});
 rotate.set({threshold: 0});
 
 manager.add([singlePan, doublePan, pinch, rotate]);
-//manager.add([singlePan, doublePan, pinch]);
-manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-manager.get('pinch').recognizeWith('singlepan');    //mentre è in corso singlepan, può riconoscere anche pinch
+manager.get('doublepan').recognizeWith('singlepan');
+manager.get('pinch').recognizeWith('singlepan');
 manager.get('rotate').recognizeWith('singlepan');
 
 manager.get('doublepan').requireFailure('pinch');
@@ -102,9 +95,6 @@ manager.get('pinch').requireFailure('rotate');
 
 manager.get('rotate').requireFailure('doublepan');
 manager.get('rotate').requireFailure('pinch');
-
-
-//manager.get('doublepan').recognizeWith('pinch');
 
 
 //single finger pan gesture listeners
@@ -203,7 +193,7 @@ function twoFingersMoveListener(event) {
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;   //how much scale
 
-    //scaling operation T(v1)S(s)T(-v1)
+    //scaling operation X = T(p)S(s)T(-p)
     v1.set(p.x, 0, 0);  //fingers middle point on x axis
     v2.set(0, p.y, 0);  //fingers middle point on y axis
     v1.add(v2);
@@ -216,8 +206,8 @@ function twoFingersMoveListener(event) {
     m1.multiply(m2);
     scaleMatrix.copy(m1);
 
-    //rotation operation    
-    const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    //rotation operation    X = T(p)R(r)T(-p)
+    const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     v1.set(p.x, 0, 0);
     v2.set(0, p.y, 0);
     v1.add(v2);
@@ -226,14 +216,14 @@ function twoFingersMoveListener(event) {
     m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     v2.set(0, 0, 1);
     group.worldToLocal(v2);
-    m2.makeRotationAxis(v2, rotation);  //R(rotation)
+    m2.makeRotationAxis(v2, r);  //R(rotation)
 
     m1.multiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     m1.multiply(m2);
     rotateMatrix.copy(m1);
 
-    //translation operation
+    //translation operation T(p)
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v1.set(-distanceV.x, 0, 0);
@@ -243,18 +233,17 @@ function twoFingersMoveListener(event) {
     m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     translateMatrix.copy(m1);
 
-
-    //apply matrix
+    //apply matrix  TRS
     m1.copy(objMatrixState);
-    m1.premultiply(translateMatrix);
+    /*m1.premultiply(translateMatrix);
     m1.premultiply(rotateMatrix);
-    m1.premultiply(scaleMatrix);
+    m1.premultiply(scaleMatrix);*/
+    translateMatrix.multiply(rotateMatrix);
+    translateMatrix.multiply(scaleMatrix);
+    m1.multiply(translateMatrix);
 
-
-    //obj.matrix.copy(m2);
     obj.matrix.copy(m1);
     renderer.render(scene, camera);
-
 };
 
 function twoFingersEndListener(event) {
