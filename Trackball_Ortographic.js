@@ -203,7 +203,7 @@ function twoFingersMoveListener(event) {
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;   //how much scale
 
-    //scaling operation
+    //scaling operation T(v1)S(s)T(-v1)
     v1.set(p.x, 0, 0);  //fingers middle point on x axis
     v2.set(0, p.y, 0);  //fingers middle point on y axis
     v1.add(v2);
@@ -214,25 +214,23 @@ function twoFingersMoveListener(event) {
     m1.multiply(m2);
     m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     m1.multiply(m2);
-    //m2.copy(objMatrixState).premultiply(m1);
     scaleMatrix.copy(m1);
 
-    //rotation operation
+    //rotation operation    
     const rotation = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     v1.set(p.x, 0, 0);
     v2.set(0, p.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(v1.x, v1.y, v1.z);
+    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     v2.set(0, 0, 1);
     group.worldToLocal(v2);
-    m2.makeRotationAxis(v2, rotation);
+    m2.makeRotationAxis(v2, rotation);  //R(rotation)
 
     m1.multiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, -v1.z);
+    m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     m1.multiply(m2);
-    //m2.copy(objMatrixState).premultiply(m1);
     rotateMatrix.copy(m1);
 
     //translation operation
@@ -242,16 +240,21 @@ function twoFingersMoveListener(event) {
     v2.set(0, -distanceV.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
-    m1.makeTranslation(v1.x, v1.y, v1.z);
-    //m2.copy(objMatrixState).premultiply(m1);
+    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     translateMatrix.copy(m1);
 
 
-    //apply matrix
+    //apply matrix  TRS
     m1.copy(objMatrixState);
+
+    translateMatrix.multiply(rotateMatrix);
+    translateMatrix.multiply(scaleMatrix);
     m1.premultiply(translateMatrix);
+
+    /*m1.premultiply(translateMatrix);
     m1.premultiply(rotateMatrix);
-    m1.premultiply(scaleMatrix);
+    m1.premultiply(scaleMatrix);*/
+
 
     //obj.matrix.copy(m2);
     obj.matrix.copy(m1);
