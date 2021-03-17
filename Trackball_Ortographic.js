@@ -15,6 +15,9 @@ const v2 = new THREE.Vector3();
 const m1 = new THREE.Matrix4();
 const m2 = new THREE.Matrix4();
 const m3 = new THREE.Matrix4();
+const translateMatrix = new THREE.Matrix4();
+const rotateMatrix = new THREE.Matrix4();
+const scaleMatrix = new THREE.Matrix4();
 
 const objMatrixState = new THREE.Matrix4();
 
@@ -184,9 +187,9 @@ function twoFingersStartListener(event) {
 
 function twoFingersMoveListener(event) {
     console.log('2FE move');
-    const scaleMatrix = new THREE.Matrix4();
+    /*const scaleMatrix = new THREE.Matrix4();
     const rotateMatrix = new THREE.Matrix4();
-    const translateMatrix = new THREE.Matrix4();
+    const translateMatrix = new THREE.Matrix4();*/
 
     const center = event.center;
     const p = getCursorPosition(center.x, center.y, renderer.domElement); //center point between fingers
@@ -199,12 +202,12 @@ function twoFingersMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-    m2.makeScale(s, s, s);  //S(s)
-    m1.multiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    m1.multiply(m2);
-    scaleMatrix.copy(m1);
+    scaleMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    m1.makeScale(s, s, s);  //S(s)
+    scaleMatrix.multiply(m2);
+    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
+    scaleMatrix.multiply(m2);
+    //scaleMatrix.copy(m1);
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
@@ -213,15 +216,15 @@ function twoFingersMoveListener(event) {
     v1.add(v2);
     group.worldToLocal(v1);
 
-    m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    rotateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
     v2.set(0, 0, 1);
     group.worldToLocal(v2);
-    m2.makeRotationAxis(v2, r);  //R(rotation)
+    m1.makeRotationAxis(v2, r);  //R(rotation)
 
-    m1.multiply(m2);
-    m2.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    m1.multiply(m2);
-    rotateMatrix.copy(m1);
+    rotateMatrix.multiply(m1);
+    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
+    rotateMatrix.multiply(m1);
+    //rotateMatrix.copy(m1);
 
     //translation operation T(p)
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
