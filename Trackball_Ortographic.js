@@ -234,8 +234,8 @@ function twoFingersMoveListener(event) {
     translateMatrix.copy(m1);
 
     //apply matrix  TRS
-    /*m1.copy(objMatrixState);
-    m1.premultiply(translateMatrix);
+    m1.copy(objMatrixState);
+    /*m1.premultiply(translateMatrix);
     m1.premultiply(rotateMatrix);
     m1.premultiply(scaleMatrix);*/
 
@@ -313,14 +313,13 @@ function mouseMoveListener(event) {
         console.log("wheelMove");
         event.preventDefault();
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+        const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         v1.set(-distanceV.x, 0, 0); //translation on world X axis
         v2.set(0, -distanceV.y, 0); //translation on world y axis
         v1.add(v2); //translation vector
         group.worldToLocal(v1);
-        m1.makeTranslation(v1.x, v1.y, v1.z);   //translation matrix
-        m2.copy(objMatrixState);
-        m2.premultiply(m1);
+        m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+        m2.copy(objMatrixState).premultiply(m1);
         obj.matrix.copy(m2);
         //m2.decompose(obj.position, obj.quaternion, obj.scale);
         //obj.position.add(v1);
@@ -514,9 +513,8 @@ function rotateObj(obj, axis, rad) {
  */
 function scale(obj, s) {
     console.log("scaling");
-    m1.makeScale(s, s, s);  //scaling matrix
-    m2.copy(objMatrixState);
-    m2.premultiply(m1);
+    m1.makeScale(s, s, s);  //S(s)
+    m2.copy(objMatrixState).premultiply(m1);
     obj.matrix.copy(m1);
     //m2.decompose(obj.position, obj.quaternion, obj.scale);
 };
