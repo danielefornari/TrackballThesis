@@ -45,6 +45,27 @@ document.addEventListener('keyup', function keyUpListener(event) {
 });
 window.addEventListener('resize', windowResizeListener);
 
+function mouseStartListener(event) {
+    event.preventDefault();
+    if(event.button == 1) {
+        //wheel button
+        console.log('wheelup');
+        tracking = false;
+    }
+};
+
+function mouseMoveListener(event) {
+    event.preventDefault();
+    if(event.button == 1) {
+        //wheel button
+    }
+};
+
+function mouseEndListener(event) {
+    event.preventDefault();
+}
+
+
 const renderer = new THREE.WebGLRenderer({canvas});
 const group = new THREE.Group();
 
@@ -235,13 +256,13 @@ function twoFingersMoveListener(event) {
 
     //apply matrix  TRS
     m1.copy(objMatrixState);
-    /*m1.premultiply(translateMatrix);
-    m1.premultiply(rotateMatrix);
-    m1.premultiply(scaleMatrix);*/
-
-    translateMatrix.multiply(rotateMatrix);
-    translateMatrix.multiply(scaleMatrix);
     m1.premultiply(translateMatrix);
+    m1.premultiply(rotateMatrix);
+    m1.premultiply(scaleMatrix);
+
+    /*translateMatrix.multiply(rotateMatrix);
+    translateMatrix.multiply(scaleMatrix);
+    m1.premultiply(translateMatrix);*/
 
     obj.matrix.copy(m1);
     renderer.render(scene, camera);
@@ -282,77 +303,7 @@ resizeRenderer(renderer);
 renderer.render(scene, camera);
 
 //listeners
-function mouseClickListener(event) {
-    event.preventDefault();
-    console.log(event.button);
-};
 
-function mouseUpListener(event) {
-    if(event.button == 1) {
-        event.preventDefault();
-        console.log("wheelUp");
-        //posState.copy(obj.position);
-        objMatrixState.copy(obj.matrix);
-        tracking = false;
-    }
-};
-
-function mouseDownListener(event) {
-    if(event.button == 1) {
-        //wheel click
-        event.preventDefault();
-        console.log("wheelDown");
-        startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        objMatrixState.copy(obj.matrix);
-        tracking = true;
-    }
-};
-
-function mouseMoveListener(event) {
-    if(tracking) {
-        console.log("wheelMove");
-        event.preventDefault();
-        currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        v1.set(-distanceV.x, 0, 0); //translation on world X axis
-        v2.set(0, -distanceV.y, 0); //translation on world y axis
-        v1.add(v2); //translation vector
-        group.worldToLocal(v1);
-        m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-        m2.copy(objMatrixState).premultiply(m1);
-        obj.matrix.copy(m2);
-        //m2.decompose(obj.position, obj.quaternion, obj.scale);
-        //obj.position.add(v1);
-        renderer.render(scene, camera);
-    }
-};
-
-function wheelListener(event) {
-    event.preventDefault();
-    const scaleFactor = 1.1;
-    const sgn = Math.sign(event.deltaY);    //the direction of rotation
-
-    notchCounter+=sgn; //update the notch counter
-    /*if(notchCounter > 0) {
-        scale(obj, scaleFactor*notchCounter);
-    }
-    else if(notchCounter < 0) {
-        scale(obj, 1/(scaleFactor*(-notchCounter)));
-    }
-    else {
-        scale(obj, 1);
-    }*/
-    if(notchCounter > 0) {
-        scale(obj, Math.pow(scaleFactor, notchCounter));
-    }
-    else if(notchCounter < 0) {
-        scale(obj, 1/(Math.pow(scaleFactor, -notchCounter)));
-    }
-    else {
-        scale(obj, 1);
-    }
-    renderer.render(scene, camera);
-};
 
 function windowResizeListener() {
     resizeRenderer(renderer);
