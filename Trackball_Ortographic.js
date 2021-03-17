@@ -22,7 +22,6 @@ const objMatrixState = new THREE.Matrix4();
 canvas.addEventListener('mouseup', mouseUpListener);
 canvas.addEventListener('mousedown', mouseDownListener);
 canvas.addEventListener('mousemove', mouseMoveListener);
-canvas.addEventListener('mousedown', mouseClickListener);
 canvas.addEventListener('wheel', wheelListener);
 document.addEventListener('keydown', function keyDownListener(event) {
     /*if(event.ctrlKey || event.metaKey) {
@@ -45,27 +44,6 @@ document.addEventListener('keyup', function keyUpListener(event) {
 });
 window.addEventListener('resize', windowResizeListener);
 
-function mouseStartListener(event) {
-    event.preventDefault();
-    if(event.button == 1) {
-        //wheel button
-        console.log('wheelup');
-        tracking = false;
-    }
-};
-
-function mouseMoveListener(event) {
-    event.preventDefault();
-    if(event.button == 1) {
-        //wheel button
-    }
-};
-
-function mouseEndListener(event) {
-    event.preventDefault();
-}
-
-
 const renderer = new THREE.WebGLRenderer({canvas});
 const group = new THREE.Group();
 
@@ -81,6 +59,7 @@ let panning = false;    //if panning operation is being performed (non touch onl
 let pinching = false;
 let rotating = false;   //probabilmente non serve
 let tracking = false;  
+let wheelStart = true;
 let currentCursorPosition = new THREE.Vector3();
 let startCursorPosition = new THREE.Vector3();
 let rotationAxis = new THREE.Vector3();
@@ -256,9 +235,9 @@ function twoFingersMoveListener(event) {
 
     //apply matrix  TRS
     m1.copy(objMatrixState);
-    m1.premultiply(translateMatrix);
-    m1.premultiply(rotateMatrix);
     m1.premultiply(scaleMatrix);
+    m1.premultiply(rotateMatrix);
+    m1.premultiply(translateMatrix);
 
     /*translateMatrix.multiply(rotateMatrix);
     translateMatrix.multiply(scaleMatrix);
@@ -303,7 +282,72 @@ resizeRenderer(renderer);
 renderer.render(scene, camera);
 
 //listeners
+function mouseClickListener(event) {
+    event.preventDefault();
+    console.log(event.button);
+};
 
+function mouseUpListener(event) {
+    if(event.button == 1) {
+        event.preventDefault();
+        console.log("wheelUp");
+        tracking = false;
+    }
+};
+
+function mouseMoveListener(event) {
+    if(tracking) {
+        console.log("wheelMove");
+        event.preventDefault();
+        currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+        v1.set(-distanceV.x, 0, 0); //translation on world X axis
+        v2.set(0, -distanceV.y, 0); //translation on world y axis
+        v1.add(v2); //translation vector
+        group.worldToLocal(v1);
+        m1.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+        m2.copy(objMatrixState).premultiply(m1);
+        obj.matrix.copy(m2);
+        renderer.render(scene, camera);
+    }
+};
+
+function mouseDownListener(event) {
+    if(event.button == 1) {
+        //wheel click
+        event.preventDefault();
+        console.log("wheelDown");
+        startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        objMatrixState.copy(obj.matrix);
+        tracking = true;
+        wheelStart = true;
+    }
+};
+
+function wheelListener(event) {
+    event.preventDefault();
+    let s = 1;  //scale value
+    const scaleFactor = 1.1;
+    const sgn = Math.sign(event.deltaY);    //the direction of rotation
+
+    if(wheelStart) {
+        objMatrixState.copy(obj.matrix);
+        notchCounter = 0;
+        wheelStart = false;
+    }
+
+    notchCounter+=sgn; //update the notch counter
+    if(notchCounter > 0) {
+        s = Math.pow(scaleFactor, notchCounter);
+    }
+    else if(notchCounter < 0) {
+        s = 1/(Math.pow(scaleFactor, -notchCounter));
+    }
+    m1.makeScale(s, s, s);
+    m2.copy(objMatrixState).premultiply(m1);
+    obj.matrix.copy(m2);
+    renderer.render(scene, camera);
+};
 
 function windowResizeListener() {
     resizeRenderer(renderer);
