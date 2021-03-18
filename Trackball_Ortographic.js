@@ -57,7 +57,8 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
 
         m1.copy(objMatrixState).premultiply(translateMatrix);
         m1.premultiply(scaleMatrix);
-        obj.matrix.copy(m1);
+        m1.decompose(obj.position, obj.quaternion, obj.scale);
+        //obj.matrix.copy(m1);
         renderer.render(scene, camera);
     }
 });
@@ -78,7 +79,8 @@ canvas.addEventListener('wheel',function wheelListener(event) {
 
     m1.copy(objMatrixState).premultiply(translateMatrix);
     m1.premultiply(scaleMatrix);
-    obj.matrix.copy(m1);
+    m1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m1);
     renderer.render(scene, camera);
 });
 
@@ -202,7 +204,8 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
     
             m1.copy(objMatrixState).premultiply(translateMatrix);
             m1.premultiply(scaleMatrix);
-            obj.matrix.copy(m1);
+            m1.decompose(obj.position, obj.quaternion, obj.scale);
+            //obj.matrix.copy(m1);
             renderer.render(scene, camera);
         }
         else {
@@ -323,7 +326,8 @@ function twoFingersMoveListener(event) {
     translateMatrix.multiply(scaleMatrix);
     m1.premultiply(translateMatrix);*/
 
-    obj.matrix.copy(m1);
+    m1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m1);
     renderer.render(scene, camera);
 };
 
@@ -473,7 +477,7 @@ function loadObject(canvas, group) {
     //mesh
     const cube = new THREE.Mesh(boxGeometry, boxMaterial);
     objMatrixState.copy(cube.matrix);
-    cube.matrixAutoUpdate = false;
+    //cube.matrixAutoUpdate = false;
     group.add(cube);
     return cube;
 }
