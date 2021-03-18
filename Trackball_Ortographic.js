@@ -482,7 +482,7 @@ function loadObject(canvas, loader, group) {
     const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
 
     //mesh
-    loader.load('http://192.168.1.33:8080/rocker_arm.obj', function(o) {
+    loader.load('https://github.com/danielefornari/TrackballThesis/rocker_arm.obj', function(o) {
         obj = o;
         group.add(o);
     });
