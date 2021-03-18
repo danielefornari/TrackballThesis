@@ -1,4 +1,6 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
+
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
 //import * as THREE from 'three';
@@ -19,6 +21,9 @@ const rotateMatrix = new THREE.Matrix4();   //matrix for rotation operation
 const scaleMatrix = new THREE.Matrix4();    //matrix for scaling operation
 
 const objMatrixState = new THREE.Matrix4(); //objec't matrix state
+
+const loader = new OBJLoader();
+
 
 //canvas events
 canvas.addEventListener('mouseup', function mouseUpListener(event) {
@@ -359,7 +364,9 @@ const light = new THREE.DirectionalLight(lightColor, lightIntensity);
 light.position.set(-1, 2, 4);
 scene.add(light);
 
-obj = loadObject(renderer.domElement, group); //load the 3D object
+
+//obj = loadObject(renderer.domElement, group); //load the 3D object
+loadObject(renderer.domElement, loader, group);
 makeGizmos(tbCenter, tbRadius, group); //add gizmos
 scene.add(group);
 resizeRenderer(renderer);
@@ -460,7 +467,7 @@ function getObjCoord(obj) {
  * @param {HTMLElement} canvas The canvas where the renderer draws its output
  * @param {THREE.Group} group The group to add object to
  */
-function loadObject(canvas, group) {
+function loadObject(canvas, loader, group) {
     const canvasRect = canvas.getBoundingClientRect();
 
     //test cube
@@ -475,11 +482,18 @@ function loadObject(canvas, group) {
     const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
 
     //mesh
-    const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-    objMatrixState.copy(cube.matrix);
+    loader.load('http://192.168.1.33:8080/rocker_arm.obj', function(o) {
+        obj = o;
+        group.add(o);
+    });
+
+    //const cube = new THREE.Mesh(boxGeometry, boxMaterial);
+    //objMatrixState.copy(cube.matrix);
+    //objMatrixState.copy(obj.matrix);
     //cube.matrixAutoUpdate = false;
-    group.add(cube);
-    return cube;
+    //group.add(cube);
+    //group.add(obj);
+    //return cube;
 }
 
 /**
