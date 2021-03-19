@@ -7,25 +7,44 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 //import * as HAMMERJS from 'hammerjs';
 
 const canvas = document.getElementById("canvasO");
-const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
-const cursor1Paragraph = document.getElementById("cursor1Paragraph");
-const cursor2Paragraph = document.getElementById("cursor2Paragraph");
-const unprojectionParagraph = document.getElementById("unprojectionParagraph");
+const loader = new OBJLoader();
+const renderer = new THREE.WebGLRenderer({canvas});
+const group = new THREE.Group();
 
+//defined once and used in some operations
 const v1 = new THREE.Vector3();
 const v2 = new THREE.Vector3();
 const m1 = new THREE.Matrix4();
-const m2 = new THREE.Matrix4();
+
+//transformation matrices
 const translateMatrix = new THREE.Matrix4();    //matrix for translation operation
 const rotateMatrix = new THREE.Matrix4();   //matrix for rotation operation
 const scaleMatrix = new THREE.Matrix4();    //matrix for scaling operation
 
-const objMatrixState = new THREE.Matrix4(); //objec't matrix state
+//object's state
+const objMatrixState = new THREE.Matrix4(); //object's matrix state
+let quatState = new THREE.Quaternion().identity(); //group's quaternion state
 
-const loader = new OBJLoader();
+//trackball parameters
+const tbCenter = new THREE.Vector3(0, 0, 0);
+const radiusScaleFactor = 3;
+let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
+
+//for touch interaction only
+let fingerDistance = 0; //distance between two fingers
+let fingerRotation = 0; //rotation thah has been done with two fingers
+
+let currentCursorPosition = new THREE.Vector3();
+let startCursorPosition = new THREE.Vector3();
+
+let panKey = false; //if key for pan is down
+let tracking = false;  //if true, the cursor movements need to be stored
+let rotationAxis = new THREE.Vector3(); //axis around which perform rotation
+let notchCounter = 0;   //represent the wheel resulting position
+let obj;    //The 3D model
 
 
-//canvas events
+//mouse/keyboard events
 canvas.addEventListener('mouseup', function mouseUpListener(event) {
     if(event.button == 1) {
         event.preventDefault();
@@ -40,23 +59,25 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         console.log("mousedown");
         startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
         objMatrixState.copy(obj.matrix);
-        notchCounter = 0;   //reset counter because obj matrix state has been updated
-        //resetting scale and translation matrix
+        
+        //object's matrix state has been updated, reset notchCounter and transform matrices
+        notchCounter = 0;
         translateMatrix.makeTranslation(0, 0, 0);
         scaleMatrix.makeScale(1, 1, 1);
+
         tracking = true;
     }
 });
+
 canvas.addEventListener('mousemove', function mouseMoveListener(event) {
     if(tracking) {
         event.preventDefault();
         console.log("mousemove");
         currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        //const distanceV = v1.copy(startCursorPosition).sub(currentCursorPosition);
         v1.set(-distanceV.x, 0, 0); //translation on world X axis
         v2.set(0, -distanceV.y, 0); //translation on world y axis
-        v1.add(v2); //translation vector
+        v1.add(v2);
         group.worldToLocal(v1);
         translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
 
@@ -67,7 +88,8 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         renderer.render(scene, camera);
     }
 });
-canvas.addEventListener('wheel',function wheelListener(event) {
+
+canvas.addEventListener('wheel', function wheelListener(event) {
     event.preventDefault();
     console.log("wheel");
     const scaleFactor = 1.1;
@@ -89,15 +111,6 @@ canvas.addEventListener('wheel',function wheelListener(event) {
     renderer.render(scene, camera);
 });
 
-function windowResizeListener() {
-    resizeRenderer(renderer);
-    tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
-    /*group.clear();
-    loadObject(renderer.domElement, group);  //replace with scaleObject()
-    makeGizmos(tbCenter, tbRadius, group);*/
-    renderer.render(scene, camera);
-};
-
 document.addEventListener('keydown', function keyDownListener(event) {
     /*if(event.ctrlKey || event.metaKey) {
         console.log("keydown");
@@ -107,6 +120,7 @@ document.addEventListener('keydown', function keyDownListener(event) {
         panKey = true;
     }
 });
+
 document.addEventListener('keyup', function keyUpListener(event) {
     /*if(event.ctrlKey || event.metaKey) {
         console.log("keyup");
@@ -116,26 +130,18 @@ document.addEventListener('keyup', function keyUpListener(event) {
         panKey = false;
     }
 });
-window.addEventListener('resize', windowResizeListener);
 
-const renderer = new THREE.WebGLRenderer({canvas});
-const group = new THREE.Group();
+//window event
+window.addEventListener('resize', function windowResizeListener() {
+    resizeRenderer(renderer);
+    tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
+    /*group.clear();
+    loadObject(renderer.domElement, group);  //replace with scaleObject()
+    makeGizmos(tbCenter, tbRadius, group);*/
+    renderer.render(scene, camera);
+});
 
-//trackball parameters
-const tbCenter = new THREE.Vector3(0, 0, 0);
-const radiusScaleFactor = 3;
-let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
 
-let fingerDistance = 0;
-let fingerRotation = 0;
-let panKey = false; //if key for pan is down
-let tracking = false;  
-let currentCursorPosition = new THREE.Vector3();
-let startCursorPosition = new THREE.Vector3();
-let rotationAxis = new THREE.Vector3();
-let notchCounter = 0;   //represent the number of wheel nothes from the initial position
-let obj;    //The 3D model
-let quatState = new THREE.Quaternion().identity(); //object's quaternion value at first mouse click/tap
 
 //touch gestures
 const manager = new Hammer.Manager(canvas);
@@ -147,8 +153,6 @@ const rotate = new Hammer.Rotate();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
-pinch.set({threshold: 0});
-rotate.set({threshold: 0});
 
 manager.add([singlePan, doublePan, pinch, rotate]);
 manager.get('doublepan').recognizeWith('singlepan');
@@ -165,7 +169,7 @@ manager.get('rotate').requireFailure('doublepan');
 manager.get('rotate').requireFailure('pinch');
 
 
-//single finger pan gesture listeners
+//single finger listeners
 manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log("singlepanstart");
     const center = event.center;
@@ -182,10 +186,12 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     else {
         //perform pan instead of rotation
         objMatrixState.copy(obj.matrix);
-        notchCounter = 0;   //reset counter because obj matrix state has been updated
-        //resetting scale and translation matrix
+
+        //object's matrix state has been updated, reset notchCounter and transform matrices
+        notchCounter = 0;
         translateMatrix.makeTranslation(0, 0, 0);
         scaleMatrix.makeScale(1, 1, 1);
+
         tracking = true;
     }
 });
@@ -217,10 +223,12 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //restart panning routine
             startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             objMatrixState.copy(obj.matrix);
-            notchCounter = 0;   //reset counter because obj matrix state has been updated
-            //resetting scale and translation matrix
+
+            //object's matrix state has been updated, reset notchCounter and transform matrices
+            notchCounter = 0;
             translateMatrix.makeTranslation(0, 0, 0);
             scaleMatrix.makeScale(1, 1, 1);
+
             tracking = true;      
         }
     }
@@ -239,26 +247,22 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             const distanceV = startCursorPosition.clone();
             distanceV.sub(currentCursorPosition);
-            //const distanceV = v1.copy(startCursorPosition).sub(currentCursorPosition);
             const angleV = startCursorPosition.angleTo(currentCursorPosition);
-            rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-            cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
-            cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
             rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
             renderer.render(scene, camera);
         }
     }
 });
+
 manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
     tracking = false;
 });
 
-//double finger gestures listener
+//double finger listener
 manager.on("doublepanstart pinchstart rotatestart", twoFingersStartListener);
 manager.on("doublepanmove pinchmove rotatemove", twoFingersMoveListener);
 manager.on("doublepanend pinchend rotateend", twoFingersEndListener);
-
 
 function twoFingersStartListener(event) {
     console.log('2FE start');
@@ -271,14 +275,11 @@ function twoFingersStartListener(event) {
 
 function twoFingersMoveListener(event) {
     console.log('2FE move');
-    /*const scaleMatrix = new THREE.Matrix4();
-    const rotateMatrix = new THREE.Matrix4();
-    const translateMatrix = new THREE.Matrix4();*/
 
-    const center = event.center;
+    const center = event.center;    //middle point between fingers
     const p = getCursorPosition(center.x, center.y, renderer.domElement); //center point between fingers
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    const s = newDistance/fingerDistance;   //how much scale
+    const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
     v1.set(p.x, 0, 0);  //fingers middle point on x axis
@@ -291,7 +292,6 @@ function twoFingersMoveListener(event) {
     scaleMatrix.multiply(m1);
     m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     scaleMatrix.multiply(m1);
-    //scaleMatrix.copy(m1);
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
@@ -308,29 +308,21 @@ function twoFingersMoveListener(event) {
     rotateMatrix.multiply(m1);
     m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
     rotateMatrix.multiply(m1);
-    //rotateMatrix.copy(m1);
 
     //translation operation T(p)
     currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    //const distanceV = v1.copy(startCursorPosition).sub(currentCursorPosition);
     v1.set(-distanceV.x, 0, 0);
     v2.set(0, -distanceV.y, 0);
     v1.add(v2);
     group.worldToLocal(v1);
     translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-    //translateMatrix.copy(m1);
 
     //apply matrix  TRS
     m1.copy(objMatrixState);
     m1.premultiply(translateMatrix);
     m1.premultiply(rotateMatrix);
     m1.premultiply(scaleMatrix);
-
-    /*translateMatrix.multiply(rotateMatrix);
-    translateMatrix.multiply(scaleMatrix);
-    m1.premultiply(translateMatrix);*/
-
     m1.decompose(obj.position, obj.quaternion, obj.scale);
     //obj.matrix.copy(m1);
     renderer.render(scene, camera);
@@ -338,7 +330,7 @@ function twoFingersMoveListener(event) {
 
 function twoFingersEndListener(event) {
     console.log('2FE end');
-    fingerRotation = event.rotation;
+    //fingerRotation = event.rotation;
 };
 
 
@@ -485,6 +477,7 @@ function loadObject(canvas, loader, group) {
     loader.load('rocker_arm.obj', function(o) {
         obj = o;
         group.add(o);
+        objMatrixState.copy(o.matrix);
     });
 
     //const cube = new THREE.Mesh(boxGeometry, boxMaterial);
