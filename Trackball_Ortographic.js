@@ -21,6 +21,8 @@ const translateMatrix = new THREE.Matrix4();    //matrix for translation operati
 const rotateMatrix = new THREE.Matrix4();   //matrix for rotation operation
 const scaleMatrix = new THREE.Matrix4();    //matrix for scaling operation
 
+const rotationAxis = new THREE.Vector3(); //axis around which perform rotation
+
 //object's state
 const objMatrixState = new THREE.Matrix4(); //object's matrix state
 let quatState = new THREE.Quaternion().identity(); //group's quaternion state
@@ -39,7 +41,6 @@ let startCursorPosition = new THREE.Vector3();
 
 let panKey = false; //if key for pan is down
 let tracking = false;  //if true, the cursor movements need to be stored
-let rotationAxis = new THREE.Vector3(); //axis around which perform rotation
 let notchCounter = 0;   //represent the wheel resulting position
 let obj;    //The 3D model
 
@@ -52,7 +53,6 @@ canvas.addEventListener('mouseup', function mouseUpListener(event) {
         tracking = false;
     }
 });
-
 canvas.addEventListener('mousedown', function mouseDownListener(event) {
     if(event.button == 1) {
         event.preventDefault();
@@ -68,7 +68,6 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         tracking = true;
     }
 });
-
 canvas.addEventListener('mousemove', function mouseMoveListener(event) {
     if(tracking) {
         event.preventDefault();
@@ -88,7 +87,6 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         renderer.render(scene, camera);
     }
 });
-
 canvas.addEventListener('wheel', function wheelListener(event) {
     event.preventDefault();
     console.log("wheel");
@@ -392,8 +390,14 @@ function calculateRadius(radiusScaleFactor, canvas) {
     }
 };
 
-function calculateRotationAxis(vec1, vec2) {
-    return rotationAxis.crossVectors(vec1, vec2).normalize();
+/**
+ * Calculate the axis around which perform rotation as cross product between two given vectors
+ * @param {THREE.Vector3} vec1 The first vector
+ * @param {THREE.Vector3} vec2 The second vector
+ * @returns {THREE.Vector3} The normalized vector resulting from cross product between v1 and v2
+ */
+function calculateRotationAxis(v1, v2) {
+    return rotationAxis.crossVectors(v1, v2).normalize();
 };
 
 /**
@@ -403,8 +407,6 @@ function calculateRotationAxis(vec1, vec2) {
  * @param {THREE.Group} group The group to add gizmos to
  */
 function makeGizmos(tbCenter, tbRadius, group) {
-    //rotation gizmos
-
     const curve = new THREE.EllipseCurve(tbCenter.x, tbCenter.y, tbRadius, tbRadius);
     const points = curve.getPoints(50);
 
@@ -443,14 +445,6 @@ function getCursorPosition(x, y, canvas) {
     cursorPosition.setY((canvasRect.bottom-y)-canvasRect.height/2);
     cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, tbRadius));
     return cursorPosition;
-};
-
-function getCanvasRect(renderer) {
-    return renderer.domElement.getBoundingClientRect();
-}
-
-function getObjCoord(obj) {
-    return obj.getWorldPosition();
 };
 
 /**
@@ -517,7 +511,6 @@ function rotateObj(obj, axis, rad) {
     obj.setRotationFromQuaternion(quat);
 };
 
-
 /**
  * Unproject the cursor in screen space into a point in world space on the trackball surface
  * @param {number} x The cursor x position
@@ -536,9 +529,3 @@ function unprojectZ(x, y, radius) {
         return (radius2/2)/(Math.sqrt(x2+y2));
     }
 };
-
-
-
-
-
-//fare quello che faccio con wheel ma al contrario per il pan o altro modo?
