@@ -152,11 +152,13 @@ const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
 const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
+const doubleTap = new Hammer.Tap();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
+doubleTap.set({event: 'doubletap', taps: 2});
 
-manager.add([singlePan, doublePan, pinch, rotate]);
+manager.add([singlePan, doublePan, pinch, rotate, doubleTap]);
 manager.get('doublepan').recognizeWith('singlepan');
 manager.get('pinch').recognizeWith('singlepan');
 manager.get('rotate').recognizeWith('singlepan');
@@ -341,6 +343,28 @@ function twoFingersEndListener(event) {
     //fingerRotation = event.rotation;
 };
 
+manager.on('doubletap', function doubleTapListener(event) {
+    const center = event.center;
+
+    objMatrixState.copy(obj.matrix);
+
+    v2_1.copy(getCursorNDC(center.x, center.y, renderer.domElement));
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(v2_1, camera);
+    const intersect = raycaster.intersectObject(obj, true);
+    if(intersect.length == 0) {
+        alert("swiiish");
+    }
+    else {
+        v3_1.copy(intersect[0].point);
+        group.worldToLocal(v3_1);
+        translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
+        m4_1.copy(objMatrixState).premultiply(translateMatrix);
+        m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+        renderer.render(scene, camera);
+    }
+});
+
 
 //camera
 const canvasRect = canvas.getBoundingClientRect();
@@ -456,6 +480,13 @@ function getCursorPosition(x, y, canvas) {
     //cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, tbRadius));
     return v2_1;
 };
+
+function getCursorNDC(x, y, canvas) {
+    const canvasRect = canvas.getBoundingClientRect();
+    v2_1.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
+    v2_1.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
+    return v2_1;
+}
 
 /**
  * load a 3D object and add it to the scene
