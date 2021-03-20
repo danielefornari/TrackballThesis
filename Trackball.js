@@ -36,8 +36,8 @@ let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
 let fingerDistance = 0; //distance between two fingers
 let fingerRotation = 0; //rotation thah has been done with two fingers
 
-let currentCursorPosition = new THREE.Vector3();
-let startCursorPosition = new THREE.Vector3();
+const currentCursorPosition = new THREE.Vector3();
+const startCursorPosition = new THREE.Vector3();
 
 let panKey = false; //if key for pan is down
 let tracking = false;  //if true, the cursor movements need to be stored
@@ -57,7 +57,7 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         event.preventDefault();
         console.log("mousemove");
         //currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        currentCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        currentCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement)));
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         console.log(distanceV);
         v1.set(-distanceV.x, 0, 0); //translation on world X axis
@@ -78,7 +78,7 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         event.preventDefault();
         console.log("mousedown");
         //startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        startCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        startCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement)));
         objMatrixState.copy(obj.matrix);
         
         //object's matrix state has been updated, reset notchCounter and transform matrices
@@ -170,7 +170,7 @@ manager.get('rotate').requireFailure('pinch');
 manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log("singlepanstart");
     const center = event.center;
-    startCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius); 
+    startCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius)); 
     if(!panKey) {
         //normal trackball rotation
         if(group.quaternion == "undefined") {
@@ -202,7 +202,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //already panning, continue with panning routine
             console.log("mousemove");
             //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-            currentCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius);
+            currentCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius));
             const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
             //const distanceV = v1.copy(startCursorPosition).sub(currentCursorPosition);
             v1.set(-distanceV.x, 0, 0); //translation on world X axis
@@ -220,7 +220,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
         else {
             //restart panning routine
             //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-            startCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement)); 
+            startCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement))); 
             objMatrixState.copy(obj.matrix);
 
             //object's matrix state has been updated, reset notchCounter and transform matrices
@@ -238,14 +238,14 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //restart rotation routine
             tracking = false;
             //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-            startCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius); 
+            startCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius)); 
             quatState.copy(group.quaternion);
             //singlePanStartListener(event);  //restart rotation routine
         }
         else {
             //continue with normal rotation routine
             //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-            currentCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius); 
+            currentCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius)); 
             const distanceV = startCursorPosition.clone();
             distanceV.sub(currentCursorPosition);
             const angleV = startCursorPosition.angleTo(currentCursorPosition);
@@ -268,7 +268,7 @@ manager.on("doublepanend pinchend rotateend", twoFingersEndListener);
 function twoFingersStartListener(event) {
     console.log('2FE start');
     const center = event.center;    //middle point between fingers
-    startCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement));
+    startCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement)));
     //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     fingerRotation = event.rotation;
@@ -313,7 +313,7 @@ function twoFingersMoveListener(event) {
     rotateMatrix.multiply(m1);
 
     //translation operation T(p)
-    currentCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement));
+    currentCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement)));
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v1.set(-distanceV.x, 0, 0);
     v2.set(0, -distanceV.y, 0);
@@ -511,7 +511,7 @@ function rotateObj(obj, axis, rad) {
 };
 
 /**
- * Unproject the cursor in world space on the trackball surface
+ * Unproject the cursor on the trackball surface
  * @param {THREE.Camera} camera The camera
  * @param {THREE.Vector2} cursor The cursor normalized coordinates inside the canvas
  * @param {THREE.Vector3} tbCenter The trackball center
