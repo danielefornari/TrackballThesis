@@ -12,9 +12,10 @@ const renderer = new THREE.WebGLRenderer({canvas});
 const group = new THREE.Group();
 
 //defined once and used in some operations
-const v1 = new THREE.Vector3();
-const v2 = new THREE.Vector3();
-const m1 = new THREE.Matrix4();
+const v2_1 = new THREE.Vector2();
+const v3_1 = new THREE.Vector3();
+const v3_2 = new THREE.Vector3();
+const m4_1 = new THREE.Matrix4();
 
 //transformation matrices
 const translateMatrix = new THREE.Matrix4();    //matrix for translation operation
@@ -36,8 +37,8 @@ let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
 let fingerDistance = 0; //distance between two fingers
 let fingerRotation = 0; //rotation thah has been done with two fingers
 
-let currentCursorPosition = new THREE.Vector3();
-let startCursorPosition = new THREE.Vector3();
+const currentCursorPosition = new THREE.Vector3();
+const startCursorPosition = new THREE.Vector3();
 
 let panKey = false; //if key for pan is down
 let tracking = false;  //if true, the cursor movements need to be stored
@@ -57,7 +58,8 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
     if(event.button == 1) {
         event.preventDefault();
         console.log("mousedown");
-        startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        startCursorPosition.set(v2_1.x, v2_1.y, 0);
         objMatrixState.copy(obj.matrix);
         
         //object's matrix state has been updated, reset notchCounter and transform matrices
@@ -72,18 +74,20 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
     if(tracking) {
         event.preventDefault();
         console.log("mousemove");
-        currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        currentCursorPosition.set(v2_1.x, v2_1.y, 0);
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        v1.set(-distanceV.x, 0, 0); //translation on world X axis
-        v2.set(0, -distanceV.y, 0); //translation on world y axis
-        v1.add(v2);
-        group.worldToLocal(v1);
-        translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+        console.log(distanceV);
+        v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
+        v3_2.set(0, -distanceV.y, 0); //translation on world y axis
+        v3_1.add(v3_2);
+        group.worldToLocal(v3_1);
+        translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
-        m1.copy(objMatrixState).premultiply(translateMatrix);
-        m1.premultiply(scaleMatrix);
-        m1.decompose(obj.position, obj.quaternion, obj.scale);
-        //obj.matrix.copy(m1);
+        m4_1.copy(objMatrixState).premultiply(translateMatrix);
+        m4_1.premultiply(scaleMatrix);
+        m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+        //obj.matrix.copy(m4_1);
         renderer.render(scene, camera);
     }
 });
@@ -102,10 +106,10 @@ canvas.addEventListener('wheel', function wheelListener(event) {
     }
     scaleMatrix.makeScale(s, s, s);
 
-    m1.copy(objMatrixState).premultiply(translateMatrix);
-    m1.premultiply(scaleMatrix);
-    m1.decompose(obj.position, obj.quaternion, obj.scale);
-    //obj.matrix.copy(m1);
+    m4_1.copy(objMatrixState).premultiply(translateMatrix);
+    m4_1.premultiply(scaleMatrix);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m4_1);
     renderer.render(scene, camera);
 });
 
@@ -171,7 +175,7 @@ manager.get('rotate').requireFailure('pinch');
 manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log("singlepanstart");
     const center = event.center;
-    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
     if(!panKey) {
         //normal trackball rotation
         if(group.quaternion == "undefined") {
@@ -203,23 +207,26 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //already panning, continue with panning routine
             console.log("mousemove");
             //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+            currentCursorPosition.set(v2_1.x, v2_1.y, 0);
             const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-            //const distanceV = v1.copy(startCursorPosition).sub(currentCursorPosition);
-            v1.set(-distanceV.x, 0, 0); //translation on world X axis
-            v2.set(0, -distanceV.y, 0); //translation on world y axis
-            v1.add(v2); //translation vector
-            group.worldToLocal(v1);
-            translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+            //const distanceV = v3_1.copy(startCursorPosition).sub(currentCursorPosition);
+            v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
+            v3_2.set(0, -distanceV.y, 0); //translation on world y axis
+            v3_1.add(v3_2); //translation vector
+            group.worldToLocal(v3_1);
+            translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     
-            m1.copy(objMatrixState).premultiply(translateMatrix);
-            m1.premultiply(scaleMatrix);
-            m1.decompose(obj.position, obj.quaternion, obj.scale);
-            //obj.matrix.copy(m1);
+            m4_1.copy(objMatrixState).premultiply(translateMatrix);
+            m4_1.premultiply(scaleMatrix);
+            m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+            //obj.matrix.copy(m4_1);
             renderer.render(scene, camera);
         }
         else {
             //restart panning routine
-            startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+            startCursorPosition.set(v2_1.x, v2_1.y, 0);
             objMatrixState.copy(obj.matrix);
 
             //object's matrix state has been updated, reset notchCounter and transform matrices
@@ -236,15 +243,16 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //key for panning has just been released
             //restart rotation routine
             tracking = false;
-            startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
             quatState.copy(group.quaternion);
             //singlePanStartListener(event);  //restart rotation routine
         }
         else {
             //continue with normal rotation routine
-            currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            currentCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
             const distanceV = startCursorPosition.clone();
             distanceV.sub(currentCursorPosition);
+            console.log(distanceV);
             const angleV = startCursorPosition.angleTo(currentCursorPosition);
             rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
             renderer.render(scene, camera);
@@ -265,7 +273,8 @@ manager.on("doublepanend pinchend rotateend", twoFingersEndListener);
 function twoFingersStartListener(event) {
     console.log('2FE start');
     const center = event.center;    //middle point between fingers
-    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+    startCursorPosition.set(v2_1.x, v2_1.y, 0);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     fingerRotation = event.rotation;
     objMatrixState.copy(obj.matrix);
@@ -275,54 +284,55 @@ function twoFingersMoveListener(event) {
     console.log('2FE move');
 
     const center = event.center;    //middle point between fingers
-    const p = getCursorPosition(center.x, center.y, renderer.domElement); //center point between fingers
+    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement)); //center point between fingers
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
-    v1.set(p.x, 0, 0);  //fingers middle point on x axis
-    v2.set(0, p.y, 0);  //fingers middle point on y axis
-    v1.add(v2);
-    group.worldToLocal(v1);
+    v3_1.set(v2_1.x, 0, 0);  //fingers middle point on x axis
+    v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
+    v3_1.add(v3_2);
+    group.worldToLocal(v3_1);
 
-    scaleMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-    m1.makeScale(s, s, s);  //S(s)
-    scaleMatrix.multiply(m1);
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    scaleMatrix.multiply(m1);
+    scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+    m4_1.makeScale(s, s, s);  //S(s)
+    scaleMatrix.multiply(m4_1);
+    m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
+    scaleMatrix.multiply(m4_1);
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    v1.set(p.x, 0, 0);
-    v2.set(0, p.y, 0);
-    v1.add(v2);
-    group.worldToLocal(v1);
+    v3_1.set(v2_1.x, 0, 0);
+    v3_2.set(0, v2_1.y, 0);
+    v3_1.add(v3_2);
+    group.worldToLocal(v3_1);
 
-    rotateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-    v2.set(0, 0, 1);
-    group.worldToLocal(v2);
-    m1.makeRotationAxis(v2, r);  //R(rotation)
+    rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+    v3_2.set(0, 0, 1);
+    group.worldToLocal(v3_2);
+    m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
 
-    rotateMatrix.multiply(m1);
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    rotateMatrix.multiply(m1);
+    rotateMatrix.multiply(m4_1);
+    m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
+    rotateMatrix.multiply(m4_1);
 
     //translation operation T(p)
-    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+    currentCursorPosition.set(v2_1.x, v2_1.y, 0);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    v1.set(-distanceV.x, 0, 0);
-    v2.set(0, -distanceV.y, 0);
-    v1.add(v2);
-    group.worldToLocal(v1);
-    translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    v3_1.set(-distanceV.x, 0, 0);
+    v3_2.set(0, -distanceV.y, 0);
+    v3_1.add(v3_2);
+    group.worldToLocal(v3_1);
+    translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
     //apply matrix  TRS
-    m1.copy(objMatrixState);
-    m1.premultiply(translateMatrix);
-    m1.premultiply(rotateMatrix);
-    m1.premultiply(scaleMatrix);
-    m1.decompose(obj.position, obj.quaternion, obj.scale);
-    //obj.matrix.copy(m1);
+    m4_1.copy(objMatrixState);
+    m4_1.premultiply(translateMatrix);
+    m4_1.premultiply(rotateMatrix);
+    m4_1.premultiply(scaleMatrix);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m4_1);
     renderer.render(scene, camera);
 };
 
@@ -394,10 +404,10 @@ function calculateRadius(radiusScaleFactor, canvas) {
  * Calculate the axis around which perform rotation as cross product between two given vectors
  * @param {THREE.Vector3} vec1 The first vector
  * @param {THREE.Vector3} vec2 The second vector
- * @returns {THREE.Vector3} The normalized vector resulting from cross product between v1 and v2
+ * @returns {THREE.Vector3} The normalized vector resulting from cross product between v3_1 and v3_2
  */
-function calculateRotationAxis(v1, v2) {
-    return rotationAxis.crossVectors(v1, v2).normalize();
+function calculateRotationAxis(v3_1, v3_2) {
+    return rotationAxis.crossVectors(v3_1, v3_2).normalize();
 };
 
 /**
@@ -432,19 +442,19 @@ function makeGizmos(tbCenter, tbRadius, group) {
 };
 
 /**
-* Given cursor x/y position within the viewport, return corrensponding position in world space
+* Calculate the cursor normalized position inside the canvas
 * @param {number} x Cursor x position in screen space 
 * @param {number} y Cursor y position in screen space
 * @param {HTMLElement} canvas The canvas where the renderer draws its output
-* @returns {THREE.Vector3} Cursor position in world space
+* @returns {THREE.Vector3} Cursor normalized position inside the canvas
 */
 function getCursorPosition(x, y, canvas) {
     const canvasRect = canvas.getBoundingClientRect();
-    const cursorPosition = new THREE.Vector3();
-    cursorPosition.setX((x-canvasRect.left)-canvasRect.width/2);
-    cursorPosition.setY((canvasRect.bottom-y)-canvasRect.height/2);
-    cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, tbRadius));
-    return cursorPosition;
+    //const cursorPosition = new THREE.Vector2();
+    v2_1.setX((x-canvasRect.left)-canvasRect.width/2);
+    v2_1.setY((canvasRect.bottom-y)-canvasRect.height/2);
+    //cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, tbRadius));
+    return v2_1;
 };
 
 /**
@@ -512,20 +522,26 @@ function rotateObj(obj, axis, rad) {
 };
 
 /**
- * Unproject the cursor in screen space into a point in world space on the trackball surface
- * @param {number} x The cursor x position
- * @param {number} y The cursor y position
+ * Unproject the cursor on the trackball surface
+ * @param {THREE.Vector2} cursor The cursor normalized coordinates inside the canvas
  * @param {number} radius The trackball radius
+ * @returns {THREE.Vector3} The unprojected point
  */
-function unprojectZ(x, y, radius) {
-    let x2 = Math.pow(x, 2);
-    let y2 = Math.pow(y, 2);
+function unprojectOnTbSurface(cursor, radius) {
+    //x and y positions doesn't change in otrhographic camera
+    v3_1.setX(cursor.x);
+    v3_1.setY(cursor.y);
+    let x2 = Math.pow(cursor.x, 2);
+    let y2 = Math.pow(cursor.y, 2);
     let radius2 = Math.pow(radius, 2);
 
     if(x2+y2 <= radius2/2) {
-        return Math.sqrt(radius2-(x2+y2));
+        //intersection with sphere
+        v3_1.setZ(Math.sqrt(radius2-(x2+y2)));
     }
     else {
-        return (radius2/2)/(Math.sqrt(x2+y2));
+        //intersection with hyperboloid
+        v3_1.setZ((radius2/2)/(Math.sqrt(x2+y2)));
     }
+    return v3_1;
 };
