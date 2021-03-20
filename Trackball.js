@@ -1,25 +1,117 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
+
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
 //import * as THREE from 'three';
 //import * as HAMMERJS from 'hammerjs';
 
 const canvas = document.getElementById("canvasP");
-const rotationAxisParagraph = document.getElementById("rotationAxisParagraph");
-const cursor1Paragraph = document.getElementById("cursor1Paragraph");
-const cursor2Paragraph = document.getElementById("cursor2Paragraph");
-const unprojectionParagraph = document.getElementById("unprojectionParagraph");
-const scaleFactor = 1.1;
-const pinchScaleFactor = 1.02;
-let fingerDistance = 0;
-let fingerRotation = 0;
-let panKey = false;
+const loader = new OBJLoader();
+const renderer = new THREE.WebGLRenderer({canvas});
+const group = new THREE.Group();
 
-//canvas events
-canvas.addEventListener('mouseup', mouseUpListener);
-canvas.addEventListener('mousedown', mouseDownListener);
-canvas.addEventListener('mousemove', mouseMoveListener);
-canvas.addEventListener('wheel', wheelListener);
+//defined once and used in some operations
+const v1 = new THREE.Vector3();
+const v2 = new THREE.Vector3();
+const m1 = new THREE.Matrix4();
+
+//transformation matrices
+const translateMatrix = new THREE.Matrix4();    //matrix for translation operation
+const rotateMatrix = new THREE.Matrix4();   //matrix for rotation operation
+const scaleMatrix = new THREE.Matrix4();    //matrix for scaling operation
+
+const rotationAxis = new THREE.Vector3();
+
+//object's state
+const objMatrixState = new THREE.Matrix4(); //object's matrix state
+let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
+
+//trackball parameters
+const tbCenter = new THREE.Vector3(0, 0, 0);
+const radiusScaleFactor = 3;
+let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
+
+//for touch interaction only
+let fingerDistance = 0; //distance between two fingers
+let fingerRotation = 0; //rotation thah has been done with two fingers
+
+let currentCursorPosition = new THREE.Vector3();
+let startCursorPosition = new THREE.Vector3();
+
+let panKey = false; //if key for pan is down
+let tracking = false;  //if true, the cursor movements need to be stored
+let notchCounter = 0;   //represent the wheel resulting position
+let obj;    //The 3D model
+
+//mouse/keyboard events
+canvas.addEventListener('mouseup', function mouseUpListener(event) {
+    if(event.button == 1) {
+        event.preventDefault();
+        console.log("mouseup");
+        tracking = false;
+    }
+});
+canvas.addEventListener('mousemove', function mouseMoveListener(event) {
+    if(tracking) {
+        event.preventDefault();
+        console.log("mousemove");
+        //currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        currentCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+        console.log(distanceV);
+        v1.set(-distanceV.x, 0, 0); //translation on world X axis
+        v2.set(0, -distanceV.y, 0); //translation on world y axis
+        v1.add(v2);
+        group.worldToLocal(v1);
+        translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+
+        m1.copy(objMatrixState).premultiply(translateMatrix);
+        m1.premultiply(scaleMatrix);
+        m1.decompose(obj.position, obj.quaternion, obj.scale);
+        //obj.matrix.copy(m1);
+        renderer.render(scene, camera);
+    }
+});
+canvas.addEventListener('mousedown', function mouseDownListener(event) {
+    if(event.button == 1) {
+        event.preventDefault();
+        console.log("mousedown");
+        //startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
+        startCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        objMatrixState.copy(obj.matrix);
+        
+        //object's matrix state has been updated, reset notchCounter and transform matrices
+        notchCounter = 0;
+        translateMatrix.makeTranslation(0, 0, 0);
+        scaleMatrix.makeScale(1, 1, 1);
+
+        tracking = true;
+    }
+});
+canvas.addEventListener('wheel', function wheelListener(event) {
+    event.preventDefault();
+    console.log("wheel");
+    const scaleFactor = 1.1;
+    const sgn = Math.sign(event.deltaY);
+    let s = 1;
+    notchCounter += sgn;
+    if(notchCounter > 0) {
+        s = Math.pow(scaleFactor, notchCounter);
+    }
+    else if(notchCounter < 0) {
+        s = 1/(Math.pow(scaleFactor, -notchCounter));
+    }
+    scaleMatrix.makeScale(s, s, s);
+
+    m1.copy(objMatrixState).premultiply(translateMatrix);
+    m1.premultiply(scaleMatrix);
+    m1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m1);
+    renderer.render(scene, camera);
+});
+
+
 document.addEventListener('keydown', function keyDownListener(event) {
     /*if(event.ctrlKey || event.metaKey) {
         console.log("keydown");
@@ -38,24 +130,18 @@ document.addEventListener('keyup', function keyUpListener(event) {
         panKey = false;
     }
 });
-window.addEventListener('resize', windowResizeListener);
+window.addEventListener('resize', function windowResizeListener(){
+    resizeRenderer(renderer);
+    tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
+    camera.position.z = tbRadius*4;
+    group.clear();
+    loadObject(renderer.domElement, loader, group);  //replace with scaleObject()
+    makeGizmos(tbCenter, tbRadius, group);
+    renderer.render(scene, camera);
+});
 
-const renderer = new THREE.WebGLRenderer({canvas});
-const group = new THREE.Group();
 
-//trackball parameters
-const tbCenter = new THREE.Vector3(0, 0, 0);
-const radiusScaleFactor = 3;
-let tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
-
-let tracking = false;
-let currentCursorPosition = new THREE.Vector3();
-let startCursorPosition = new THREE.Vector3();
-let rotationAxis = new THREE.Vector3();
-let obj;    //The 3D model
-let quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
-let posState = new THREE.Vector3(); //object's position value
-
+//touch gestures
 const manager = new Hammer(canvas);
 
 const singlePan = new Hammer.Pan();
@@ -64,19 +150,27 @@ const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});    //threshold 7.5
-pinch.set({threshold: 0});  //threshold 0.05
+doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 
 manager.add([singlePan, doublePan, pinch, rotate]);
-manager.get('doublepan').recognizeWith('singlepan');    //se dal singlepan aggiungo un dito, riconosce il doublepan e continua con quello
-manager.get('pinch').recognizeWith('doublepan');
-manager.get('pinch').recognizeWith('rotate');
+manager.get('doublepan').recognizeWith('singlepan');
+manager.get('pinch').recognizeWith('singlepan');
+manager.get('rotate').recognizeWith('singlepan');
 
-//single finger pan gesture listener
+manager.get('doublepan').requireFailure('pinch');
+manager.get('doublepan').requireFailure('rotate');
+
+manager.get('pinch').requireFailure('doublepan');
+manager.get('pinch').requireFailure('rotate');
+
+manager.get('rotate').requireFailure('doublepan');
+manager.get('rotate').requireFailure('pinch');
+
+//single finger listener
 manager.on('singlepanstart', function singlePanStartListener(event) {
-    console.log('singlepanstart');
-    let center = event.center;
-    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    console.log("singlepanstart");
+    const center = event.center;
+    startCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius); 
     if(!panKey) {
         //normal trackball rotation
         if(group.quaternion == "undefined") {
@@ -86,97 +180,161 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
             quatState.copy(group.quaternion);
         }
     }
+    else {
+        //perform pan instead of rotation
+        objMatrixState.copy(obj.matrix);
+
+        //object's matrix state has been updated, reset notchCounter and transform matrices
+        notchCounter = 0;
+        translateMatrix.makeTranslation(0, 0, 0);
+        scaleMatrix.makeScale(1, 1, 1);
+
+        tracking = true;
+    }
 });
+
 manager.on('singlepanmove', function singlePanMoveListener(event) {
-    console.log('singlepanmove');
+    console.log("singlepanmove");
+    const center = event.center;
     if(panKey) {
-        doublePanMoveListener(event);
+        //key for pan has been pressed: perform pan instead of rotation
+        if(tracking) {
+            //already panning, continue with panning routine
+            console.log("mousemove");
+            //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            currentCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius);
+            const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+            //const distanceV = v1.copy(startCursorPosition).sub(currentCursorPosition);
+            v1.set(-distanceV.x, 0, 0); //translation on world X axis
+            v2.set(0, -distanceV.y, 0); //translation on world y axis
+            v1.add(v2); //translation vector
+            group.worldToLocal(v1);
+            translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    
+            m1.copy(objMatrixState).premultiply(translateMatrix);
+            m1.premultiply(scaleMatrix);
+            m1.decompose(obj.position, obj.quaternion, obj.scale);
+            //obj.matrix.copy(m1);
+            renderer.render(scene, camera);
+        }
+        else {
+            //restart panning routine
+            //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            startCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement)); 
+            objMatrixState.copy(obj.matrix);
+
+            //object's matrix state has been updated, reset notchCounter and transform matrices
+            notchCounter = 0;
+            translateMatrix.makeTranslation(0, 0, 0);
+            scaleMatrix.makeScale(1, 1, 1);
+
+            tracking = true;      
+        }
     }
     else {
-        let center = event.center;
-        currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-        let distanceV = startCursorPosition.clone();
-        distanceV.sub(currentCursorPosition);
-        let angleV = startCursorPosition.angleTo(currentCursorPosition);
-        rotationAxisParagraph.innerHTML = "Rotation Axis: "+rotationAxis.x+", "+rotationAxis.y+", "+rotationAxis.z;
-        cursor1Paragraph.innerHTML = "Vector1: "+startCursorPosition.x+ ", "+startCursorPosition.y+", "+startCursorPosition.z;
-        cursor2Paragraph.innerHTML = "Vector2: "+currentCursorPosition.x+", "+currentCursorPosition.y+", "+currentCursorPosition.z;
-        rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
-        renderer.render(scene, camera);
+        //key for pan is not pressed: perform normal trackball rotation
+        if(tracking) {
+            //key for panning has just been released
+            //restart rotation routine
+            tracking = false;
+            //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            startCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius); 
+            quatState.copy(group.quaternion);
+            //singlePanStartListener(event);  //restart rotation routine
+        }
+        else {
+            //continue with normal rotation routine
+            //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+            currentCursorPosition = unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius); 
+            const distanceV = startCursorPosition.clone();
+            distanceV.sub(currentCursorPosition);
+            const angleV = startCursorPosition.angleTo(currentCursorPosition);
+            rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+            renderer.render(scene, camera);
+        }
     }
 });
+
 manager.on('singlepanend', function singlePanEndListener() {
-    console.log('singlepanend');
+    console.log("singlepanend");
+    tracking = false;
 });
 
-//double finger pan gesture listener
-manager.on('doublepanstart', function doublePanStartListener(event) {
-    console.log("doublepanstart");
-    const center = event.center;
-    startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-});
-manager.on('doublepanmove', doublePanMoveListener);
-function doublePanMoveListener(event) {
-    console.log("doublePan");
-    const center = event.center;
-    currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
-    let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    const xAxis = new THREE.Vector3(1, 0, 0);
-    const yAxis = new THREE.Vector3(0, 1, 0);
-    obj.position.copy(posState);
-    obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
-    obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
-    renderer.render(scene, camera);
-}
-manager.on('doublepanend', function doublePanEndListener() {
-    console.log("doublepanend");
-    posState.copy(obj.position);
-});
+//double finger listener
+manager.on("doublepanstart pinchstart rotatestart", twoFingersStartListener);
+manager.on("doublepanmove pinchmove rotatemove", twoFingersMoveListener);
+manager.on("doublepanend pinchend rotateend", twoFingersEndListener);
 
-//pinch gesture listener
-manager.on('pinchstart', function pinchStartListener(event) {
-    console.log("pinchStart");
-    fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]); 
-});
-manager.on('pinchmove', function pinchMoveListener(event) {
-    console.log('pinchmove');
-    let newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    console.log(newDistance);
-    if(newDistance < fingerDistance) {
-        //pinch in
-        obj.scale.copy(obj.scale.multiplyScalar(1/pinchScaleFactor));
-    }
-    else {
-        //pinch out
-        obj.scale.copy(obj.scale.multiplyScalar(pinchScaleFactor));
-    }
-    renderer.render(scene, camera);
-    fingerDistance = newDistance;
-});
-manager.on('pinchend', function pinchEndListener() {
-    console.log("pinchEnd");
-});
-
-//rotate gesture listener
-manager.on('rotatestart', function rotateStartListener(event) {
-    console.log("rotateStart");
-    if(group.quaternion == "undefined") {
-        quatState = new THREE.Quaternion().identity();
-    }
-    else {
-        quatState.copy(group.quaternion);
-    }    
+function twoFingersStartListener(event) {
+    console.log('2FE start');
+    const center = event.center;    //middle point between fingers
+    startCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement));
+    //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
+    fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     fingerRotation = event.rotation;
-});
-manager.on('rotatemove', function rotateMoveListener(event) {
-    console.log("rotateMove");
-    const rotation = fingerRotation - event.rotation;
-    rotateObj(group, new THREE.Vector3(0, 0, 1), rotation*Math.PI/180);
+    objMatrixState.copy(obj.matrix);
+};
+
+function twoFingersMoveListener(event) {
+    console.log('2FE move');
+
+    const center = event.center;    //middle point between fingers
+    //const p1 = getCursorPosition(center.x, center.y, renderer.domElement); //center point between fingers
+    const p = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement));
+    const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
+    const s = newDistance/fingerDistance;   //how much to scale
+
+    //scaling operation X = T(p)S(s)T(-p)
+    v1.set(p.x, 0, 0);  //fingers middle point on x axis
+    v2.set(0, p.y, 0);  //fingers middle point on y axis
+    v1.add(v2);
+    group.worldToLocal(v1);
+
+    scaleMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    m1.makeScale(s, s, s);  //S(s)
+    scaleMatrix.multiply(m1);
+    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
+    scaleMatrix.multiply(m1);
+
+    //rotation operation    X = T(p)R(r)T(-p)
+    const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    v1.set(p.x, 0, 0);
+    v2.set(0, p.y, 0);
+    v1.add(v2);
+    group.worldToLocal(v1);
+
+    rotateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    v2.set(0, 0, 1);
+    group.worldToLocal(v2);
+    m1.makeRotationAxis(v2, r);  //R(rotation)
+
+    rotateMatrix.multiply(m1);
+    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
+    rotateMatrix.multiply(m1);
+
+    //translation operation T(p)
+    currentCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement));
+    const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+    v1.set(-distanceV.x, 0, 0);
+    v2.set(0, -distanceV.y, 0);
+    v1.add(v2);
+    group.worldToLocal(v1);
+    translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+
+    //apply matrix  TRS
+    m1.copy(objMatrixState);
+    m1.premultiply(translateMatrix);
+    m1.premultiply(rotateMatrix);
+    m1.premultiply(scaleMatrix);
+    m1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m1);
     renderer.render(scene, camera);
-});
-manager.on('rotateend', function rotateEndListener(event) {
-    fingerRotation = event.rotation;
-});
+};
+
+function twoFingersEndListener(event) {
+    console.log('2FE end');
+    //fingerRotation = event.rotation;
+};
 
 
 //camera
@@ -199,72 +357,12 @@ const light = new THREE.DirectionalLight(lightColor, lightIntensity);
 light.position.set(-1, 2, 4);
 scene.add(light);
 
-obj = loadObject(renderer.domElement, group);    //load the 3D object
-posState = obj.position.clone();
+//obj = loadObject(renderer.domElement, group);    //load the 3D object
+loadObject(renderer.domElement, loader, group);
 makeGizmos(tbCenter, tbRadius, group);  //add gizmos
 scene.add(group);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
-
-//listeners
-function mouseUpListener(event) {
-    if(event.button == 1) {
-        event.preventDefault();
-        console.log("wheelUp");
-        posState.copy(obj.position);
-        tracking = false;
-    }
-};
-
-function mouseDownListener(event) {
-    if(event.button == 1) {
-        //wheel click
-        event.preventDefault();
-        console.log("wheelDown")
-        //startCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement));
-        startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        tracking = true;
-    }
-};
-
-function mouseMoveListener(event) {
-    if(tracking) {
-        console.log("wheelMove");
-        event.preventDefault();
-        //currentCursorPosition = unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement));
-        currentCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
-        let distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        const xAxis = new THREE.Vector3(1, 0, 0);
-        const yAxis = new THREE.Vector3(0, 1, 0);
-        obj.position.copy(posState);
-        obj.translateOnAxis(group.worldToLocal(xAxis), -distanceV.x);
-        obj.translateOnAxis(group.worldToLocal(yAxis), -distanceV.y);
-        renderer.render(scene, camera);
-    }
-};
-
-function wheelListener(event) {
-    event.preventDefault();
-    const sgn = Math.sign(event.deltaY);
-    if(sgn == -1) {
-        obj.scale.copy(obj.scale.multiplyScalar(1/scaleFactor));
-
-    }
-    else {
-        obj.scale.copy(obj.scale.multiplyScalar(scaleFactor));
-    }
-    renderer.render(scene, camera);
-};
-
-function windowResizeListener() {
-    resizeRenderer(renderer);
-    tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
-    camera.position.z = tbRadius*4;
-    group.clear();
-    loadObject(renderer.domElement, group);  //replace with scaleObject()
-    makeGizmos(tbCenter, tbRadius, group);
-    renderer.render(scene, camera);
-};
 
 /**
  * Calcualte the distance between two pointers
@@ -337,23 +435,20 @@ function makeGizmos(tbCenter, tbRadius, group) {
 };
 
 /**
- * Given cursor x/y position within the viewport, return corrensponding position in world space
+ * Calculate the cursor normalized position inside the canvas
  * @param {number} x Cursor x position in screen space 
  * @param {number} y Cursor y position in screen space
  * @param {HTMLElement} canvas The canvas where the renderer draws its output
- * @returns {THREE.Vector3} Cursor position in world space
+ * @returns {THREE.Vector2} Cursor normalized position inside the canvas
  */
 function getCursorPosition(x, y, canvas) {
     const canvasRect = canvas.getBoundingClientRect();
     const cursorPosition = new THREE.Vector2();
     cursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
     cursorPosition.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
-    let worldPosition = unprojection(camera, cursorPosition, tbCenter, tbRadius);
-    return worldPosition;
-};
-
-function getObjCoord(obj) {
-    return obj.getWorldPosition();
+    return cursorPosition;
+    /*let worldPosition = unprojection(camera, cursorPosition, tbCenter, tbRadius);
+    return worldPosition;*/
 };
 
 /**
@@ -362,7 +457,7 @@ function getObjCoord(obj) {
  * @param {HTMLElement} canvas The canvas where the renderer draws its output
  * @param {THREE.Group} group The group to add object to
  */
-function loadObject(canvas, group) {
+function loadObject(canvas, loader, group) {
     const canvasRect = canvas.getBoundingClientRect();
 
     //test cube
@@ -377,9 +472,15 @@ function loadObject(canvas, group) {
     const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
 
     //mesh
-    const cube = new THREE.Mesh(boxGeometry, boxMaterial);
+    loader.load('rocker_arm.obj', function(o) {
+        obj = o;
+        group.add(o);
+        objMatrixState.copy(o.matrix);
+    });
+
+    /*const cube = new THREE.Mesh(boxGeometry, boxMaterial);
     group.add(cube);
-    return cube;
+    return cube;*/
 }
 
 /**
@@ -410,14 +511,14 @@ function rotateObj(obj, axis, rad) {
 };
 
 /**
- * Unproject the cursor in screen space into a point in world space on the trackball surface
+ * Unproject the cursor in world space on the trackball surface
  * @param {THREE.Camera} camera The camera
- * @param {THREE.Vector2} cursor The cursor x/y position in screen space
+ * @param {THREE.Vector2} cursor The cursor normalized coordinates inside the canvas
  * @param {THREE.Vector3} tbCenter The trackball center
  * @param {number} tbRadius The trackball radius
  * @returns {THREE.Vector3} The unprojected cursor coordinates in the trackball surface
  */
-function unprojection(camera, cursor, tbCenter, tbRadius) {
+function unprojectOnTbSurface(camera, cursor, tbCenter, tbRadius) {
     const nearPlanePoint = new THREE.Vector3(cursor.x, cursor.y, -1);
     nearPlanePoint.unproject(camera);   //unproject cursor on near plane
     const r0 = camera.position.clone(); //vector origin
@@ -450,7 +551,6 @@ function unprojection(camera, cursor, tbCenter, tbRadius) {
             let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
             return r0.add(rDir.multiplyScalar(d));
         }
-
     }
     //intersection with hyperboloid
     a = m;
@@ -471,6 +571,21 @@ function unprojection(camera, cursor, tbCenter, tbRadius) {
  * @returns {THREE.Vector3} The unprojected point
  */
 function unprojectOnTbPlane(camera, cursor) {
-    const tbPlanePoint = new THREE.Vector3(cursor.x, cursor.y, 0);
-    return tbPlanePoint.unproject(camera);
-}
+    //unproject cursor on the near plane
+    v1.set(cursor.x, cursor.y, -1);
+    v1.unproject(camera);
+    const r0 = camera.position.clone(); //vector origin
+    const rDir = new THREE.Vector3().subVectors(v1, r0).normalize() ;    //direction vector
+
+    const h = v1.z - camera.position.z;
+    const l = Math.sqrt(Math.pow(v1.x, 2)+Math.pow(v1.y, 2));
+
+    const m = h/l;
+    const q = camera.position.z;
+    const x = -q/m;
+
+    const d = Math.sqrt(Math.pow(q, 2) + Math.pow(x, 2));
+    return r0.add(rDir.multiplyScalar(d));
+};
+
+//da sistemare unprojectOnTbPlane (si può evitare l'unproject? conosco già la x a y=0, forse posso costruire così r0 e rDir )
