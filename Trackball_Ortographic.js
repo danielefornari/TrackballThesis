@@ -317,7 +317,10 @@ function twoFingersMoveListener(event) {
     v3_2.set(0, 0, 1);
     //group.worldToLocal(v3_2);
     m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
-
+    const quat = new THREE.Quaternion();
+    quat.setFromAxisAngle(v3_2, r);
+    quat.multiply(quatState);
+    group.setRotationFromQuaternion(quat);
     rotateMatrix.multiply(m4_1);
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
     rotateMatrix.multiply(m4_1);
