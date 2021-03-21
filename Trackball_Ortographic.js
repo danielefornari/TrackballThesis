@@ -584,6 +584,7 @@ function updateMatrixState() {
     rotateMatrix.identity();    //not really needed
     scaleMatrix.makeScale(1, 1, 1);
     notchCounter = 0;
+    quatState.copy(group.quaternion);
 };
 
 function applyTransform(translation, rotation, scale) {
