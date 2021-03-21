@@ -295,7 +295,7 @@ function twoFingersMoveListener(event) {
     const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
-    v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point on x axis
+    v3_1.set(v2_1.x, v2_1.y, 0).applyMatrix4(rotateMatrix);  //fingers middle point on x axis
     //v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
     //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
@@ -308,13 +308,14 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    v3_1.set(v2_1.x, v2_1.y, 0);
+    //v3_1.set(v2_1.x, v2_1.y, 0);
+
     //v3_2.set(0, v2_1.y, 0);
     //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
 
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
-    v3_2.set(0, 0, 1);
+    v3_2.set(0, 0, 1).applyMatrix4(rotateMatrix);
     const q = new THREE.Quaternion();
     q.setFromAxisAngle(v3_2, r);
     //group.worldToLocal(v3_2);
@@ -330,7 +331,7 @@ function twoFingersMoveListener(event) {
     v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
     currentCursorPosition.set(v2_1.x, v2_1.y, 0);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    v3_1.set(-distanceV.x, -distanceV.y, 0);
+    v3_1.set(-distanceV.x, -distanceV.y, 0).applyMatrix4(rotateMatrix);
     //v3_2.set(0, -distanceV.y, 0);
     //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
