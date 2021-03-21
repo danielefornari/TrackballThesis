@@ -9,6 +9,7 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 const canvas = document.getElementById("canvasO");
 const loader = new OBJLoader();
 const renderer = new THREE.WebGLRenderer({canvas});
+const gizmos = new THREE.Group();
 const group = new THREE.Group();
 
 //defined once and used in some operations
@@ -44,6 +45,7 @@ let panKey = false; //if key for pan is down
 let tracking = false;  //if true, the cursor movements need to be stored
 let notchCounter = 0;   //represent the wheel resulting position
 let obj;    //The 3D model
+let grid;   //The grid visualized when panning
 
 
 //mouse/keyboard events
@@ -66,6 +68,7 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
 });
 canvas.addEventListener('mousemove', function mouseMoveListener(event) {
     if(tracking) {
+        //drawGrid();
         event.preventDefault();
         console.log("mousemove");
         v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
@@ -234,7 +237,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             distanceV.sub(currentCursorPosition);
             console.log(distanceV);
             const angleV = startCursorPosition.angleTo(currentCursorPosition);
-            rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+            rotateObj(calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
             renderer.render(scene, camera);
         }
     }
@@ -316,8 +319,10 @@ function twoFingersMoveListener(event) {
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
     rotateMatrix.multiply(m4_1);
 
+    rotateObj(v3_2, r);
+
     //translation operation T(p)
-    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+    /*v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
     currentCursorPosition.set(v2_1.x, v2_1.y, 0);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v3_1.set(-distanceV.x, 0, 0);
@@ -331,7 +336,7 @@ function twoFingersMoveListener(event) {
     m4_1.premultiply(translateMatrix);
     m4_1.premultiply(rotateMatrix);
     m4_1.premultiply(scaleMatrix);
-    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);*/
     //obj.matrix.copy(m4_1);
     renderer.render(scene, camera);
 };
@@ -368,6 +373,7 @@ scene.add(light);
 //obj = loadObject(renderer.domElement, group); //load the 3D object
 loadObject(renderer.domElement, loader, group);
 makeGizmos(tbCenter, tbRadius, group); //add gizmos
+group.add(gizmos);
 scene.add(group);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
@@ -408,6 +414,15 @@ function calculateRotationAxis(v3_1, v3_2) {
     return rotationAxis.crossVectors(v3_1, v3_2).normalize();
 };
 
+function drawGrid() {
+    const size = 600;
+    const divisions = 30;
+    grid = new THREE.GridHelper(size, divisions);
+    grid.quaternion.copy(quatState);
+    //orientare la griglia
+    group.add(grid);
+}
+
 /**
  * Creates the rotation gizmos with radius equals to the given trackball radius
  * @param {THREE.Vector3} tbCenter The trackball's center
@@ -434,9 +449,9 @@ function makeGizmos(tbCenter, tbRadius, group) {
     rotationGizmoX.rotation.x = Math.PI/2;
     rotationGizmoY.rotation.y = Math.PI/2;
 
-    group.add(rotationGizmoX);
-    group.add(rotationGizmoY);
-    group.add(rotationGizmoZ);
+    gizmos.add(rotationGizmoX);
+    gizmos.add(rotationGizmoY);
+    gizmos.add(rotationGizmoZ);
 };
 
 /**
@@ -514,16 +529,15 @@ function resizeRenderer(renderer) {
 
 /**
  * Rotate an object around given axis by given radians
- * @param {THREE.Object3D} obj Object to be roteted
  * @param {THREE.Vector3} axis Rotation axis
  * @param {number} rad Angle in radians
  */
-function rotateObj(obj, axis, rad) {
+function rotateObj( axis, rad) {
     console.log("rotating");
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
     quat.multiply(quatState);
-    obj.setRotationFromQuaternion(quat);
+    group.setRotationFromQuaternion(quat);
 };
 
 /**
