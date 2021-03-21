@@ -322,7 +322,7 @@ function twoFingersMoveListener(event) {
     q.setFromAxisAngle(v3_2, r);
     //group.worldToLocal(v3_2);
     m4_1.makeRotationFromQuaternion(q);  //R(rotation)
-    quatState.multiply(q);
+    q.multiply(quatState);
     group.quaternion.premultiply(quatState);
 
     rotateMatrix.multiply(m4_1);
