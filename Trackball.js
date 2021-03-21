@@ -139,15 +139,11 @@ window.addEventListener('resize', function windowResizeListener(){
 //touch gestures
 const manager = new Hammer(canvas);
 
-const singlePan = new Hammer.Pan();
-const doublePan = new Hammer.Pan();
+const singlePan = new Hammer.Pan({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
+const doublePan = new Hammer.Pan({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
-const doubleTap = new Hammer.Tap({event: 'doubletap', taps: 2});
-
-singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
-//doubleTap.set({event: 'doubletap', taps: 2});
+const doubleTap = new Hammer.Tap();
 
 manager.add([singlePan, doublePan, pinch, rotate, doubleTap]);
 manager.get('doublepan').recognizeWith('singlepan');
