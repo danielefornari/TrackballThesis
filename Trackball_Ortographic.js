@@ -206,7 +206,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
             v3_2.set(0, -distanceV.y, 0); //translation on world y axis
             v3_1.add(v3_2); //translation vector
-            group.worldToLocal(v3_1);
+            obj.worldToLocal(v3_1);
             translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     
             m4_1.copy(objMatrixState).premultiply(translateMatrix);
@@ -298,7 +298,7 @@ function twoFingersMoveListener(event) {
     v3_1.set(v2_1.x, 0, 0);  //fingers middle point on x axis
     v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
     v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    obj.worldToLocal(v3_1);
 
     scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     m4_1.makeScale(s, s, s);  //S(s)
@@ -311,11 +311,11 @@ function twoFingersMoveListener(event) {
     v3_1.set(v2_1.x, 0, 0);
     v3_2.set(0, v2_1.y, 0);
     v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    obj.worldToLocal(v3_1);
 
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     v3_2.set(0, 0, 1);
-    group.worldToLocal(v3_2);
+    obj.worldToLocal(v3_2);
     m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
 
     rotateMatrix.multiply(m4_1);
@@ -329,7 +329,7 @@ function twoFingersMoveListener(event) {
     v3_1.set(-distanceV.x, 0, 0);
     v3_2.set(0, -distanceV.y, 0);
     v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    obj.worldToLocal(v3_1);
     translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
     //apply matrix  TRS
