@@ -146,11 +146,7 @@ const singlePan = new Hammer.Pan({event: 'singlepan', pointers: 1, threshold: 0,
 const doublePan = new Hammer.Pan({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
-const doubleTap = new Hammer.Tap({event: 'doubletap', taps: 2});
-
-/*singlePan.set();
-doublePan.set();
-doubleTap.set();*/
+const doubleTap = new Hammer.Tap(({event: 'doubletap', taps: 2}));
 
 manager.add([singlePan, doublePan, pinch, rotate, doubleTap]);
 manager.get('doublepan').recognizeWith('singlepan');
