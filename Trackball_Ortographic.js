@@ -263,7 +263,7 @@ manager.on('doubletap', function doubleTapListener(event) {
     }
     else {
         v3_1.copy(intersect[0].point);
-        group.worldToLocal(v3_1);
+        //group.worldToLocal(v3_1);
         translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
         m4_1.decompose(obj.position, obj.quaternion, obj.scale);
