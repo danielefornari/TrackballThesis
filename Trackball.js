@@ -12,9 +12,10 @@ const renderer = new THREE.WebGLRenderer({canvas});
 const group = new THREE.Group();
 
 //defined once and used in some operations
-const v1 = new THREE.Vector3();
-const v2 = new THREE.Vector3();
-const m1 = new THREE.Matrix4();
+const v2_1 = new THREE.Vector2();
+const v3_1 = new THREE.Vector3();
+const v3_2 = new THREE.Vector3();
+const m4_1 = new THREE.Matrix4();
 
 //transformation matrices
 const translateMatrix = new THREE.Matrix4();    //matrix for translation operation
@@ -60,16 +61,16 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         currentCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement)));
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         console.log(distanceV);
-        v1.set(-distanceV.x, 0, 0); //translation on world X axis
-        v2.set(0, -distanceV.y, 0); //translation on world y axis
-        v1.add(v2);
-        group.worldToLocal(v1);
-        translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+        v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
+        v3_2.set(0, -distanceV.y, 0); //translation on world y axis
+        v3_1.add(v3_2);
+        group.worldToLocal(v3_1);
+        translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
-        m1.copy(objMatrixState).premultiply(translateMatrix);
-        m1.premultiply(scaleMatrix);
-        m1.decompose(obj.position, obj.quaternion, obj.scale);
-        //obj.matrix.copy(m1);
+        m4_1.copy(objMatrixState).premultiply(translateMatrix);
+        m4_1.premultiply(scaleMatrix);
+        m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+        //obj.matrix.copy(m4_1);
         renderer.render(scene, camera);
     }
 });
@@ -79,13 +80,7 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         console.log("mousedown");
         //startCursorPosition = getCursorPosition(event.clientX, event.clientY, renderer.domElement);
         startCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement)));
-        objMatrixState.copy(obj.matrix);
-        
-        //object's matrix state has been updated, reset notchCounter and transform matrices
-        notchCounter = 0;
-        translateMatrix.makeTranslation(0, 0, 0);
-        scaleMatrix.makeScale(1, 1, 1);
-
+        updateMatrixState();
         tracking = true;
     }
 });
@@ -104,10 +99,10 @@ canvas.addEventListener('wheel', function wheelListener(event) {
     }
     scaleMatrix.makeScale(s, s, s);
 
-    m1.copy(objMatrixState).premultiply(translateMatrix);
-    m1.premultiply(scaleMatrix);
-    m1.decompose(obj.position, obj.quaternion, obj.scale);
-    //obj.matrix.copy(m1);
+    m4_1.copy(objMatrixState).premultiply(translateMatrix);
+    m4_1.premultiply(scaleMatrix);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m4_1);
     renderer.render(scene, camera);
 });
 
@@ -148,11 +143,13 @@ const singlePan = new Hammer.Pan();
 const doublePan = new Hammer.Pan();
 const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
+const doubleTap = new Hammer.Tap({event: 'doubletap', taps: 2});
 
 singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
 doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
+//doubleTap.set({event: 'doubletap', taps: 2});
 
-manager.add([singlePan, doublePan, pinch, rotate]);
+manager.add([singlePan, doublePan, pinch, rotate, doubleTap]);
 manager.get('doublepan').recognizeWith('singlepan');
 manager.get('pinch').recognizeWith('singlepan');
 manager.get('rotate').recognizeWith('singlepan');
@@ -182,13 +179,7 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     }
     else {
         //perform pan instead of rotation
-        objMatrixState.copy(obj.matrix);
-
-        //object's matrix state has been updated, reset notchCounter and transform matrices
-        notchCounter = 0;
-        translateMatrix.makeTranslation(0, 0, 0);
-        scaleMatrix.makeScale(1, 1, 1);
-
+        updateMatrixState();
         tracking = true;
     }
 });
@@ -201,33 +192,24 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
         if(tracking) {
             //already panning, continue with panning routine
             console.log("mousemove");
-            //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             currentCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius));
             const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-            //const distanceV = v1.copy(startCursorPosition).sub(currentCursorPosition);
-            v1.set(-distanceV.x, 0, 0); //translation on world X axis
-            v2.set(0, -distanceV.y, 0); //translation on world y axis
-            v1.add(v2); //translation vector
-            group.worldToLocal(v1);
-            translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+            v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
+            v3_2.set(0, -distanceV.y, 0); //translation on world y axis
+            v3_1.add(v3_2); //translation vector
+            group.worldToLocal(v3_1);
+            translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     
-            m1.copy(objMatrixState).premultiply(translateMatrix);
-            m1.premultiply(scaleMatrix);
-            m1.decompose(obj.position, obj.quaternion, obj.scale);
-            //obj.matrix.copy(m1);
+            m4_1.copy(objMatrixState).premultiply(translateMatrix);
+            m4_1.premultiply(scaleMatrix);
+            m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+            //obj.matrix.copy(m4_1);
             renderer.render(scene, camera);
         }
         else {
             //restart panning routine
-            //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             startCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement))); 
-            objMatrixState.copy(obj.matrix);
-
-            //object's matrix state has been updated, reset notchCounter and transform matrices
-            notchCounter = 0;
-            translateMatrix.makeTranslation(0, 0, 0);
-            scaleMatrix.makeScale(1, 1, 1);
-
+            updateMatrixState();
             tracking = true;      
         }
     }
@@ -237,14 +219,11 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //key for panning has just been released
             //restart rotation routine
             tracking = false;
-            //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             startCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius)); 
             quatState.copy(group.quaternion);
-            //singlePanStartListener(event);  //restart rotation routine
         }
         else {
             //continue with normal rotation routine
-            //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             currentCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius)); 
             const distanceV = startCursorPosition.clone();
             distanceV.sub(currentCursorPosition);
@@ -258,6 +237,26 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
 manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
     tracking = false;
+});
+
+manager.on('doubletap', function doubleTapListener(event) {
+    const center = event.center;
+    updateMatrixState();
+    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(v2_1, camera);
+    const intersect = raycaster.intersectObject(obj, true);
+    if(intersect.length == 0) {
+        alert("swiiish");
+    }
+    else {
+        v3_1.copy(intersect[0].point);
+        group.worldToLocal(v3_1);
+        translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
+        m4_1.copy(objMatrixState).premultiply(translateMatrix);
+        m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+        renderer.render(scene, camera);
+    }
 });
 
 //double finger listener
@@ -285,49 +284,49 @@ function twoFingersMoveListener(event) {
     const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
-    v1.set(p.x, 0, 0);  //fingers middle point on x axis
-    v2.set(0, p.y, 0);  //fingers middle point on y axis
-    v1.add(v2);
-    group.worldToLocal(v1);
+    v3_1.set(p.x, 0, 0);  //fingers middle point on x axis
+    v3_2.set(0, p.y, 0);  //fingers middle point on y axis
+    v3_1.add(v3_2);
+    group.worldToLocal(v3_1);
 
-    scaleMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-    m1.makeScale(s, s, s);  //S(s)
-    scaleMatrix.multiply(m1);
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    scaleMatrix.multiply(m1);
+    scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+    m4_1.makeScale(s, s, s);  //S(s)
+    scaleMatrix.multiply(m4_1);
+    m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
+    scaleMatrix.multiply(m4_1);
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    v1.set(p.x, 0, 0);
-    v2.set(0, p.y, 0);
-    v1.add(v2);
-    group.worldToLocal(v1);
+    v3_1.set(p.x, 0, 0);
+    v3_2.set(0, p.y, 0);
+    v3_1.add(v3_2);
+    group.worldToLocal(v3_1);
 
-    rotateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
-    v2.set(0, 0, 1);
-    group.worldToLocal(v2);
-    m1.makeRotationAxis(v2, r);  //R(rotation)
+    rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+    v3_2.set(0, 0, 1);
+    group.worldToLocal(v3_2);
+    m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
 
-    rotateMatrix.multiply(m1);
-    m1.makeTranslation(-v1.x, -v1.y, -v1.z);    //T(-v1)
-    rotateMatrix.multiply(m1);
+    rotateMatrix.multiply(m4_1);
+    m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
+    rotateMatrix.multiply(m4_1);
 
     //translation operation T(p)
     currentCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement)));
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    v1.set(-distanceV.x, 0, 0);
-    v2.set(0, -distanceV.y, 0);
-    v1.add(v2);
-    group.worldToLocal(v1);
-    translateMatrix.makeTranslation(v1.x, v1.y, v1.z);   //T(v1)
+    v3_1.set(-distanceV.x, 0, 0);
+    v3_2.set(0, -distanceV.y, 0);
+    v3_1.add(v3_2);
+    group.worldToLocal(v3_1);
+    translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
     //apply matrix  TRS
-    m1.copy(objMatrixState);
-    m1.premultiply(translateMatrix);
-    m1.premultiply(rotateMatrix);
-    m1.premultiply(scaleMatrix);
-    m1.decompose(obj.position, obj.quaternion, obj.scale);
-    //obj.matrix.copy(m1);
+    m4_1.copy(objMatrixState);
+    m4_1.premultiply(translateMatrix);
+    m4_1.premultiply(rotateMatrix);
+    m4_1.premultiply(scaleMatrix);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+    //obj.matrix.copy(m4_1);
     renderer.render(scene, camera);
 };
 
@@ -572,13 +571,13 @@ function unprojectOnTbSurface(camera, cursor, tbCenter, tbRadius) {
  */
 function unprojectOnTbPlane(camera, cursor) {
     //unproject cursor on the near plane
-    v1.set(cursor.x, cursor.y, -1);
-    v1.unproject(camera);
+    v3_1.set(cursor.x, cursor.y, -1);
+    v3_1.unproject(camera);
     const r0 = camera.position.clone(); //vector origin
-    const rDir = new THREE.Vector3().subVectors(v1, r0).normalize() ;    //direction vector
+    const rDir = new THREE.Vector3().subVectors(v3_1, r0).normalize() ;    //direction vector
 
-    const h = v1.z - camera.position.z;
-    const l = Math.sqrt(Math.pow(v1.x, 2)+Math.pow(v1.y, 2));
+    const h = v3_1.z - camera.position.z;
+    const l = Math.sqrt(Math.pow(v3_1.x, 2)+Math.pow(v3_1.y, 2));
 
     const m = h/l;
     const q = camera.position.z;
@@ -588,4 +587,15 @@ function unprojectOnTbPlane(camera, cursor) {
     return r0.add(rDir.multiplyScalar(d));
 };
 
-//da sistemare unprojectOnTbPlane (si può evitare l'unproject? conosco già la x a y=0, forse posso costruire così r0 e rDir )
+/**
+ * update the object's matrix state with the current object's matrix and reset all transformation matrices
+ */
+ function updateMatrixState() {
+    objMatrixState.copy(obj.matrix);
+
+    //reset all matrices because the state has been updated
+    translateMatrix.makeTranslation(0, 0, 0);
+    rotateMatrix.identity();    //not really needed
+    scaleMatrix.makeScale(1, 1, 1);
+    notchCounter = 0;
+};
