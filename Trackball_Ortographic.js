@@ -60,13 +60,7 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         console.log("mousedown");
         v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
         startCursorPosition.set(v2_1.x, v2_1.y, 0);
-        objMatrixState.copy(obj.matrix);
-        
-        //object's matrix state has been updated, reset notchCounter and transform matrices
-        notchCounter = 0;
-        translateMatrix.makeTranslation(0, 0, 0);
-        scaleMatrix.makeScale(1, 1, 1);
-
+        updateMatrixState();
         tracking = true;
     }
 });
@@ -148,15 +142,15 @@ window.addEventListener('resize', function windowResizeListener() {
 //touch gestures
 const manager = new Hammer.Manager(canvas);
 
-const singlePan = new Hammer.Pan();
-const doublePan = new Hammer.Pan();
+const singlePan = new Hammer.Pan({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
+const doublePan = new Hammer.Pan({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
-const doubleTap = new Hammer.Tap();
+const doubleTap = new Hammer.Tap({event: 'doubletap', taps: 2});
 
-singlePan.set({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doublePan.set({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
-doubleTap.set({event: 'doubletap', taps: 2});
+/*singlePan.set();
+doublePan.set();
+doubleTap.set();*/
 
 manager.add([singlePan, doublePan, pinch, rotate, doubleTap]);
 manager.get('doublepan').recognizeWith('singlepan');
@@ -189,13 +183,7 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     }
     else {
         //perform pan instead of rotation
-        objMatrixState.copy(obj.matrix);
-
-        //object's matrix state has been updated, reset notchCounter and transform matrices
-        notchCounter = 0;
-        translateMatrix.makeTranslation(0, 0, 0);
-        scaleMatrix.makeScale(1, 1, 1);
-
+        updateMatrixState();
         tracking = true;
     }
 });
@@ -229,13 +217,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //restart panning routine
             v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
             startCursorPosition.set(v2_1.x, v2_1.y, 0);
-            objMatrixState.copy(obj.matrix);
-
-            //object's matrix state has been updated, reset notchCounter and transform matrices
-            notchCounter = 0;
-            translateMatrix.makeTranslation(0, 0, 0);
-            scaleMatrix.makeScale(1, 1, 1);
-
+            updateMatrixState();
             tracking = true;      
         }
     }
@@ -265,6 +247,26 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
 manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
     tracking = false;
+});
+
+manager.on('doubletap', function doubleTapListener(event) {
+    const center = event.center;
+    updateMatrixState();
+    v2_1.copy(getCursorNDC(center.x, center.y, renderer.domElement));
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(v2_1, camera);
+    const intersect = raycaster.intersectObject(obj, true);
+    if(intersect.length == 0) {
+        alert("swiiish");
+    }
+    else {
+        v3_1.copy(intersect[0].point);
+        group.worldToLocal(v3_1);
+        translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
+        m4_1.copy(objMatrixState).premultiply(translateMatrix);
+        m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+        renderer.render(scene, camera);
+    }
 });
 
 //double finger listener
@@ -343,28 +345,6 @@ function twoFingersEndListener(event) {
     //fingerRotation = event.rotation;
 };
 
-manager.on('doubletap', function doubleTapListener(event) {
-    const center = event.center;
-
-    objMatrixState.copy(obj.matrix);
-
-    v2_1.copy(getCursorNDC(center.x, center.y, renderer.domElement));
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(v2_1, camera);
-    const intersect = raycaster.intersectObject(obj, true);
-    if(intersect.length == 0) {
-        alert("swiiish");
-    }
-    else {
-        v3_1.copy(intersect[0].point);
-        group.worldToLocal(v3_1);
-        translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
-        m4_1.copy(objMatrixState).premultiply(translateMatrix);
-        m4_1.decompose(obj.position, obj.quaternion, obj.scale);
-        renderer.render(scene, camera);
-    }
-});
-
 
 //camera
 const canvasRect = canvas.getBoundingClientRect();
@@ -395,8 +375,6 @@ makeGizmos(tbCenter, tbRadius, group); //add gizmos
 scene.add(group);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
-
-
 
 /**
  * Calcualte the distance between two pointers
@@ -575,4 +553,17 @@ function unprojectOnTbSurface(cursor, radius) {
         v3_1.setZ((radius2/2)/(Math.sqrt(x2+y2)));
     }
     return v3_1;
+};
+
+/**
+ * update the object's matrix state with the current object's matrix and reset all transformation matrices
+ */
+function updateMatrixState() {
+    objMatrixState.copy(obj.matrix);
+
+    //reset all matrices because the state has been updated
+    translateMatrix.makeTranslation(0, 0, 0);
+    rotateMatrix.identity();    //not really needed
+    scaleMatrix.makeScale(1, 1, 1);
+    notchCounter = 0;
 };
