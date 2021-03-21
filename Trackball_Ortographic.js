@@ -295,10 +295,10 @@ function twoFingersMoveListener(event) {
     const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
-    v3_1.set(v2_1.x, 0, 0);  //fingers middle point on x axis
-    v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
-    v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point on x axis
+    //v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
+    //v3_1.add(v3_2);
+    //group.worldToLocal(v3_1);
 
     scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     m4_1.makeScale(s, s, s);  //S(s)
@@ -308,15 +308,19 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    v3_1.set(v2_1.x, 0, 0);
-    v3_2.set(0, v2_1.y, 0);
-    v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    v3_1.set(v2_1.x, v2_1.y, 0);
+    //v3_2.set(0, v2_1.y, 0);
+    //v3_1.add(v3_2);
+    //group.worldToLocal(v3_1);
 
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     v3_2.set(0, 0, 1);
-    group.worldToLocal(v3_2);
-    m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
+    const q = new THREE.Quaternion();
+    q.setFromAxisAngle(v3_2, r);
+    //group.worldToLocal(v3_2);
+    m4_1.makeRotationFromQuaternion(q);  //R(rotation)
+    quatState.multiply(q);
+    group.quaternion.premultiply(quatState);
 
     rotateMatrix.multiply(m4_1);
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
@@ -326,10 +330,10 @@ function twoFingersMoveListener(event) {
     v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
     currentCursorPosition.set(v2_1.x, v2_1.y, 0);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    v3_1.set(-distanceV.x, 0, 0);
-    v3_2.set(0, -distanceV.y, 0);
-    v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    v3_1.set(-distanceV.x, -distanceV.y, 0);
+    //v3_2.set(0, -distanceV.y, 0);
+    //v3_1.add(v3_2);
+    //group.worldToLocal(v3_1);
     translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
     //apply matrix  TRS
