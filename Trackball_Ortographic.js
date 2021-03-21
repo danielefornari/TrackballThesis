@@ -75,10 +75,11 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         currentCursorPosition.set(v2_1.x, v2_1.y, 0);
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         console.log(distanceV);
-        v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
-        v3_2.set(0, -distanceV.y, 0); //translation on world y axis
-        v3_1.add(v3_2);
-        group.worldToLocal(v3_1);
+        v3_1.set(-distanceV.x, -distanceV.y, 0); //translation on world X axis
+        //v3_2.set(0, -distanceV.y, 0); //translation on world y axis
+        //v3_1.add(v3_2);
+        //obj.worldToLocal(v3_1);
+        //v3_1.applyMatrix4(rotateMatrix);
         translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
@@ -104,6 +105,7 @@ canvas.addEventListener('wheel', function wheelListener(event) {
     scaleMatrix.makeScale(s, s, s);
 
     m4_1.copy(objMatrixState).premultiply(translateMatrix);
+    m4_1.premultiply(rotateMatrix);
     m4_1.premultiply(scaleMatrix);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
     //obj.matrix.copy(m4_1);
@@ -169,6 +171,7 @@ manager.get('rotate').requireFailure('pinch');
 //single finger listeners
 manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log("singlepanstart");
+    updateMatrixState();
     const center = event.center;
     startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
     if(!panKey) {
@@ -182,7 +185,7 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     }
     else {
         //perform pan instead of rotation
-        updateMatrixState();
+        //updateMatrixState();
         tracking = true;
     }
 });
@@ -200,10 +203,10 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             currentCursorPosition.set(v2_1.x, v2_1.y, 0);
             const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
             //const distanceV = v3_1.copy(startCursorPosition).sub(currentCursorPosition);
-            v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
-            v3_2.set(0, -distanceV.y, 0); //translation on world y axis
-            v3_1.add(v3_2); //translation vector
-            group.worldToLocal(v3_1);
+            v3_1.set(-distanceV.x, -distanceV.y, 0); //translation on world X axis
+            //v3_2.set(0, -distanceV.y, 0); //translation on world y axis
+            //v3_1.add(v3_2); //translation vector
+            //group.worldToLocal(v3_1);
             translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     
             m4_1.copy(objMatrixState).premultiply(translateMatrix);
@@ -260,7 +263,7 @@ manager.on('doubletap', function doubleTapListener(event) {
     }
     else {
         v3_1.copy(intersect[0].point);
-        group.worldToLocal(v3_1);
+        //group.worldToLocal(v3_1);
         translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
         m4_1.decompose(obj.position, obj.quaternion, obj.scale);
@@ -319,10 +322,8 @@ function twoFingersMoveListener(event) {
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
     rotateMatrix.multiply(m4_1);
 
-    rotateObj(v3_2, r);
-
     //translation operation T(p)
-    /*v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
     currentCursorPosition.set(v2_1.x, v2_1.y, 0);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v3_1.set(-distanceV.x, 0, 0);
@@ -336,7 +337,7 @@ function twoFingersMoveListener(event) {
     m4_1.premultiply(translateMatrix);
     m4_1.premultiply(rotateMatrix);
     m4_1.premultiply(scaleMatrix);
-    m4_1.decompose(obj.position, obj.quaternion, obj.scale);*/
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
     //obj.matrix.copy(m4_1);
     renderer.render(scene, camera);
 };
@@ -500,7 +501,8 @@ function loadObject(canvas, loader, group) {
     //mesh
     loader.load('rocker_arm.obj', function(o) {
         obj = o;
-        group.add(o);
+        scene.add(o);
+        //group.add(o);
         objMatrixState.copy(o.matrix);
     });
 
@@ -532,12 +534,15 @@ function resizeRenderer(renderer) {
  * @param {THREE.Vector3} axis Rotation axis
  * @param {number} rad Angle in radians
  */
-function rotateObj( axis, rad) {
+function rotateObj(axis, rad) {
     console.log("rotating");
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
+    rotateMatrix.makeRotationFromQuaternion(quat);
     quat.multiply(quatState);
     group.setRotationFromQuaternion(quat);
+    m4_1.copy(objMatrixState).premultiply(rotateMatrix);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
 };
 
 /**
@@ -577,3 +582,10 @@ function updateMatrixState() {
     scaleMatrix.makeScale(1, 1, 1);
     notchCounter = 0;
 };
+
+function applyTransform(translation, rotation, scale) {
+    m4_1.copy(objMatrixState).premultiply(translation);
+    m4_1.premultiply(rotation);
+    m4_1.premultiply(scale);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+}
