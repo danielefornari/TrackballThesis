@@ -297,7 +297,7 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    if(r >Math.PI/10) {
+    if(Math.abs(r) > 0.05) {
         activateGizmos(true);
     }
     else {
