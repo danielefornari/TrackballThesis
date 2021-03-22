@@ -1,6 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
-
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
 //import * as THREE from 'three';
