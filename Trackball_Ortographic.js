@@ -287,7 +287,10 @@ function twoFingersStartListener(event) {
     startCursorPosition.set(v2_1.x, v2_1.y, 0);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     fingerRotation = event.rotation;
-    objMatrixState.copy(obj.matrix);
+    //objMatrixState.copy(obj.matrix);
+    updateMatrixState();
+    quatState.copy(group.quaternion);
+
 };
 
 function twoFingersMoveListener(event) {
