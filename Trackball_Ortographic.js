@@ -45,6 +45,7 @@ let tracking = false;  //if true, the cursor movements need to be stored
 let notchCounter = 0;   //represent the wheel resulting position
 let obj;    //The 3D model
 let grid;   //The grid visualized when panning
+let kDown = false;
 
 
 //mouse/keyboard events
@@ -52,7 +53,9 @@ canvas.addEventListener('mouseup', function mouseUpListener(event) {
     if(event.button == 1) {
         event.preventDefault();
         console.log("mouseup");
+        scene.remove(grid);
         tracking = false;
+        renderer.render(scene, camera);
     }
 });
 canvas.addEventListener('mousedown', function mouseDownListener(event) {
@@ -61,7 +64,7 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         console.log("mousedown");
         v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
         startCursorPosition.set(v2_1.x, v2_1.y, 0);
-        //drawGrid(startCursorPosition);
+        drawGrid(startCursorPosition);
         updateMatrixState();
         tracking = true;
     }
@@ -113,8 +116,12 @@ document.addEventListener('keydown', function keyDownListener(event) {
         console.log("keydown");
         panKey = true;
     }*/    
-    if(event.key == 'c') {
+    if(event.key == 'c' && !kDown) {
         panKey = true;
+        kDown = true;
+        console.log('keydown');
+        drawGrid(currentCursorPosition);
+        renderer.render(scene, camera);
     }
 });
 
@@ -124,7 +131,11 @@ document.addEventListener('keyup', function keyUpListener(event) {
         panKey = false;
     }*/
     if(event.key == 'c') {
+        console.log('keyup');
         panKey = false;
+        scene.remove(grid);
+        kDown = false;
+        renderer.render(scene, camera);
     }
 });
 
@@ -221,6 +232,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //restart rotation routine
             tracking = false;
             startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
+            updateMatrixState();
             quatState.copy(gizmosR.quaternion);
         }
         else {
@@ -297,7 +309,7 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    if(Math.abs(event.rotation) > 3) {
+    if(Math.abs(event.rotation) > 0.05) {
         activateGizmos(true);
     }
     else {
@@ -426,13 +438,13 @@ function calculateRotationAxis(v3_1, v3_2) {
 };
 
 function drawGrid(position) {
-    const size = 600;
-    const divisions = 30;
+    const size = canvas.getBoundingClientRect().width;
+    const divisions = canvas.getBoundingClientRect().width/50;
     grid = new THREE.GridHelper(size, divisions);
     grid.rotateX(Math.PI/2);
     //orientare la griglia
-    gizmosR.add(grid);
-}
+    scene.add(grid);
+};
 
 /**
  * Creates the rotation gizmos with radius equals to the given trackball radius
