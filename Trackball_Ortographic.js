@@ -206,7 +206,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
             v3_2.set(0, -distanceV.y, 0); //translation on world y axis
             v3_1.add(v3_2); //translation vector
-            obj.worldToLocal(v3_1);
+            //obj.worldToLocal(v3_1);
             translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     
             m4_1.copy(objMatrixState).premultiply(translateMatrix);
