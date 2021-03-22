@@ -282,6 +282,9 @@ manager.on("doublepanend pinchend rotateend", twoFingersEndListener);
 
 function twoFingersStartListener(event) {
     console.log('2FE start');
+    if(event.type == 'rotatestart') {
+        activateGizmos(true);
+    }
     const center = event.center;    //middle point between fingers
     v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
     startCursorPosition.set(v2_1.x, v2_1.y, 0);
@@ -353,6 +356,9 @@ function twoFingersMoveListener(event) {
 
 function twoFingersEndListener(event) {
     console.log('2FE end');
+    if(event.type == 'rotateend') {
+        activateGizmos(false);
+    }
     //fingerRotation = event.rotation;
 };
 
