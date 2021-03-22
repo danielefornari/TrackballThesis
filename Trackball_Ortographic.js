@@ -297,7 +297,7 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    if(r != 0) {
+    if(r >Math.PI/10) {
         activateGizmos(true);
     }
     else {
@@ -496,9 +496,8 @@ function getCursorNDC(x, y, canvas) {
  * load a 3D object and add it to the scene
  * for testing purpose, builds a cube and add to scene
  * @param {HTMLElement} canvas The canvas where the renderer draws its output
- * @param {THREE.Group} group The group to add object to
  */
-function loadObject(canvas, loader, group) {
+function loadObject(canvas, loader) {
     const canvasRect = canvas.getBoundingClientRect();
 
     //test cube
