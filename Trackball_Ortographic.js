@@ -75,9 +75,9 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         currentCursorPosition.set(v2_1.x, v2_1.y, 0);
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         console.log(distanceV);
-        v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
-        v3_2.set(0, -distanceV.y, 0); //translation on world y axis
-        v3_1.add(v3_2);
+        v3_1.set(-distanceV.x, -distanceV.y, 0); //translation on world X axis
+        //v3_2.set(0, -distanceV.y, 0); //translation on world y axis
+        //v3_1.add(v3_2);
         //obj.worldToLocal(v3_1);
         v3_1.applyMatrix4(rotateMatrix);
         translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
@@ -92,8 +92,9 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
 canvas.addEventListener('wheel', function wheelListener(event) {
     event.preventDefault();
     console.log("wheel");
-    const scaleFactor = 1.1;
-    const sgn = Math.sign(event.deltaY);
+    const notchDeltaY = 125;    //distance of one notch on mouse wheel
+    const scaleFactor = 1.25;
+    const sgn = event.deltaY/notchDeltaY;
     let s = 1;
     notchCounter += sgn;
     if(notchCounter > 0) {
@@ -295,9 +296,9 @@ function twoFingersMoveListener(event) {
     const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
-    v3_1.set(v2_1.x, 0, 0);  //fingers middle point on x axis
-    v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
-    v3_1.add(v3_2);
+    v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point on x axis
+    //v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
+    //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
 
     scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
@@ -308,9 +309,9 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    v3_1.set(v2_1.x, 0, 0);
-    v3_2.set(0, v2_1.y, 0);
-    v3_1.add(v3_2);
+    v3_1.set(v2_1.x, v2_1.y, 0);
+    //v3_2.set(0, v2_1.y, 0);
+    //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
 
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
@@ -329,9 +330,9 @@ function twoFingersMoveListener(event) {
     v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
     currentCursorPosition.set(v2_1.x, v2_1.y, 0);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    v3_1.set(-distanceV.x, 0, 0);
-    v3_2.set(0, -distanceV.y, 0);
-    v3_1.add(v3_2);
+    v3_1.set(-distanceV.x, -distanceV.y, 0);
+    //v3_2.set(0, -distanceV.y, 0);
+    //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
     translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
