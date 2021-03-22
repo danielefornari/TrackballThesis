@@ -9,8 +9,8 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 const canvas = document.getElementById("canvasO");
 const loader = new OBJLoader();
 const renderer = new THREE.WebGLRenderer({canvas});
-const gizmos = new THREE.Group();
-const group = new THREE.Group();
+const gizmosR = new THREE.Group();
+//const group = new THREE.Group();
 
 //defined once and used in some operations
 const v2_1 = new THREE.Vector2();
@@ -27,7 +27,7 @@ const rotationAxis = new THREE.Vector3(); //axis around which perform rotation
 
 //object's state
 const objMatrixState = new THREE.Matrix4(); //object's matrix state
-let quatState = new THREE.Quaternion().identity(); //group's quaternion state
+let quatState = new THREE.Quaternion().identity(); //rotation gizmos quaternion state
 
 //trackball parameters
 const tbCenter = new THREE.Vector3(0, 0, 0);
@@ -177,12 +177,12 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
     if(!panKey) {
         //normal trackball rotation
-        activateGizmos(gizmos, true);
-        if(group.quaternion == "undefined") {
+        activateGizmos(true);
+        if(gizmosR.quaternion == "undefined") {
             quatState = new THREE.Quaternion().identity();
         }
         else {
-            quatState.copy(group.quaternion);
+            quatState.copy(gizmosR.quaternion);
         }
     }
     else {
@@ -232,7 +232,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //restart rotation routine
             tracking = false;
             startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
-            quatState.copy(group.quaternion);
+            quatState.copy(gizmosR.quaternion);
             //singlePanStartListener(event);  //restart rotation routine
         }
         else {
@@ -250,7 +250,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
 
 manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
-    activateGizmos(gizmos, false);
+    activateGizmos(false);
     renderer.render(scene, camera);
     tracking = false;
 });
@@ -289,7 +289,7 @@ function twoFingersStartListener(event) {
     fingerRotation = event.rotation;
     //objMatrixState.copy(obj.matrix);
     updateMatrixState();
-    quatState.copy(group.quaternion);
+    quatState.copy(gizmosR.quaternion);
 
 };
 
@@ -327,7 +327,7 @@ function twoFingersMoveListener(event) {
     const quat = new THREE.Quaternion();
     quat.setFromAxisAngle(v3_2, r);
     quat.multiply(quatState);
-    group.setRotationFromQuaternion(quat);
+    gizmosR.setRotationFromQuaternion(quat);
     rotateMatrix.multiply(m4_1);
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
     rotateMatrix.multiply(m4_1);
@@ -382,17 +382,17 @@ scene.add(light);
 
 
 //obj = loadObject(renderer.domElement, group); //load the 3D object
-loadObject(renderer.domElement, loader, group);
-makeGizmos(tbCenter, tbRadius, group); //add gizmos
-group.add(gizmos);
-scene.add(group);
+loadObject(renderer.domElement, loader, gizmosR);
+makeGizmos(tbCenter, tbRadius); //add gizmos
+//gizmos.add(gizmos);
+scene.add(gizmosR);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
 
-function activateGizmos(gizmos, isActive) {
-    const gX = gizmos.children[0];
-    const gY = gizmos.children[1];
-    const gZ = gizmos.children[2];
+function activateGizmos(isActive) {
+    const gX = gizmosR.children[0];
+    const gY = gizmosR.children[1];
+    const gZ = gizmosR.children[2];
     if(isActive) {
         console.log('true');
         gX.material.setValues({color: 0x00FF00});
@@ -449,16 +449,15 @@ function drawGrid(position) {
     grid = new THREE.GridHelper(size, divisions);
     grid.rotateX(Math.PI/2);
     //orientare la griglia
-    group.add(grid);
+    gizmosR.add(grid);
 }
 
 /**
  * Creates the rotation gizmos with radius equals to the given trackball radius
  * @param {THREE.Vector3} tbCenter The trackball's center
  * @param {number} tbRadius The trackball radius
- * @param {THREE.Group} group The group to add gizmos to
  */
-function makeGizmos(tbCenter, tbRadius, group) {
+function makeGizmos(tbCenter, tbRadius) {
     const curve = new THREE.EllipseCurve(tbCenter.x, tbCenter.y, tbRadius, tbRadius);
     const points = curve.getPoints(50);
 
@@ -478,9 +477,9 @@ function makeGizmos(tbCenter, tbRadius, group) {
     rotationGizmoX.rotation.x = Math.PI/2;
     rotationGizmoY.rotation.y = Math.PI/2;
 
-    gizmos.add(rotationGizmoX);
-    gizmos.add(rotationGizmoY);
-    gizmos.add(rotationGizmoZ);
+    gizmosR.add(rotationGizmoX);
+    gizmosR.add(rotationGizmoY);
+    gizmosR.add(rotationGizmoZ);
 };
 
 /**
@@ -568,7 +567,7 @@ function rotateObj(axis, rad) {
     quat.setFromAxisAngle(axis, rad);
     rotateMatrix.makeRotationFromQuaternion(quat);
     quat.multiply(quatState);
-    group.setRotationFromQuaternion(quat);
+    gizmosR.setRotationFromQuaternion(quat);
     m4_1.copy(objMatrixState).premultiply(rotateMatrix);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
 };
@@ -609,7 +608,7 @@ function updateMatrixState() {
     rotateMatrix.identity();    //not really needed
     scaleMatrix.makeScale(1, 1, 1);
     notchCounter = 0;
-    quatState.copy(group.quaternion);
+    quatState.copy(gizmosR.quaternion);
 };
 
 function applyTransform(translation, rotation, scale) {
