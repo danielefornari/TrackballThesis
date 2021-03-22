@@ -302,9 +302,6 @@ function twoFingersMoveListener(event) {
 
     //scaling operation X = T(p)S(s)T(-p)
     v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point
-    //v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
-    //v3_1.add(v3_2);
-    //group.worldToLocal(v3_1);
 
     scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     m4_1.makeScale(s, s, s);  //S(s)
@@ -320,14 +317,9 @@ function twoFingersMoveListener(event) {
     else {
         activateGizmos(false);
     }
-    //v3_1.set(v2_1.x, v2_1.y, 0);
-    //v3_2.set(0, v2_1.y, 0);
-    //v3_1.add(v3_2);
-    //group.worldToLocal(v3_1);
 
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     v3_2.set(0, 0, 1);
-    //group.worldToLocal(v3_2);
     m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
     const quat = new THREE.Quaternion();
     quat.setFromAxisAngle(v3_2, r);
@@ -342,9 +334,6 @@ function twoFingersMoveListener(event) {
     currentCursorPosition.set(v2_1.x, v2_1.y, 0);
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
     v3_1.set(-distanceV.x, -distanceV.y, 0);
-    //v3_2.set(0, -distanceV.y, 0);
-    //v3_1.add(v3_2);
-    //group.worldToLocal(v3_1);
     translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
     //apply matrix  TRS
@@ -489,21 +478,26 @@ function makeGizmos(tbCenter, tbRadius) {
 };
 
 /**
-* Calculate the cursor normalized position inside the canvas
-* @param {number} x Cursor x position in screen space 
-* @param {number} y Cursor y position in screen space
+* Calculate the cursor position inside the canvas
+* @param {number} x Cursor x coordinate in screen space 
+* @param {number} y Cursor y coordinate in screen space
 * @param {HTMLElement} canvas The canvas where the renderer draws its output
-* @returns {THREE.Vector3} Cursor normalized position inside the canvas
+* @returns {THREE.Vector2} Cursor position inside the canvas
 */
 function getCursorPosition(x, y, canvas) {
     const canvasRect = canvas.getBoundingClientRect();
-    //const cursorPosition = new THREE.Vector2();
     v2_1.setX((x-canvasRect.left)-canvasRect.width/2);
     v2_1.setY((canvasRect.bottom-y)-canvasRect.height/2);
-    //cursorPosition.setZ(unprojectZ(cursorPosition.x, cursorPosition.y, tbRadius));
     return v2_1;
 };
 
+/**
+ * Calculate the cursor in NDC
+ * @param {Nunmber} x Cursor x coordinate in screen space
+ * @param {Number} y Cursor y coordinate in screen space
+ * @param {HTMLElement} canvas The canvas where the renderer draws its output
+ * @returns {THREE.Vector2} Cursor position in NDC
+ */
 function getCursorNDC(x, y, canvas) {
     const canvasRect = canvas.getBoundingClientRect();
     v2_1.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
