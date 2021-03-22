@@ -8,7 +8,7 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 const canvas = document.getElementById("canvasP");
 const loader = new OBJLoader();
 const renderer = new THREE.WebGLRenderer({canvas});
-const group = new THREE.Group();
+const gizmosR = new THREE.Group();
 
 //defined once and used in some operations
 const v2_1 = new THREE.Vector2();
@@ -60,10 +60,7 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         currentCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(event.clientX, event.clientY, renderer.domElement)));
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         console.log(distanceV);
-        v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
-        v3_2.set(0, -distanceV.y, 0); //translation on world y axis
-        v3_1.add(v3_2);
-        group.worldToLocal(v3_1);
+        v3_1.set(-distanceV.x, -distanceV.y, 0); //translation on world X axis
         translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
@@ -86,8 +83,9 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
 canvas.addEventListener('wheel', function wheelListener(event) {
     event.preventDefault();
     console.log("wheel");
-    const scaleFactor = 1.1;
-    const sgn = Math.sign(event.deltaY);
+    const notchDeltaY = 125;    //distance of one notch on mouse wheel
+    const scaleFactor = 1.25;
+    const sgn = event.deltaY/notchDeltaY;
     let s = 1;
     notchCounter += sgn;
     if(notchCounter > 0) {
@@ -99,6 +97,7 @@ canvas.addEventListener('wheel', function wheelListener(event) {
     scaleMatrix.makeScale(s, s, s);
 
     m4_1.copy(objMatrixState).premultiply(translateMatrix);
+    m4_1.premultiply(rotateMatrix);
     m4_1.premultiply(scaleMatrix);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
     //obj.matrix.copy(m4_1);
@@ -128,9 +127,9 @@ window.addEventListener('resize', function windowResizeListener(){
     resizeRenderer(renderer);
     tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
     camera.position.z = tbRadius*4;
-    group.clear();
-    loadObject(renderer.domElement, loader, group);  //replace with scaleObject()
-    makeGizmos(tbCenter, tbRadius, group);
+    gizmosR.clear();
+    loadObject(renderer.domElement, loader);  //replace with scaleObject()
+    makeGizmos(tbCenter, tbRadius);
     renderer.render(scene, camera);
 });
 
@@ -161,20 +160,21 @@ manager.get('rotate').requireFailure('pinch');
 //single finger listener
 manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log("singlepanstart");
+    updateMatrixState();
     const center = event.center;
     startCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius)); 
     if(!panKey) {
         //normal trackball rotation
-        if(group.quaternion == "undefined") {
+        activateGizmos(true);
+        if(gizmosR.quaternion == "undefined") {
             quatState = new THREE.Quaternion().identity();
         }
         else {
-            quatState.copy(group.quaternion);
+            quatState.copy(gizmosR.quaternion);
         }
     }
     else {
         //perform pan instead of rotation
-        updateMatrixState();
         tracking = true;
     }
 });
@@ -189,10 +189,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             console.log("mousemove");
             currentCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius));
             const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-            v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
-            v3_2.set(0, -distanceV.y, 0); //translation on world y axis
-            v3_1.add(v3_2); //translation vector
-            group.worldToLocal(v3_1);
+            v3_1.set(-distanceV.x, -distanceV.y, 0); //translation vector
             translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     
             m4_1.copy(objMatrixState).premultiply(translateMatrix);
@@ -215,7 +212,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             //restart rotation routine
             tracking = false;
             startCursorPosition.copy(unprojectOnTbSurface(camera, getCursorPosition(center.x, center.y, renderer.domElement), tbCenter, tbRadius)); 
-            quatState.copy(group.quaternion);
+            quatState.copy(gizmosR.quaternion);
         }
         else {
             //continue with normal rotation routine
@@ -223,7 +220,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             const distanceV = startCursorPosition.clone();
             distanceV.sub(currentCursorPosition);
             const angleV = startCursorPosition.angleTo(currentCursorPosition);
-            rotateObj(group, calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+            rotateObj(calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
             renderer.render(scene, camera);
         }
     }
@@ -231,6 +228,8 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
 
 manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
+    activateGizmos(false);
+    renderer.render(scene, camera);
     tracking = false;
 });
 
@@ -246,7 +245,6 @@ manager.on('doubletap', function doubleTapListener(event) {
     }
     else {
         v3_1.copy(intersect[0].point);
-        group.worldToLocal(v3_1);
         translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
         m4_1.decompose(obj.position, obj.quaternion, obj.scale);
@@ -263,26 +261,22 @@ function twoFingersStartListener(event) {
     console.log('2FE start');
     const center = event.center;    //middle point between fingers
     startCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement)));
-    //startCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     fingerRotation = event.rotation;
-    objMatrixState.copy(obj.matrix);
+    updateMatrixState();
+    quatState.copy(gizmosR.quaternion);
 };
 
 function twoFingersMoveListener(event) {
     console.log('2FE move');
 
     const center = event.center;    //middle point between fingers
-    //const p1 = getCursorPosition(center.x, center.y, renderer.domElement); //center point between fingers
     const p = unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement));
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
-    v3_1.set(p.x, 0, 0);  //fingers middle point on x axis
-    v3_2.set(0, p.y, 0);  //fingers middle point on y axis
-    v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    v3_1.set(p.x, p.y, 0);  //fingers middle point
 
     scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     m4_1.makeScale(s, s, s);  //S(s)
@@ -292,32 +286,34 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    v3_1.set(p.x, 0, 0);
-    v3_2.set(0, p.y, 0);
-    v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    if(r != 0) {
+        activateGizmos(true);
+    }
+    else {
+        activateGizmos(false);
+    }
 
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     v3_2.set(0, 0, 1);
-    group.worldToLocal(v3_2);
     m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
-
     rotateMatrix.multiply(m4_1);
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
     rotateMatrix.multiply(m4_1);
 
+    //rotate gizmos
+    const quat = new THREE.Quaternion();
+    quat.setFromAxisAngle(v3_2, r);
+    quat.multiply(quatState);
+    gizmosR.setRotationFromQuaternion(quat);
+
     //translation operation T(p)
     currentCursorPosition.copy(unprojectOnTbPlane(camera, getCursorPosition(center.x, center.y, renderer.domElement)));
     const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    v3_1.set(-distanceV.x, 0, 0);
-    v3_2.set(0, -distanceV.y, 0);
-    v3_1.add(v3_2);
-    group.worldToLocal(v3_1);
+    v3_1.set(-distanceV.x, -distanceV.y, 0);
     translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
     //apply matrix  TRS
-    m4_1.copy(objMatrixState);
-    m4_1.premultiply(translateMatrix);
+    m4_1.copy(objMatrixState).premultiply(translateMatrix);
     m4_1.premultiply(rotateMatrix);
     m4_1.premultiply(scaleMatrix);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
@@ -327,6 +323,8 @@ function twoFingersMoveListener(event) {
 
 function twoFingersEndListener(event) {
     console.log('2FE end');
+    activateGizmos(false);
+    renderer.render(scene, camera);
     //fingerRotation = event.rotation;
 };
 
@@ -352,11 +350,30 @@ light.position.set(-1, 2, 4);
 scene.add(light);
 
 //obj = loadObject(renderer.domElement, group);    //load the 3D object
-loadObject(renderer.domElement, loader, group);
-makeGizmos(tbCenter, tbRadius, group);  //add gizmos
-scene.add(group);
+loadObject(renderer.domElement, loader);
+makeGizmos(tbCenter, tbRadius);  //add gizmos
+scene.add(gizmosR);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
+
+function activateGizmos(isActive) {
+    const gX = gizmosR.children[0];
+    const gY = gizmosR.children[1];
+    const gZ = gizmosR.children[2];
+    if(isActive) {
+        console.log('true');
+        gX.material.setValues({color: 0x00FF00});
+        gY.material.setValues({color: 0xFF0000});
+        gZ.material.setValues({color: 0x0000FF});
+    }
+    else {
+        console.log('false');
+        gX.material.setValues({color: 0x008000});
+        gY.material.setValues({color: 0x800000});
+        gZ.material.setValues({color: 0x000080});
+    }
+};
+
 
 /**
  * Calcualte the distance between two pointers
@@ -399,9 +416,8 @@ function calculateRotationAxis(vec1, vec2) {
  * Creates the rotation gizmos with radius equals to the given trackball radius
  * @param {THREE.Vector3} tbCenter The trackball's center
  * @param {number} tbRadius The trackball radius
- * @param {THREE.Group} group The group to add gizmos to
  */
-function makeGizmos(tbCenter, tbRadius, group) {
+function makeGizmos(tbCenter, tbRadius) {
     //rotation gizmos
 
     const curve = new THREE.EllipseCurve(tbCenter.x, tbCenter.y, tbRadius, tbRadius);
@@ -411,9 +427,9 @@ function makeGizmos(tbCenter, tbRadius, group) {
     const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
     //material
-    const curveMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00});
-    const curveMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000});
-    const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF});
+    const curveMaterialX = new THREE.LineBasicMaterial({color: 0x008000});
+    const curveMaterialY = new THREE.LineBasicMaterial({color: 0x800000});
+    const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x000080});
 
     //line
     const rotationGizmoX = new THREE.Line(curveGeometry, curveMaterialX);
@@ -423,13 +439,13 @@ function makeGizmos(tbCenter, tbRadius, group) {
     rotationGizmoX.rotation.x = Math.PI/2;
     rotationGizmoY.rotation.y = Math.PI/2;
 
-    group.add(rotationGizmoX);
-    group.add(rotationGizmoY);
-    group.add(rotationGizmoZ);
+    gizmosR.add(rotationGizmoX);
+    gizmosR.add(rotationGizmoY);
+    gizmosR.add(rotationGizmoZ);
 };
 
 /**
- * Calculate the cursor normalized position inside the canvas
+ * Calculate the cursor position in NDC
  * @param {number} x Cursor x position in screen space 
  * @param {number} y Cursor y position in screen space
  * @param {HTMLElement} canvas The canvas where the renderer draws its output
@@ -437,10 +453,9 @@ function makeGizmos(tbCenter, tbRadius, group) {
  */
 function getCursorPosition(x, y, canvas) {
     const canvasRect = canvas.getBoundingClientRect();
-    const cursorPosition = new THREE.Vector2();
-    cursorPosition.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
-    cursorPosition.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
-    return cursorPosition;
+    v2_1.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
+    v2_1.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
+    return v2_1;
     /*let worldPosition = unprojection(camera, cursorPosition, tbCenter, tbRadius);
     return worldPosition;*/
 };
@@ -449,9 +464,8 @@ function getCursorPosition(x, y, canvas) {
  * load a 3D object and add it to the scene
  * for testing purpose, builds a cube and add to scene
  * @param {HTMLElement} canvas The canvas where the renderer draws its output
- * @param {THREE.Group} group The group to add object to
  */
-function loadObject(canvas, loader, group) {
+function loadObject(canvas, loader) {
     const canvasRect = canvas.getBoundingClientRect();
 
     //test cube
@@ -468,7 +482,7 @@ function loadObject(canvas, loader, group) {
     //mesh
     loader.load('rocker_arm.obj', function(o) {
         obj = o;
-        group.add(o);
+        scene.add(o);
         objMatrixState.copy(o.matrix);
     });
 
@@ -493,15 +507,17 @@ function resizeRenderer(renderer) {
 
 /**
  * Rotate an object along given axis by given radians
- * @param {THREE.Object3D} obj Object to be roteated
  * @param {THREE.Vector3} axis Rotation axis
  * @param {number} rad Angle in radians
  */
-function rotateObj(obj, axis, rad) {
+function rotateObj(axis, rad) {
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
+    rotateMatrix.makeRotationFromQuaternion(quat);
     quat.multiply(quatState);
-    obj.setRotationFromQuaternion(quat);
+    gizmosR.setRotationFromQuaternion(quat);    //rotate gizmos
+    m4_1.copy(objMatrixState).premultiply(rotateMatrix);
+    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
 };
 
 /**
