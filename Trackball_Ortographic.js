@@ -177,6 +177,7 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
     if(!panKey) {
         //normal trackball rotation
+        activateGizmos(gizmos, true);
         if(group.quaternion == "undefined") {
             quatState = new THREE.Quaternion().identity();
         }
@@ -249,6 +250,8 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
 
 manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
+    activateGizmos(gizmos, false);
+    renderer.render(scene, camera);
     tracking = false;
 });
 
@@ -383,6 +386,24 @@ scene.add(group);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
 
+function activateGizmos(gizmos, isActive) {
+    const gX = gizmos.children[0];
+    const gY = gizmos.children[1];
+    const gZ = gizmos.children[2];
+    if(isActive) {
+        console.log('true');
+        gX.material.setValues({color: 0x00FF00});
+        gY.material.setValues({color: 0xFF0000});
+        gZ.material.setValues({color: 0x0000FF});
+    }
+    else {
+        console.log('false');
+        gX.material.setValues({color: 0x008000});
+        gY.material.setValues({color: 0x800000});
+        gZ.material.setValues({color: 0x000080});
+    }
+};
+
 /**
  * Calcualte the distance between two pointers
  * @param {PointerEvent} p0 The first pointer
@@ -442,9 +463,9 @@ function makeGizmos(tbCenter, tbRadius, group) {
     const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
     //material
-    const curveMaterialX = new THREE.LineBasicMaterial({color: 0x00FF00});
-    const curveMaterialY = new THREE.LineBasicMaterial({color: 0xFF0000});
-    const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x0000FF});
+    const curveMaterialX = new THREE.LineBasicMaterial({color: 0x00A000});
+    const curveMaterialY = new THREE.LineBasicMaterial({color: 0xA00000});
+    const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x0000A0});
 
     //line
     const rotationGizmoX = new THREE.Line(curveGeometry, curveMaterialX);
