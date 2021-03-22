@@ -290,7 +290,6 @@ function twoFingersStartListener(event) {
     //objMatrixState.copy(obj.matrix);
     updateMatrixState();
     quatState.copy(gizmosR.quaternion);
-
 };
 
 function twoFingersMoveListener(event) {
