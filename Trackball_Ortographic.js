@@ -297,7 +297,7 @@ function twoFingersMoveListener(event) {
     console.log('2FE move');
 
     const center = event.center;    //middle point between fingers
-    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement)); //center point between fingers
+    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement)); //center point between fingers 
     const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     const s = newDistance/fingerDistance;   //how much to scale
 
