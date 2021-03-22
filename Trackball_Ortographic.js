@@ -554,7 +554,7 @@ function rotateObj(axis, rad) {
     quat.setFromAxisAngle(axis, rad);
     rotateMatrix.makeRotationFromQuaternion(quat);
     quat.multiply(quatState);
-    gizmosR.setRotationFromQuaternion(quat);
+    gizmosR.setRotationFromQuaternion(quat);    //rotate gizmos
     m4_1.copy(objMatrixState).premultiply(rotateMatrix);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
 };
