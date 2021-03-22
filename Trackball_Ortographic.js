@@ -282,9 +282,6 @@ manager.on("doublepanend pinchend rotateend", twoFingersEndListener);
 
 function twoFingersStartListener(event) {
     console.log('2FE start');
-    if(event.type == 'rotatestart') {
-        activateGizmos(true);
-    }
     const center = event.center;    //middle point between fingers
     v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
     startCursorPosition.set(v2_1.x, v2_1.y, 0);
@@ -304,7 +301,7 @@ function twoFingersMoveListener(event) {
     const s = newDistance/fingerDistance;   //how much to scale
 
     //scaling operation X = T(p)S(s)T(-p)
-    v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point on x axis
+    v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point
     //v3_2.set(0, v2_1.y, 0);  //fingers middle point on y axis
     //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
@@ -317,6 +314,12 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+    if(r != 0) {
+        activateGizmos(true);
+    }
+    else {
+        activateGizmos(false);
+    }
     //v3_1.set(v2_1.x, v2_1.y, 0);
     //v3_2.set(0, v2_1.y, 0);
     //v3_1.add(v3_2);
@@ -356,9 +359,7 @@ function twoFingersMoveListener(event) {
 
 function twoFingersEndListener(event) {
     console.log('2FE end');
-    if(event.type == 'rotateend') {
-        activateGizmos(false);
-    }
+    activateGizmos(false);
     //fingerRotation = event.rotation;
 };
 
