@@ -10,7 +10,6 @@ const canvas = document.getElementById("canvasO");
 const loader = new OBJLoader();
 const renderer = new THREE.WebGLRenderer({canvas});
 const gizmosR = new THREE.Group();
-//const group = new THREE.Group();
 
 //defined once and used in some operations
 const v2_1 = new THREE.Vector2();
@@ -229,7 +228,6 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             currentCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
             const distanceV = startCursorPosition.clone();
             distanceV.sub(currentCursorPosition);
-            console.log(distanceV);
             const angleV = startCursorPosition.angleTo(currentCursorPosition);
             rotateObj(calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
             renderer.render(scene, camera);
@@ -309,7 +307,6 @@ function twoFingersMoveListener(event) {
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     v3_2.set(0, 0, 1);
     m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
-    gizmosR.setRotationFromQuaternion(quat);
     rotateMatrix.multiply(m4_1);
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
     rotateMatrix.multiply(m4_1);
@@ -318,6 +315,7 @@ function twoFingersMoveListener(event) {
     const quat = new THREE.Quaternion();
     quat.setFromAxisAngle(v3_2, r);
     quat.multiply(quatState);
+    gizmosR.setRotationFromQuaternion(quat);
 
     //translation operation T(p)
     v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
@@ -327,8 +325,7 @@ function twoFingersMoveListener(event) {
     translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
     //apply matrix  TRS
-    m4_1.copy(objMatrixState);
-    m4_1.premultiply(translateMatrix);
+    m4_1.copy(objMatrixState).premultiply(translateMatrix);
     m4_1.premultiply(rotateMatrix);
     m4_1.premultiply(scaleMatrix);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
@@ -339,6 +336,7 @@ function twoFingersMoveListener(event) {
 function twoFingersEndListener(event) {
     console.log('2FE end');
     activateGizmos(false);
+    renderer.render(scene, camera);
     //fingerRotation = event.rotation;
 };
 
@@ -449,9 +447,9 @@ function makeGizmos(tbCenter, tbRadius) {
     const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
 
     //material
-    const curveMaterialX = new THREE.LineBasicMaterial({color: 0x00A000});
-    const curveMaterialY = new THREE.LineBasicMaterial({color: 0xA00000});
-    const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x0000A0});
+    const curveMaterialX = new THREE.LineBasicMaterial({color: 0x008000});
+    const curveMaterialY = new THREE.LineBasicMaterial({color: 0x800000});
+    const curveMaterialZ = new THREE.LineBasicMaterial({color: 0x000080});
 
     //line
     const rotationGizmoX = new THREE.Line(curveGeometry, curveMaterialX);
@@ -492,7 +490,7 @@ function getCursorNDC(x, y, canvas) {
     v2_1.setX(((x - canvasRect.left) / canvasRect.width) * 2 - 1);
     v2_1.setY(((canvasRect.bottom - y) / canvasRect.height) * 2 - 1);
     return v2_1;
-}
+};
 
 /**
  * load a 3D object and add it to the scene
