@@ -75,11 +75,7 @@ canvas.addEventListener('mousemove', function mouseMoveListener(event) {
         currentCursorPosition.set(v2_1.x, v2_1.y, 0);
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
         console.log(distanceV);
-        v3_1.set(-distanceV.x, -distanceV.y, 0); //translation on world X axis
-        //v3_2.set(0, -distanceV.y, 0); //translation on world y axis
-        //v3_1.add(v3_2);
-        //obj.worldToLocal(v3_1);
-        v3_1.applyMatrix4(rotateMatrix);
+        v3_1.set(-distanceV.x, -distanceV.y, 0); //translation vector
         translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
@@ -187,7 +183,6 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     }
     else {
         //perform pan instead of rotation
-        //updateMatrixState();
         tracking = true;
     }
 });
@@ -200,15 +195,10 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
         if(tracking) {
             //already panning, continue with panning routine
             console.log("mousemove");
-            //currentCursorPosition = getCursorPosition(center.x, center.y, renderer.domElement);
             v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
             currentCursorPosition.set(v2_1.x, v2_1.y, 0);
             const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-            //const distanceV = v3_1.copy(startCursorPosition).sub(currentCursorPosition);
-            v3_1.set(-distanceV.x, 0, 0); //translation on world X axis
-            v3_2.set(0, -distanceV.y, 0); //translation on world y axis
-            v3_1.add(v3_2); //translation vector
-            //obj.worldToLocal(v3_1);
+            v3_1.set(-distanceV.x, -distanceV.y, 0); //translation vector
             translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     
             m4_1.copy(objMatrixState).premultiply(translateMatrix);
@@ -233,7 +223,6 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             tracking = false;
             startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
             quatState.copy(gizmosR.quaternion);
-            //singlePanStartListener(event);  //restart rotation routine
         }
         else {
             //continue with normal rotation routine
@@ -267,7 +256,6 @@ manager.on('doubletap', function doubleTapListener(event) {
     }
     else {
         v3_1.copy(intersect[0].point);
-        //group.worldToLocal(v3_1);
         translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
         m4_1.decompose(obj.position, obj.quaternion, obj.scale);
@@ -321,13 +309,15 @@ function twoFingersMoveListener(event) {
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
     v3_2.set(0, 0, 1);
     m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
-    const quat = new THREE.Quaternion();
-    quat.setFromAxisAngle(v3_2, r);
-    quat.multiply(quatState);
     gizmosR.setRotationFromQuaternion(quat);
     rotateMatrix.multiply(m4_1);
     m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
     rotateMatrix.multiply(m4_1);
+
+    //rotate gizmos
+    const quat = new THREE.Quaternion();
+    quat.setFromAxisAngle(v3_2, r);
+    quat.multiply(quatState);
 
     //translation operation T(p)
     v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
@@ -379,7 +369,6 @@ scene.add(light);
 //obj = loadObject(renderer.domElement, group); //load the 3D object
 loadObject(renderer.domElement, loader, gizmosR);
 makeGizmos(tbCenter, tbRadius); //add gizmos
-//gizmos.add(gizmos);
 scene.add(gizmosR);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
@@ -557,7 +546,7 @@ function resizeRenderer(renderer) {
 };
 
 /**
- * Rotate an object around given axis by given radians
+ * Perform rotation operation rotating the object along with the trackball gizmos
  * @param {THREE.Vector3} axis Rotation axis
  * @param {number} rad Angle in radians
  */
