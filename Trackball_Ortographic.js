@@ -62,13 +62,13 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         console.log("mousedown");
         v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
         startCursorPosition.set(v2_1.x, v2_1.y, 0);
+        //drawGrid(startCursorPosition);
         updateMatrixState();
         tracking = true;
     }
 });
 canvas.addEventListener('mousemove', function mouseMoveListener(event) {
     if(tracking) {
-        //drawGrid();
         event.preventDefault();
         console.log("mousemove");
         v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
@@ -309,7 +309,7 @@ function twoFingersMoveListener(event) {
 
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    v3_1.set(v2_1.x, v2_1.y, 0);
+    //v3_1.set(v2_1.x, v2_1.y, 0);
     //v3_2.set(0, v2_1.y, 0);
     //v3_1.add(v3_2);
     //group.worldToLocal(v3_1);
@@ -419,11 +419,11 @@ function calculateRotationAxis(v3_1, v3_2) {
     return rotationAxis.crossVectors(v3_1, v3_2).normalize();
 };
 
-function drawGrid() {
+function drawGrid(position) {
     const size = 600;
     const divisions = 30;
     grid = new THREE.GridHelper(size, divisions);
-    grid.quaternion.copy(quatState);
+    grid.rotateX(Math.PI/2);
     //orientare la griglia
     group.add(grid);
 }
