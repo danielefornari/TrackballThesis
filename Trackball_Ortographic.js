@@ -64,7 +64,7 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         console.log("mousedown");
         v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
         startCursorPosition.set(v2_1.x, v2_1.y, 0);
-        drawGrid(startCursorPosition);
+        drawGrid();
         updateMatrixState();
         tracking = true;
     }
@@ -120,7 +120,7 @@ document.addEventListener('keydown', function keyDownListener(event) {
         panKey = true;
         kDown = true;
         console.log('keydown');
-        drawGrid(currentCursorPosition);
+        drawGrid();
         renderer.render(scene, camera);
     }
 });
@@ -433,7 +433,7 @@ function calculateRotationAxis(v3_1, v3_2) {
     return rotationAxis.crossVectors(v3_1, v3_2).normalize();
 };
 
-function drawGrid(position) {
+function drawGrid() {
     const size = renderer.domElement.getBoundingClientRect().width;
     const divisions = canvas.getBoundingClientRect().width/50;
     grid = new THREE.GridHelper(size, divisions);
