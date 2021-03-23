@@ -258,16 +258,12 @@ manager.on('doubletap', function doubleTapListener(event) {
     const center = event.center;
     updateMatrixState();
     v2_1.copy(getCursorNDC(center.x, center.y, renderer.domElement));
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(v2_1, camera);
-    const intersect = raycaster.intersectObject(obj, true);
-    if(intersect.length == 0) {
-        alert("swiiish");
-    }
-    else {
-        v3_1.copy(intersect[0].point);
-        translateMatrix.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
+    const u = unprojectOnObj(v2_1, camera);
+    if(u != null) {
+        translateMatrix.makeTranslation(-u.x, -u.y, -u.z);
+        scaleMatrix.makeScale(1.25, 1.25, 1.25);
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
+        m4_1.premultiply(scaleMatrix);
         m4_1.decompose(obj.position, obj.quaternion, obj.scale);
         renderer.render(scene, camera);
     }
@@ -438,7 +434,7 @@ function calculateRotationAxis(v3_1, v3_2) {
 };
 
 function drawGrid(position) {
-    const size = canvas.getBoundingClientRect().width;
+    const size = renderer.domElement.getBoundingClientRect().width;
     const divisions = canvas.getBoundingClientRect().width/50;
     grid = new THREE.GridHelper(size, divisions);
     grid.rotateX(Math.PI/2);
@@ -569,6 +565,19 @@ function rotateObj(axis, rad) {
     m4_1.copy(objMatrixState).premultiply(rotateMatrix);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
 };
+
+function unprojectOnObj(cursor, camera) {
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(cursor, camera);
+    const intersect = raycaster.intersectObject(obj, true);
+    if(intersect.length == 0) {
+        return  null;
+    }
+    else {
+        return v3_1.copy(intersect[0].point);
+    }
+};
+
 
 /**
  * Unproject the cursor on the trackball surface
