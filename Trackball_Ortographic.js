@@ -183,7 +183,7 @@ manager.on('singlepanstart', function singlePanStartListener(event) {
     startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
     if(!panKey) {
         //normal trackball rotation
-        activateGizmos(true);
+        enlightGizmosR(true);
         if(gizmosR.quaternion == "undefined") {
             quatState = new THREE.Quaternion().identity();
         }
@@ -249,7 +249,7 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
 
 manager.on('singlepanend', function singlePanEndListener() {
     console.log("singlepanend");
-    activateGizmos(false);
+    enlightGizmosR(false);
     renderer.render(scene, camera);
     tracking = false;
 });
@@ -306,10 +306,10 @@ function twoFingersMoveListener(event) {
     //rotation operation    X = T(p)R(r)T(-p)
     const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
     if(Math.abs(event.rotation) > 0.05) {
-        activateGizmos(true);
+        enlightGizmosR(true);
     }
     else {
-        activateGizmos(false);
+        enlightGizmosR(false);
     }
 
     rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
@@ -343,7 +343,7 @@ function twoFingersMoveListener(event) {
 
 function twoFingersEndListener(event) {
     console.log('2FE end');
-    activateGizmos(false);
+    enlightGizmosR(false);
     renderer.render(scene, camera);
     //fingerRotation = event.rotation;
 };
@@ -379,7 +379,11 @@ scene.add(gizmosR);
 resizeRenderer(renderer);
 renderer.render(scene, camera);
 
-function activateGizmos(isActive) {
+/**
+ * Set the rotation gizmos illumination
+ * @param {Boolean} isActive If true, enlight gizmos, otherwise turn them off
+ */
+function enlightGizmosR(isActive) {
     const gX = gizmosR.children[0];
     const gY = gizmosR.children[1];
     const gZ = gizmosR.children[2];
@@ -433,6 +437,9 @@ function calculateRotationAxis(v3_1, v3_2) {
     return rotationAxis.crossVectors(v3_1, v3_2).normalize();
 };
 
+/**
+ * Draw a grid on the canvas
+ */
 function drawGrid() {
     const size = renderer.domElement.getBoundingClientRect().width;
     const divisions = canvas.getBoundingClientRect().width/50;
