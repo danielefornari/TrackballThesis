@@ -16,6 +16,20 @@ const v2_1 = new THREE.Vector2();
 const v3_1 = new THREE.Vector3();
 const v3_2 = new THREE.Vector3();
 const m4_1 = new THREE.Matrix4();
+const m4_2 = new THREE.Matrix4();
+
+//trackball's state
+//trackball's state
+let STATE = {
+    IDLE: "IDLE",
+    ROTATE: "ROTATE",
+    PAN: "PAN",
+    SCALE: "SCALE",
+    TOUCH_MULTI: "TOUCH_MULTI",
+    ANIMATION_DETAIL: "ANIMATION_DETAIL",
+    ANIMATION_ROTATE: "ANIMATION_ROTATE"
+};
+let state = STATE.IDLE;
 
 //transformation matrices
 const translateMatrix = new THREE.Matrix4();    //matrix for translation operation
@@ -27,6 +41,9 @@ const rotationAxis = new THREE.Vector3(); //axis around which perform rotation
 //object's state
 const objMatrixState = new THREE.Matrix4(); //object's matrix state
 let quatState = new THREE.Quaternion().identity(); //rotation gizmos quaternion state
+
+//grid state
+const gridPosition = new THREE.Vector3();
 
 //trackball parameters
 const tbCenter = new THREE.Vector3(0, 0, 0);
@@ -40,69 +57,116 @@ let fingerRotation = 0; //rotation thah has been done with two fingers
 const currentCursorPosition = new THREE.Vector3();
 const startCursorPosition = new THREE.Vector3();
 
-let panKey = false; //if key for pan is down
-let tracking = false;  //if true, the cursor movements need to be stored
+let panKey = false; //if pan operation is being performed with keyboard button
+let panWheel = false;  //if pan operation is being performed with mouse wheel button
+let animateDetail = true;   //if detail operation should be animated
+let animateRotation = true; //if rotation operation should implement inertia
 let notchCounter = 0;   //represent the wheel resulting position
 let obj;    //The 3D model
 let grid;   //The grid visualized when panning
 let kDown = false;
 
+//detail animation variables
+let detailAnimTime = 500; //detail animation duration in seconds
+let timeStart = -1; //animation initial time
+
+//rotation animation variables
+let t0 = 0; //time before rotation has been released
+let t = 0;  //time when rotation has been released
+let angle0 = 0; //angle before rotation has been released
+let angle = 0;  //angle when rotation has been released
+let acc = -24; //acceleration
+let w0;
+let theta0 = 0;
+
 
 //mouse/keyboard events
 canvas.addEventListener('mouseup', function mouseUpListener(event) {
-    if(event.button == 1) {
-        event.preventDefault();
-        console.log("mouseup");
-        scene.remove(grid);
-        tracking = false;
-        renderer.render(scene, camera);
+    if(event.button == 0) {
+        if(state == STATE.ROTATE) {
+            console.log('mouse_up');
+            updateTbState(STATE.IDLE, false);
+        }
     }
-});
-canvas.addEventListener('mousedown', function mouseDownListener(event) {
-    if(event.button == 1) {
+    else if(event.button == 1) {
         event.preventDefault();
-        console.log("mousedown");
-        v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
-        startCursorPosition.set(v2_1.x, v2_1.y, 0);
-        drawGrid();
-        updateMatrixState();
-        tracking = true;
+        if(panWheel) {
+            console.log('wheel_up');
+            if(state == STATE.PAN) {
+                updateTbState(STATE.IDLE, false);
+            }
+            scene.remove(grid);
+            obj.remove(grid);
+            //tracking = false;
+            panWheel = false;
+            renderer.render(scene, camera);
+        }
     }
 });
 canvas.addEventListener('mousemove', function mouseMoveListener(event) {
-    if(tracking) {
-        event.preventDefault();
-        console.log("mousemove");
+    if(state == STATE.PAN && panWheel) {
+        console.log('wheelmove');
         v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
         currentCursorPosition.set(v2_1.x, v2_1.y, 0);
         const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-        console.log(distanceV);
         v3_1.set(-distanceV.x, -distanceV.y, 0); //translation vector
         translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
 
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
         m4_1.premultiply(scaleMatrix);
         m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+
+        //update grid position
+        grid.position.addVectors(gridPosition, v3_1);
+
         //obj.matrix.copy(m4_1);
         renderer.render(scene, camera);
+    }
+    else if(state != STATE.PAN && panWheel) {
+        //restart panning routine
+        console.log('wheelmove_start');
+        v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        startCursorPosition.set(v2_1.x, v2_1.y, 0);
+        updateTbState(STATE.PAN, true);
+        enlightGizmosR(false);
+        renderer.render(scene, camera);
+    }
+});
+canvas.addEventListener('mousedown', function mouseDownListener(event) {
+    event.preventDefault();
+    if(event.button == 0) {
+        console.log('mouse_down');
+        //updateTbState(STATE.ROTATE, false);
+    }
+    else if(event.button == 1 && !panKey) {
+        //panKey == true means that panning is already being performed using keyboard and will be handled by proper listener
+        console.log('wheel_down');
+        v2_1.copy(getCursorPosition(event.clientX, event.clientY, renderer.domElement));
+        startCursorPosition.set(v2_1.x, v2_1.y, 0);
+        panWheel = true;
+        drawGrid();
     }
 });
 canvas.addEventListener('wheel', function wheelListener(event) {
     event.preventDefault();
-    console.log("wheel");
+    if(state != STATE.SCALE) {
+        //start scale operation
+        updateTbState(STATE.SCALE, true);
+    }
+    console.log('wheel_scroll');
     const notchDeltaY = 125;    //distance of one notch on mouse wheel
     const scaleFactor = 1.25;
     const sgn = event.deltaY/notchDeltaY;
     let s = 1;
     notchCounter += sgn;
-    if(notchCounter > 0) {
+     if(notchCounter > 0) {
         s = Math.pow(scaleFactor, notchCounter);
     }
     else if(notchCounter < 0) {
         s = 1/(Math.pow(scaleFactor, -notchCounter));
     }
     scaleMatrix.makeScale(s, s, s);
-
+    
     m4_1.copy(objMatrixState).premultiply(translateMatrix);
     m4_1.premultiply(rotateMatrix);
     m4_1.premultiply(scaleMatrix);
@@ -116,10 +180,10 @@ document.addEventListener('keydown', function keyDownListener(event) {
         console.log("keydown");
         panKey = true;
     }*/    
-    if(event.key == 'c' && !kDown) {
+    if(event.key == 'c' && !panWheel && !kDown) {
+        console.log('key_down');
         panKey = true;
         kDown = true;
-        console.log('keydown');
         drawGrid();
         renderer.render(scene, camera);
     }
@@ -130,11 +194,12 @@ document.addEventListener('keyup', function keyUpListener(event) {
         console.log("keyup");
         panKey = false;
     }*/
-    if(event.key == 'c') {
-        console.log('keyup');
+    if(event.key == 'c' && panKey) {
+        //panKey == false means that pan operation has been performed with wheel button when keydown event has been fired
+        console.log('key_up');
         panKey = false;
-        scene.remove(grid);
         kDown = false;
+        scene.remove(grid);
         renderer.render(scene, camera);
     }
 });
@@ -158,7 +223,7 @@ const singlePan = new Hammer.Pan({event: 'singlepan', pointers: 1, threshold: 0,
 const doublePan = new Hammer.Pan({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
 const pinch = new Hammer.Pinch();
 const rotate = new Hammer.Rotate();
-const doubleTap = new Hammer.Tap(({event: 'doubletap', taps: 2}));
+const doubleTap = new Hammer.Tap(({event: 'doubletap', taps: 2, threshold: 4, posThreshold: 20}));
 
 manager.add([singlePan, doublePan, pinch, rotate, doubleTap]);
 manager.get('doublepan').recognizeWith('singlepan');
@@ -178,33 +243,38 @@ manager.get('rotate').requireFailure('pinch');
 //single finger listeners
 manager.on('singlepanstart', function singlePanStartListener(event) {
     console.log("singlepanstart");
-    updateMatrixState();
+    //updateMatrixState();
     const center = event.center;
     startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
-    if(!panKey) {
+    if(panKey) {
+        //pan operation has been required using keyboard
+        updateTbState(STATE.PAN, true);
+    }
+    else {
         //normal trackball rotation
+        updateTbState(STATE.ROTATE, true);
         enlightGizmosR(true);
-        if(gizmosR.quaternion == "undefined") {
+        if(gizmosR.quaternion == 'undefined') {
             quatState = new THREE.Quaternion().identity();
         }
         else {
             quatState.copy(gizmosR.quaternion);
         }
-    }
-    else {
-        //perform pan instead of rotation
-        tracking = true;
+        if(animateRotation) {
+            t0 = performance.now();
+            t0 = t;
+            angle0 = 0;
+            angle = 0;
+        }
     }
 });
-
 manager.on('singlepanmove', function singlePanMoveListener(event) {
-    console.log("singlepanmove");
     const center = event.center;
     if(panKey) {
-        //key for pan has been pressed: perform pan instead of rotation
-        if(tracking) {
+        //pan operation has been required using keyboard
+        if(state == STATE.PAN) {
             //already panning, continue with panning routine
-            console.log("mousemove");
+            console.log('singlePanMove_Pan');
             v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
             currentCursorPosition.set(v2_1.x, v2_1.y, 0);
             const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
@@ -214,54 +284,95 @@ manager.on('singlepanmove', function singlePanMoveListener(event) {
             m4_1.copy(objMatrixState).premultiply(translateMatrix);
             m4_1.premultiply(scaleMatrix);
             m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+
+            grid.position.addVectors(gridPosition, v3_1);   
+
             //obj.matrix.copy(m4_1);
             renderer.render(scene, camera);
         }
         else {
             //restart panning routine
+            console.log('singlePanMove_restartPan');
+            updateTbState(STATE.PAN, true);
             v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
-            startCursorPosition.set(v2_1.x, v2_1.y, 0);
-            updateMatrixState();
-            tracking = true;      
+            startCursorPosition.set(v2_1.x, v2_1.y, 0);            
+            enlightGizmosR(false);
+            renderer.render(scene, camera);
         }
     }
-    else {
-        //key for pan is not pressed: perform normal trackball rotation
-        if(tracking) {
-            //key for panning has just been released
+    else if(!panWheel){
+        //no pan operation required from keyboard
+        if(state == STATE.ROTATE) {
+          //continue with normal rotation routine
+          console.log('singlePanMove_Rotate');
+          currentCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
+          const distanceV = startCursorPosition.clone();
+          distanceV.sub(currentCursorPosition);
+          const angleV = startCursorPosition.angleTo(currentCursorPosition);
+          rotateObj(calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+          if(animateRotation) {
+              t0 = t;
+              t = performance.now();
+              angle0 = angle;
+              angle = Math.max(distanceV.length()/tbRadius, angleV);
+          }
+          renderer.render(scene, camera);
+        }
+        else {
             //restart rotation routine
-            tracking = false;
+            console.log('singlePanMove_restartRotate');
+            updateTbState(STATE.ROTATE, true);
             startCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
             updateMatrixState();
             quatState.copy(gizmosR.quaternion);
-        }
-        else {
-            //continue with normal rotation routine
-            currentCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
-            const distanceV = startCursorPosition.clone();
-            distanceV.sub(currentCursorPosition);
-            const angleV = startCursorPosition.angleTo(currentCursorPosition);
-            rotateObj(calculateRotationAxis(startCursorPosition, currentCursorPosition), Math.max(distanceV.length()/tbRadius, angleV));
+            enlightGizmosR(true);
+            if(animateRotation) {
+                t0 = performance.now();
+                t = t0;
+                angle0 = 0;
+                angle = 0;
+            }
             renderer.render(scene, camera);
         }
     }
 });
-
-manager.on('singlepanend', function singlePanEndListener() {
-    console.log("singlepanend");
-    enlightGizmosR(false);
-    renderer.render(scene, camera);
-    tracking = false;
+manager.on('singlepanend', function singlePanEndListener(event) {
+    console.log('singlepanend');
+    if(state == STATE.ROTATE) {
+        if(animateRotation) {
+            const center = event.center;
+            currentCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
+            //perform rotation animation
+            v3_1.copy(calculateRotationAxis(startCursorPosition, currentCursorPosition));
+            w0 = (angle-angle0)/((t-t0)/1000);
+            updateTbState(STATE.ANIMATION_ROTATE, true);
+            window.requestAnimationFrame(onRotationAnim);
+        }
+        else {
+            updateTbState(STATE.IDLE, false);
+            enlightGizmosR(false);
+            renderer.render(scene, camera);
+        }
+    }
+    else if(state == STATE.PAN && panKey) {
+        //desktop interaction only
+        updateTbState(STATE.IDLE, false);
+    }
+    //const v = calculateInstantSpeed
 });
 
 manager.on('doubletap', function doubleTapListener(event) {
     const center = event.center;
-    updateMatrixState();
     v2_1.copy(getCursorNDC(center.x, center.y, renderer.domElement));
     const u = unprojectOnObj(v2_1, camera);
-    if(u != null) {
+    if(u != null && animateDetail) {
+        updateTbState(STATE.ANIMATION_DETAIL, true);
         translateMatrix.makeTranslation(-u.x, -u.y, -u.z);
         scaleMatrix.makeScale(1.25, 1.25, 1.25);
+        window.requestAnimationFrame(onDetailAnim);
+    }
+    else if(u != null && !animateDetail) {
+        updateMatrixState();
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
         m4_1.premultiply(scaleMatrix);
         m4_1.decompose(obj.position, obj.quaternion, obj.scale);
@@ -282,63 +393,76 @@ function twoFingersStartListener(event) {
     fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
     fingerRotation = event.rotation;
     //objMatrixState.copy(obj.matrix);
-    updateMatrixState();
+    updateTbState(STATE.TOUCH_MULTI, true);
     quatState.copy(gizmosR.quaternion);
 };
 
 function twoFingersMoveListener(event) {
-    console.log('2FE move');
-
-    const center = event.center;    //middle point between fingers
-    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement)); //center point between fingers 
-    const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
-    const s = newDistance/fingerDistance;   //how much to scale
-
-    //scaling operation X = T(p)S(s)T(-p)
-    v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point
-
-    scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
-    m4_1.makeScale(s, s, s);  //S(s)
-    scaleMatrix.multiply(m4_1);
-    m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
-    scaleMatrix.multiply(m4_1);
-
-    //rotation operation    X = T(p)R(r)T(-p)
-    const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
-    if(Math.abs(event.rotation) > 0.05) {
-        enlightGizmosR(true);
+    if(state == STATE.TOUCH_MULTI) {
+        console.log('2FE move');
+        const center = event.center;    //middle point between fingers
+        v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement)); //center point between fingers 
+        const newDistance = calculateDistance(event.pointers[0], event.pointers[1]);
+        const s = newDistance/fingerDistance;   //how much to scale
+    
+        //scaling operation X = T(p)S(s)T(-p)
+        v3_1.set(v2_1.x, v2_1.y, 0);  //fingers middle point
+    
+        scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+        m4_1.makeScale(s, s, s);  //S(s)
+        scaleMatrix.multiply(m4_1);
+        m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
+        scaleMatrix.multiply(m4_1);
+    
+        //rotation operation    X = T(p)R(r)T(-p)
+        const r = (fingerRotation - event.rotation)*Math.PI/180; //angle in radians
+        if(Math.abs(event.rotation) > 0.05) {
+            enlightGizmosR(true);
+        }
+        else {
+            enlightGizmosR(false);
+        }
+    
+        rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+        v3_2.set(0, 0, 1);
+        m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
+        rotateMatrix.multiply(m4_1);
+        m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
+        rotateMatrix.multiply(m4_1);
+    
+        //rotate gizmos
+        const quat = new THREE.Quaternion();
+        quat.setFromAxisAngle(v3_2, r);
+        quat.multiply(quatState);
+        gizmosR.setRotationFromQuaternion(quat);
+    
+        //translation operation T(p)
+        v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+        currentCursorPosition.set(v2_1.x, v2_1.y, 0);
+        const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
+        v3_1.set(-distanceV.x, -distanceV.y, 0);
+        translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+    
+        //apply matrix  TRS
+        m4_1.copy(objMatrixState).premultiply(translateMatrix);
+        m4_1.premultiply(rotateMatrix);
+        m4_1.premultiply(scaleMatrix);
+        m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+        //obj.matrix.copy(m4_1);
+        renderer.render(scene, camera);
     }
     else {
-        enlightGizmosR(false);
+        //restart multitouch interaction
+        console.log('2FE move_restart');
+        const center = event.center;    //middle point between fingers
+        v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
+        startCursorPosition.set(v2_1.x, v2_1.y, 0);
+        fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
+        fingerRotation = event.rotation;
+        //objMatrixState.copy(obj.matrix);
+        updateTbState(STATE.TOUCH_MULTI, true);
+        quatState.copy(gizmosR.quaternion);
     }
-
-    rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
-    v3_2.set(0, 0, 1);
-    m4_1.makeRotationAxis(v3_2, r);  //R(rotation)
-    rotateMatrix.multiply(m4_1);
-    m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
-    rotateMatrix.multiply(m4_1);
-
-    //rotate gizmos
-    const quat = new THREE.Quaternion();
-    quat.setFromAxisAngle(v3_2, r);
-    quat.multiply(quatState);
-    gizmosR.setRotationFromQuaternion(quat);
-
-    //translation operation T(p)
-    v2_1.copy(getCursorPosition(center.x, center.y, renderer.domElement));
-    currentCursorPosition.set(v2_1.x, v2_1.y, 0);
-    const distanceV = startCursorPosition.clone().sub(currentCursorPosition);
-    v3_1.set(-distanceV.x, -distanceV.y, 0);
-    translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
-
-    //apply matrix  TRS
-    m4_1.copy(objMatrixState).premultiply(translateMatrix);
-    m4_1.premultiply(rotateMatrix);
-    m4_1.premultiply(scaleMatrix);
-    m4_1.decompose(obj.position, obj.quaternion, obj.scale);
-    //obj.matrix.copy(m4_1);
-    renderer.render(scene, camera);
 };
 
 function twoFingersEndListener(event) {
@@ -380,21 +504,19 @@ resizeRenderer(renderer);
 renderer.render(scene, camera);
 
 /**
- * Set the rotation gizmos illumination
- * @param {Boolean} isActive If true, enlight gizmos, otherwise turn them off
+ * Set the rotation gizmos
+ * @param {*} isActive 
  */
 function enlightGizmosR(isActive) {
     const gX = gizmosR.children[0];
     const gY = gizmosR.children[1];
     const gZ = gizmosR.children[2];
     if(isActive) {
-        console.log('true');
         gX.material.setValues({color: 0x00FF00});
         gY.material.setValues({color: 0xFF0000});
         gZ.material.setValues({color: 0x0000FF});
     }
     else {
-        console.log('false');
         gX.material.setValues({color: 0x008000});
         gY.material.setValues({color: 0x800000});
         gZ.material.setValues({color: 0x000080});
@@ -409,6 +531,19 @@ function enlightGizmosR(isActive) {
  */
 function calculateDistance(p0, p1) {
     return Math.sqrt(Math.pow(p1.clientX - p0.clientX, 2)+Math.pow(p1.clientY - p0.clientY, 2));
+};
+
+/**
+ * Calculate the instant speed as space/time
+ * @param {*} p0 Position at t0 
+ * @param {*} p1 Position at t1
+ * @param {*} t0 Initial time
+ * @param {*} t1 Ending time
+ */
+function calculateInstantSpeed(p0, p1, t0, t1) {
+    const s = p1-p0;
+    const t = t1-t0;
+    return s/t;
 };
 
 /**
@@ -437,16 +572,40 @@ function calculateRotationAxis(v3_1, v3_2) {
     return rotationAxis.crossVectors(v3_1, v3_2).normalize();
 };
 
-/**
- * Draw a grid on the canvas
- */
 function drawGrid() {
-    const size = renderer.domElement.getBoundingClientRect().width;
-    const divisions = canvas.getBoundingClientRect().width/50;
+    const canvasRect = renderer.domElement.getBoundingClientRect();
+    const size = Math.max(canvasRect.width, canvasRect.height)*3;
+    const divisions = size/50;
     grid = new THREE.GridHelper(size, divisions);
+    gridPosition.copy(grid.position);
     grid.rotateX(Math.PI/2);
-    //orientare la griglia
     scene.add(grid);
+
+
+    /*const canvasRect = renderer.domElement.getBoundingClientRect();
+    const points = [];
+    const l = canvasRect.width/20;
+
+    for(let i=-canvasRect.width; i<canvasRect.width; i+=l) {
+        for(let j=-canvasRect.height; j<canvasRect.height; j+=l) {
+
+            const v = new THREE.Vector3(i, j, 0);
+            points.push(v);
+        }
+    }
+    for(let j=-canvasRect.height; j<canvasRect.height; j+=l) {
+        for(let i=-canvasRect.width; i<canvasRect.width; i+=l) {
+
+            const v = new THREE.Vector3(i, j, 0);
+            points.push(v);
+        }
+    }
+    const gridGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    const gridMaterial = new THREE.LineBasicMaterial({color: 0xFFFFFF});
+    const line = new THREE.LineSegments(gridGeometry, gridMaterial);
+    scene.add(line);
+    obj.attach(line);*/
+    renderer.render(scene, camera);
 };
 
 /**
@@ -541,7 +700,86 @@ function loadObject(canvas, loader) {
     //group.add(cube);
     //group.add(obj);
     //return cube;
-}
+};
+
+/**
+ * Perform animation for detail operation
+ * @param {Number} time Instant when this function is called as performance.now()
+ */
+function onDetailAnim(time) {
+    if(timeStart == -1) {
+        //animation start
+        timeStart = time;
+        //aggiustare scale che non deve essere minore di 1
+    }
+    if(state == STATE.ANIMATION_DETAIL) {
+        const deltaTime = time - timeStart;
+        m4_1.copy(translateMatrix);
+        m4_2.copy(scaleMatrix);
+        if(deltaTime >= detailAnimTime) {
+            //animation end
+            m4_1.copy(objMatrixState).premultiply(translateMatrix);
+            m4_1.premultiply(scaleMatrix);
+            m4_1.decompose(obj.position, obj.quaternion, obj.scale);
+            timeStart = -1;
+            updateTbState(STATE.IDLE, false);
+            window.cancelAnimationFrame(onDetailAnim);
+            renderer.render(scene, camera); 
+        }
+        else {
+            const amount = deltaTime / detailAnimTime;
+            v3_1.setFromMatrixPosition(translateMatrix).multiplyScalar(amount);
+            v3_2.setFromMatrixScale(scaleMatrix).multiplyScalar(amount);
+            m4_1.makeTranslation(v3_1.x, v3_1.y, v3_1.z);
+            m4_2.copy(objMatrixState).premultiply(m4_1);
+            //m4_1.makeScale(v3_2.x, v3_2.y, v3_2.z);
+            //m4_2.premultiply(m4_1);
+            //m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
+            m4_2.decompose(obj.position, obj.quaternion, obj.scale);
+            renderer.render(scene, camera);
+            window.requestAnimationFrame(onDetailAnim);
+        }
+    }
+    else {
+        //interrupt animation
+        timeStart = -1;
+        window.cancelAnimationFrame(onDetailAnim);
+    }
+};
+
+/**
+ * Perform animation for rotation operation
+ */
+function onRotationAnim(time) {
+    if(timeStart == -1) {
+        //animation start
+        angle0 = 0
+        angle = 0;
+        timeStart = time;
+    }
+    if(state == STATE.ANIMATION_ROTATE) {
+        const deltaTime = (time - timeStart)/1000;
+        angle0 = angle;
+        angle = 0.5*acc*Math.pow(deltaTime, 2)+w0*deltaTime+0;
+        if(angle >= angle0) {
+            rotateObj(v3_1, angle);
+            renderer.render(scene, camera);
+            console.log("angle = "+angle);
+            window.requestAnimationFrame(onRotationAnim);
+        }
+        else {
+            timeStart = -1;
+            updateMatrixState(STATE.ANIMATION_ROTATE, false);
+            window.cancelAnimationFrame(onRotationAnim);
+        }
+
+    }
+    else {
+        //interrupt animation
+        timeStart = -1;
+        window.cancelAnimationFrame(onRotationAnim);
+    }
+};
 
 /**
  * Set renderer size to correctly match the size of the canvas where renderer is drawing into
@@ -563,7 +801,6 @@ function resizeRenderer(renderer) {
  * @param {number} rad Angle in radians
  */
 function rotateObj(axis, rad) {
-    console.log("rotating");
     let quat = new THREE.Quaternion();
     quat.setFromAxisAngle(axis, rad);
     rotateMatrix.makeRotationFromQuaternion(quat);
@@ -625,9 +862,24 @@ function updateMatrixState() {
     quatState.copy(gizmosR.quaternion);
 };
 
+/**
+ * Update the trackball FSA
+ * @param {STATE} newState New state of the FSA
+ * @param {Boolean} propagate If true, update matrices and counters
+ */
+function updateTbState(newState, propagate) {
+    state = newState;
+    if(propagate) {
+        updateMatrixState();
+    }
+};
+
 function applyTransform(translation, rotation, scale) {
     m4_1.copy(objMatrixState).premultiply(translation);
     m4_1.premultiply(rotation);
     m4_1.premultiply(scale);
     m4_1.decompose(obj.position, obj.quaternion, obj.scale);
-}
+};
+
+
+//problema con la distanza tra start e current, usare solo coordinate schermo invece che unproject sulla trackball?
