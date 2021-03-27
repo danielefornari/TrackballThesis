@@ -69,9 +69,9 @@ const currentCursorPosition = new THREE.Vector3();
 const startCursorPosition = new THREE.Vector3();
 
 //parameters
-let scaleFactor = 1.25;
-let acc = -24; //acceleration
-let vMax = 10;
+let scaleFactor = scaleSlider.value;
+let acc = accSlider.value*-1; //acceleration
+let vMax = angularSlider.value;
 
 
 let panKey = false; //if pan operation is being performed with keyboard button
@@ -741,7 +741,6 @@ function onRotationAnim(time) {
         if(angle >= angle0) {
             rotateObj(v3_1, angle);
             renderer.render(scene, camera);
-            console.log("angle = "+angle);
             window.requestAnimationFrame(onRotationAnim);
         }
         else {
