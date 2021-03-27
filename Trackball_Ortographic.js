@@ -7,6 +7,18 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 //import * as HAMMERJS from 'hammerjs';
 
 const canvas = document.getElementById("canvasO");
+const scaleSlider = document.getElementById("scaleSlider");
+const accSlider = document.getElementById("accSlider");
+const angularSlider = document.getElementById("angularSlider");
+scaleSlider.addEventListener('change', function scaleChangeListener() {
+    scaleFactor = scaleSlider.value;
+});
+accSlider.addEventListener('change', function accChangeListener() {
+    acc = accSlider.value*-1;
+});
+angularSlider.addEventListener('change', function angularChangeListener() {
+    vMax = angularSlider.value;
+})
 const loader = new OBJLoader();
 const renderer = new THREE.WebGLRenderer({canvas});
 const gizmosR = new THREE.Group();
@@ -18,7 +30,6 @@ const v3_2 = new THREE.Vector3();
 const m4_1 = new THREE.Matrix4();
 const m4_2 = new THREE.Matrix4();
 
-//trackball's state
 //trackball's state
 let STATE = {
     IDLE: "IDLE",
@@ -57,6 +68,12 @@ let fingerRotation = 0; //rotation thah has been done with two fingers
 const currentCursorPosition = new THREE.Vector3();
 const startCursorPosition = new THREE.Vector3();
 
+//parameters
+let scaleFactor = 1.25;
+let acc = -24; //acceleration
+let vMax = 10;
+
+
 let panKey = false; //if pan operation is being performed with keyboard button
 let panWheel = false;  //if pan operation is being performed with mouse wheel button
 let animateDetail = true;   //if detail operation should be animated
@@ -75,9 +92,7 @@ let t0 = 0; //time before rotation has been released
 let t = 0;  //time when rotation has been released
 let angle0 = 0; //angle before rotation has been released
 let angle = 0;  //angle when rotation has been released
-let acc = -24; //acceleration
 let w0;
-let theta0 = 0;
 
 
 //mouse/keyboard events
@@ -136,7 +151,6 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
     event.preventDefault();
     if(event.button == 0) {
         console.log('mouse_down');
-        //updateTbState(STATE.ROTATE, false);
     }
     else if(event.button == 1 && !panKey) {
         //panKey == true means that panning is already being performed using keyboard and will be handled by proper listener
@@ -145,6 +159,7 @@ canvas.addEventListener('mousedown', function mouseDownListener(event) {
         startCursorPosition.set(v2_1.x, v2_1.y, 0);
         panWheel = true;
         drawGrid();
+        renderer.render(scene, camera);
     }
 });
 canvas.addEventListener('wheel', function wheelListener(event) {
@@ -155,7 +170,6 @@ canvas.addEventListener('wheel', function wheelListener(event) {
     }
     console.log('wheel_scroll');
     const notchDeltaY = 125;    //distance of one notch on mouse wheel
-    const scaleFactor = 1.25;
     const sgn = event.deltaY/notchDeltaY;
     let s = 1;
     notchCounter += sgn;
@@ -344,7 +358,7 @@ manager.on('singlepanend', function singlePanEndListener(event) {
             currentCursorPosition.copy(unprojectOnTbSurface(getCursorPosition(center.x, center.y, renderer.domElement), tbRadius));
             //perform rotation animation
             v3_1.copy(calculateRotationAxis(startCursorPosition, currentCursorPosition));
-            w0 = (angle-angle0)/((t-t0)/1000);
+            w0 = Math.min((angle-angle0)/((t-t0)/1000), vMax);
             updateTbState(STATE.ANIMATION_ROTATE, true);
             window.requestAnimationFrame(onRotationAnim);
         }
@@ -367,8 +381,7 @@ manager.on('doubletap', function doubleTapListener(event) {
     const u = unprojectOnObj(v2_1, camera);
     if(u != null && animateDetail) {
         updateTbState(STATE.ANIMATION_DETAIL, true);
-        translateMatrix.makeTranslation(-u.x, -u.y, -u.z);
-        scaleMatrix.makeScale(1.25, 1.25, 1.25);
+        v3_1.copy(u).multiplyScalar(-1);
         window.requestAnimationFrame(onDetailAnim);
     }
     else if(u != null && !animateDetail) {
@@ -459,7 +472,6 @@ function twoFingersMoveListener(event) {
         startCursorPosition.set(v2_1.x, v2_1.y, 0);
         fingerDistance = calculateDistance(event.pointers[0], event.pointers[1]);
         fingerRotation = event.rotation;
-        //objMatrixState.copy(obj.matrix);
         updateTbState(STATE.TOUCH_MULTI, true);
         quatState.copy(gizmosR.quaternion);
     }
@@ -504,8 +516,8 @@ resizeRenderer(renderer);
 renderer.render(scene, camera);
 
 /**
- * Set the rotation gizmos
- * @param {*} isActive 
+ * Set the rotation gizmos illumination
+ * @param {Boolean} isActive If true, enlight gizmos, turn off otherwise
  */
 function enlightGizmosR(isActive) {
     const gX = gizmosR.children[0];
@@ -534,13 +546,13 @@ function calculateDistance(p0, p1) {
 };
 
 /**
- * Calculate the instant speed as space/time
+ * Calculate the angular speed
  * @param {*} p0 Position at t0 
  * @param {*} p1 Position at t1
  * @param {*} t0 Initial time
  * @param {*} t1 Ending time
  */
-function calculateInstantSpeed(p0, p1, t0, t1) {
+function calculateAngularSpeed(p0, p1, t0, t1) {
     const s = p1-p0;
     const t = t1-t0;
     return s/t;
@@ -572,6 +584,18 @@ function calculateRotationAxis(v3_1, v3_2) {
     return rotationAxis.crossVectors(v3_1, v3_2).normalize();
 };
 
+/**
+ * Compute the easing out cubic function for ease out effect in animation
+ * @param {Number} t The absolute progress of the animation in the bound of 0 (beginning of the) and 1 (ending of animation)
+ * @returns Result of easing out cubic at time t
+ */
+function easeOutCubic(t) {
+    //return 1-Math.pow(1-t, 3);
+    return Math.sqrt(1 - Math.pow(t - 1, 2));
+}
+
+
+//meglio addGrid?
 function drawGrid() {
     const canvasRect = renderer.domElement.getBoundingClientRect();
     const size = Math.max(canvasRect.width, canvasRect.height)*3;
@@ -580,32 +604,6 @@ function drawGrid() {
     gridPosition.copy(grid.position);
     grid.rotateX(Math.PI/2);
     scene.add(grid);
-
-
-    /*const canvasRect = renderer.domElement.getBoundingClientRect();
-    const points = [];
-    const l = canvasRect.width/20;
-
-    for(let i=-canvasRect.width; i<canvasRect.width; i+=l) {
-        for(let j=-canvasRect.height; j<canvasRect.height; j+=l) {
-
-            const v = new THREE.Vector3(i, j, 0);
-            points.push(v);
-        }
-    }
-    for(let j=-canvasRect.height; j<canvasRect.height; j+=l) {
-        for(let i=-canvasRect.width; i<canvasRect.width; i+=l) {
-
-            const v = new THREE.Vector3(i, j, 0);
-            points.push(v);
-        }
-    }
-    const gridGeometry = new THREE.BufferGeometry().setFromPoints(points);
-    const gridMaterial = new THREE.LineBasicMaterial({color: 0xFFFFFF});
-    const line = new THREE.LineSegments(gridGeometry, gridMaterial);
-    scene.add(line);
-    obj.attach(line);*/
-    renderer.render(scene, camera);
 };
 
 /**
@@ -673,33 +671,11 @@ function getCursorNDC(x, y, canvas) {
  */
 function loadObject(canvas, loader) {
     const canvasRect = canvas.getBoundingClientRect();
-
-    //test cube
-    const boxWidth = canvasRect.height/4;
-    const boxHeight = canvasRect.height/4;
-    const boxDepth = canvasRect.height/4;
-
-    //geometry
-    const boxGeometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-    //material
-    const boxMaterial = new THREE.MeshPhongMaterial({color: 0xC2C2C2});
-
-    //mesh
     loader.load('rocker_arm.obj', function(o) {
         obj = o;
         scene.add(o);
-        //group.add(o);
         objMatrixState.copy(o.matrix);
     });
-
-    //const cube = new THREE.Mesh(boxGeometry, boxMaterial);
-    //objMatrixState.copy(cube.matrix);
-    //objMatrixState.copy(obj.matrix);
-    //cube.matrixAutoUpdate = false;
-    //group.add(cube);
-    //group.add(obj);
-    //return cube;
 };
 
 /**
@@ -710,14 +686,16 @@ function onDetailAnim(time) {
     if(timeStart == -1) {
         //animation start
         timeStart = time;
-        //aggiustare scale che non deve essere minore di 1
     }
     if(state == STATE.ANIMATION_DETAIL) {
         const deltaTime = time - timeStart;
+        const animTime = deltaTime/detailAnimTime;
         m4_1.copy(translateMatrix);
         m4_2.copy(scaleMatrix);
-        if(deltaTime >= detailAnimTime) {
+        if(animTime >= 1) {
             //animation end
+            translateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);
+            scaleMatrix.makeScale(scaleFactor, scaleFactor, scaleFactor);
             m4_1.copy(objMatrixState).premultiply(translateMatrix);
             m4_1.premultiply(scaleMatrix);
             m4_1.decompose(obj.position, obj.quaternion, obj.scale);
@@ -727,15 +705,14 @@ function onDetailAnim(time) {
             renderer.render(scene, camera); 
         }
         else {
-            const amount = deltaTime / detailAnimTime;
-            v3_1.setFromMatrixPosition(translateMatrix).multiplyScalar(amount);
-            v3_2.setFromMatrixScale(scaleMatrix).multiplyScalar(amount);
-            m4_1.makeTranslation(v3_1.x, v3_1.y, v3_1.z);
-            m4_2.copy(objMatrixState).premultiply(m4_1);
-            //m4_1.makeScale(v3_2.x, v3_2.y, v3_2.z);
-            //m4_2.premultiply(m4_1);
-            //m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);
-            m4_2.decompose(obj.position, obj.quaternion, obj.scale);
+            const amount = easeOutCubic(animTime);
+            const s = ((1-amount)+(scaleFactor*amount));
+            v3_2.copy(v3_1).multiplyScalar(amount);
+            translateMatrix.makeTranslation(v3_2.x, v3_2.y, v3_2.z);
+            scaleMatrix.makeScale(s, s, s);
+            m4_1.copy(objMatrixState).premultiply(translateMatrix);
+            m4_1.premultiply(scaleMatrix);
+            m4_1.decompose(obj.position, obj.quaternion, obj.scale);
             renderer.render(scene, camera);
             window.requestAnimationFrame(onDetailAnim);
         }
