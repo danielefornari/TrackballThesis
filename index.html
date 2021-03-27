@@ -7,6 +7,21 @@
         <script type="module" src="Trackball.js"></script>
         <script type="module" src="Trackball_Ortographic.js"></script>
         <canvas id="canvasO"></canvas>
+        <div>
+            <input type="range" min="1.1" max="3" step="0.05" value="1.25" id="scaleSlider" oninput="scaleOutput.value = scaleSlider.value" onchange="">
+            <label>Scale:</label>
+            <output id="scaleOutput">1.25</output>
+        </div>
+        <div>
+            <input type="range" min="0" max="100" step="1" value="25" id="accSlider" oninput="accOutput.value = accSlider.value" onchange="">
+            <label for="deceleration">Deceleration:</label>
+            <output id="accOutput">25</output>
+        </div>
+        <div>
+            <input type="range" min="1", max="50" step="0.5" value="25" id="angularSlider" oninput="angularOutput.value = angularSlider.value" onchange="">
+            <label for="angularVelocity">Angular velocity:</label>
+            <output id="angularOutput">25</output>
+        </div>
         <canvas id="canvasP"></canvas>
         <style>
             html, body {
