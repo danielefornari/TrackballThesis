@@ -5,39 +5,64 @@
     </title>
     <body>
         <script type="module" src="Trackball.js"></script>
-        <script type="module" src="Trackball_Ortographic.js"></script>
-        <canvas id="canvasO"></canvas>
-        <div>
-            <input type="range" min="1.1" max="3" step="0.05" value="1.25" id="scaleSlider" oninput="scaleOutput.value = scaleSlider.value" onchange="">
-            <label>Scale:</label>
-            <output id="scaleOutput">1.25</output>
+        <div class="row">
+            <div class="column1">
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="column2">
+                <div>
+                    <input type="checkbox" id="animationCheckbox">
+                    <label>Enable animations</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="gridCheckbox">
+                    <label>Show grid</label>
+                </div>
+
+                <div>
+                    <input type="range" min="1.1" max="3" step="0.05" value="1.25" id="scaleSlider" oninput="scaleOutput.value = scaleSlider.value" onchange="">
+                    <label>Scale:</label>
+                    <output id="scaleOutput">1.25</output>
+                </div>
+
+                <div>
+                    <input type="range" min="0" max="100" step="1" value="25" id="accSlider" oninput="accOutput.value = accSlider.value" onchange="">
+                    <label for="deceleration">Deceleration:</label>
+                    <output id="accOutput">25</output>
+                </div>
+                
+                <div>
+                    <input type="range" min="1", max="50" step="1" value="20" id="angularSlider" oninput="angularOutput.value = angularSlider.value" onchange="">
+                    <label for="angularVelocity">Angular velocity:</label>
+                    <output id="angularOutput">20</output>
+                </div>
+
+                <div>
+                    <button type="button" id="cameraButton">camera</button>
+                </div>
+            </div>
         </div>
-        <div>
-            <input type="range" min="0" max="100" step="1" value="25" id="accSlider" oninput="accOutput.value = accSlider.value" onchange="">
-            <label for="deceleration">Deceleration:</label>
-            <output id="accOutput">25</output>
-        </div>
-        <div>
-            <input type="range" min="1", max="50" step="1" value="20" id="angularSlider" oninput="angularOutput.value = angularSlider.value" onchange="">
-            <label for="angularVelocity">Angular velocity:</label>
-            <output id="angularOutput">20</output>
-        </div>
-        <canvas id="canvasP"></canvas>
         <style>
             html, body {
                 margin: 0%;
                 padding: 0%;
                 height: 100%;
+                width: 100%;
+            }
+            canvas {
+                width: 100%;
+            }
+            .row {
+                display: flex;
+            }
+            .column1 {
+               flex: 80%;
+            }
+            .column2 {
+                flex: 20%;
             }
 
-            canvas {
-                width: 90%;
-                display: block;
-            }
         </style>
-        <p id="rotationAxisParagraph"></p>
-        <p id="cursor1Paragraph"></p>
-        <p id="cursor2Paragraph"></p>
-        <p id="unprojectionParagraph"></p>
     </body>
 </head>
