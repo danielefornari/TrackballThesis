@@ -447,7 +447,7 @@ manager.on('doubletap', function doubleTapListener(event) {
     }
     else if(hitP != null && !animateDetail) {
         updateMatrixState();
-        translateMatrix.makeTranslation(-hitP.x, -hitP.y, -hitP.x);
+        translateMatrix.makeTranslation(-hitP.x, -hitP.y, -hitP.z);
         scaleMatrix.makeScale(scaleFactor, scaleFactor, scaleFactor);
         m4_1.copy(objMatrixState).premultiply(translateMatrix);
         m4_1.premultiply(scaleMatrix);
