@@ -650,13 +650,11 @@ function makeGizmos(tbCenter, tbRadius) {
     const gY = gizmosR.children[1];
     const gZ = gizmosR.children[2];
     if(isActive) {
-        console.log('true');
         gX.material.setValues({color: 0x00FF00});
         gY.material.setValues({color: 0xFF0000});
         gZ.material.setValues({color: 0x0000FF});
     }
     else {
-        console.log('false');
         gX.material.setValues({color: 0x008000});
         gY.material.setValues({color: 0x800000});
         gZ.material.setValues({color: 0x000080});
