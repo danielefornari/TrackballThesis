@@ -731,7 +731,7 @@ class Arcball extends THREE.EventDispatcher{
             else {
                 const amount = this.easeOutCubic(animTime);
                 const s = ((1-amount)+(this.scaleFactor*amount));
-                this._v3_2.copy(this._v3_1).multiplyScalar(amount);
+                this._v3_2.copy(this._v3_3).multiplyScalar(amount);
                 this._translateMatrix.makeTranslation(this._v3_2.x, this._v3_2.y, this._v3_2.z);
                 this._scaleMatrix.makeScale(s, s, s);
                 this._m4_1.copy(this._objMatrixState).premultiply(this._translateMatrix);
