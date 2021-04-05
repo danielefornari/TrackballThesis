@@ -146,6 +146,7 @@ class Arcball extends THREE.EventDispatcher{
         this._tbRadius = this.calculateRadius(this._radiusScaleFactor, canvas);
     };
 
+    //listener for mouse left and wheel button
     onMouseDown = (event) => {
         if(event.button == 0) {
             console.log('mouse_down');
@@ -330,7 +331,7 @@ class Arcball extends THREE.EventDispatcher{
                 this.updateTbState(STATE.IDLE, false);
                 document.removeEventListener('mousemove', this.onMouseMove);
                 //document.removeEventListener('mouseup', this.onMouseUp);
-                if(this.enableGrid && !(event.ctrlKey || event.metaKey)) {
+                if(this.enableGrid) {
                     scene.remove(this.grid);
                     this.dispatchEvent(this._changeEvent);
                 }
@@ -340,10 +341,10 @@ class Arcball extends THREE.EventDispatcher{
 
     onWheel = (event) => {
         event.preventDefault();
-        /*if(this._state != STATE.IDLE) {
+        if(this._state != STATE.IDLE) {
             this._prevState = this._state;
-        }*/
-        this._prevState = this._state;
+        }
+        //this._prevState = this._state;
 
         this.updateTbState(STATE.SCALE, true);
         console.log('wheel_scroll');
@@ -448,9 +449,6 @@ class Arcball extends THREE.EventDispatcher{
 
     onDoubleTap = (event) => {
         console.log('double_tap');
-        if(event.pointerType != 'mouse') {
-            event.srcEvent.stopPropagation();
-        }
         const center = event.center;
         const hitP = this.unprojectOnObj(this.getCursorNDC(center.x, center.y, this.canvas), this.camera);
         if(hitP != null && this.enableAnimations) {
