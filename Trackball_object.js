@@ -476,7 +476,7 @@ class Arcball extends THREE.EventDispatcher{
             console.log('2FE start');
 
             //enable 2 pointers listeners
-            this._manager.on("doublepanmove pinchmove, rotatemove", this.onDoublePanMove);
+            this._manager.on("doublepanmove pinchmove rotatemove", this.onDoublePanMove);
             this._manager.on("doublepanend pinchend rotateend", this.onDoublePanEnd);
 
             const center = event.center;    //middle point between fingers
