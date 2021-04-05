@@ -431,7 +431,7 @@ class Arcball extends THREE.EventDispatcher{
         if(this.animateRotation) {
             this._t0 = this._t;
             this._t = performance.now();
-            this._angle0 = angle;
+            this._angle0 = this._angle;
             this._angle = amount;
         }
         this.dispatchEvent(this._changeEvent);
