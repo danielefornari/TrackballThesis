@@ -516,7 +516,7 @@ class Arcball extends THREE.EventDispatcher{
         //rotate gizmos
         const quat = new THREE.Quaternion();
         quat.setFromAxisAngle(this._v3_2, r);
-        quat.multiply(quatState);
+        quat.multiply(this._quatState);
         this._gizmos.setRotationFromQuaternion(quat);
         
         //translation operation T(p)
