@@ -481,7 +481,7 @@ class Arcball extends THREE.EventDispatcher{
             this._fingerDistance = this.calculateDistance(event.pointers[0], event.pointers[1]);
             this._fingerRotation = event.rotation;
             this.updateTbState(STATE.TOUCH_MULTI, true);
-            this._quatState.copy(gizmos.quaternion);
+            this._quatState.copy(this._gizmos.quaternion);
         }
     };
 
