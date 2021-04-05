@@ -397,7 +397,7 @@ class Arcball extends THREE.EventDispatcher{
             console.log("singlepanstart");
             const center = event.center;
 
-            this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, event.clientX, event.clientY, this.canvas, this._tbRadius));
+            this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, center.x, center.y, this.canvas, this._tbRadius));
             this.updateTbState(STATE.ROTATE, true);
             this.enlightGizmosR(true);
 
@@ -477,7 +477,7 @@ class Arcball extends THREE.EventDispatcher{
             this._manager.on('doublepanend pinchend rotateend', this.onDoublePanEnd);
 
             const center = event.center;    //middle point between fingers
-            this.startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
+            this._startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
             this._fingerDistance = this.calculateDistance(event.pointers[0], event.pointers[1]);
             this._fingerRotation = event.rotation;
             this.updateTbState(STATE.TOUCH_MULTI, true);
