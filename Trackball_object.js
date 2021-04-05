@@ -495,15 +495,15 @@ class Arcball extends THREE.EventDispatcher{
         //scaling operation X = T(p)S(s)T(-p)
         this._v3_1.set(p.x, p.y, 0);  //fingers middle point
         
-        this._scaleMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+        this._scaleMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);   //T(v3_1)
         this._m4_1.makeScale(s, s, s);  //S(s)
-        this._scaleMatrix.multiply(m4_1);
-        this._m4_1.makeTranslation(-v3_1.x, -v3_1.y, -v3_1.z);    //T(-v3_1)
-        this._scaleMatrix.multiply(m4_1);
+        this._scaleMatrix.multiply(this._m4_1);
+        this._m4_1.makeTranslation(-this._v3_1.x, -this._v3_1.y, -this._v3_1.z);    //T(-v3_1)
+        this._scaleMatrix.multiply(this._m4_1);
         
         //rotation operation    X = T(p)R(r)T(-p)
         const r = (this._fingerRotation - event.rotation)*Math.PI/180; //angle in radians  
-        this._rotateMatrix.makeTranslation(v3_1.x, v3_1.y, v3_1.z);   //T(v3_1)
+        this._rotateMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);   //T(v3_1)
         this._v3_2.set(0, 0, 1);
         this._m4_1.makeRotationAxis(this._v3_2, r);  //R(rotation)
         this._rotateMatrix.multiply(this._m4_1);
