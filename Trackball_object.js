@@ -428,7 +428,7 @@ class Arcball extends THREE.EventDispatcher{
         const amount = Math.max(distance/this._tbRadius, angle);
         this._rotationAxis.copy(this.calculateRotationAxis(this._startCursorPosition, this._currentCursorPosition));
         this.rotateObj(this._rotationAxis, amount);
-        if(this.animateRotation) {
+        if(this.enableAnimations) {
             this._t0 = this._t;
             this._t = performance.now();
             this._angle0 = this._angle;
