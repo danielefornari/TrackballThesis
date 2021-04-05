@@ -290,7 +290,7 @@ class Arcball extends THREE.EventDispatcher{
                         //perform rotation animation
                         this._rotationAxis.copy(this.calculateRotationAxis(this._startCursorPosition, this._currentCursorPosition));
                         this._w0 = Math.min(this.calculateAngularSpeed(this._angle0, this._angle, this._t0, this._t), this.vMax);
-                        this.updateTbState(STATE.ANIMATION_ROTATE, true);
+                        //this.updateTbState(STATE.ANIMATION_ROTATE, true);
                         window.requestAnimationFrame(this.onRotationAnim);
                     }
                     else {
@@ -452,7 +452,7 @@ class Arcball extends THREE.EventDispatcher{
         const center = event.center;
         const hitP = this.unprojectOnObj(this.getCursorNDC(center.x, center.y, this.canvas), this.camera);
         if(hitP != null && this.enableAnimations) {
-            this.updateTbState(STATE.ANIMATION_DETAIL, true);
+            //this.updateTbState(STATE.ANIMATION_DETAIL, true);
             this._v3_1.copy(hitP).multiplyScalar(-1);
             window.requestAnimationFrame(this.onDetailAnim);
         }
@@ -704,6 +704,7 @@ class Arcball extends THREE.EventDispatcher{
         if(this._timeStart == -1) {
             //animation start
             this._timeStart = time;
+            this.updateTbState(STATE.ANIMATION_DETAIL, true);
         }
         if(this._state == STATE.ANIMATION_DETAIL) {
             const deltaTime = time - this._timeStart;
@@ -755,6 +756,7 @@ class Arcball extends THREE.EventDispatcher{
             this._angle0 = 0
             this._angle = 0;
             this._timeStart = time;
+            this.updateTbState(STATE.ANIMATION_ROTATE, true);
         }
         if(this._state == STATE.ANIMATION_ROTATE) {
             const deltaTime = (time - this._timeStart)/1000;
