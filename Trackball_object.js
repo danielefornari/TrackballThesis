@@ -41,7 +41,6 @@ class Arcball extends THREE.EventDispatcher{
         this._v2_1 = new THREE.Vector2();
         this._v3_1 = new THREE.Vector3();
         this._v3_2 = new THREE.Vector3();
-        this._v3_3 = new THREE.Vector3();
         this._m4_1 = new THREE.Matrix4();
         this._m4_2 = new THREE.Matrix4();
 
@@ -456,7 +455,7 @@ class Arcball extends THREE.EventDispatcher{
         const hitP = this.unprojectOnObj(this.getCursorNDC(center.x, center.y, this.canvas), this.camera);
         if(hitP != null && this.enableAnimations) {
             //this.updateTbState(STATE.ANIMATION_DETAIL, true);
-            this._v3_3.copy(hitP).multiplyScalar(-1);
+            this._v3_1.copy(hitP).multiplyScalar(-1);
             window.requestAnimationFrame(this.onDetailAnim);
         }
         else if(hitP != null && !this.enableAnimations) {
@@ -716,7 +715,7 @@ class Arcball extends THREE.EventDispatcher{
             this._m4_2.copy(this._scaleMatrix);
             if(animTime >= 1) {
                 //animation end
-                this._translateMatrix.makeTranslation(this._v3_3.x, this._v3_3.y, this._v3_3.z);
+                this._translateMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);
                 this._scaleMatrix.makeScale(this.scaleFactor, this.scaleFactor, this.scaleFactor);
                 this._m4_1.copy(this._objMatrixState).premultiply(this._translateMatrix);
                 this._m4_1.premultiply(this._scaleMatrix);
@@ -731,7 +730,7 @@ class Arcball extends THREE.EventDispatcher{
             else {
                 const amount = this.easeOutCubic(animTime);
                 const s = ((1-amount)+(this.scaleFactor*amount));
-                this._v3_2.copy(this._v3_3).multiplyScalar(amount);
+                this._v3_2.copy(this._v3_1).multiplyScalar(amount);
                 this._translateMatrix.makeTranslation(this._v3_2.x, this._v3_2.y, this._v3_2.z);
                 this._scaleMatrix.makeScale(s, s, s);
                 this._m4_1.copy(this._objMatrixState).premultiply(this._translateMatrix);
