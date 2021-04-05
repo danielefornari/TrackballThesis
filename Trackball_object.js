@@ -521,8 +521,8 @@ class Arcball extends THREE.EventDispatcher{
         
         //translation operation T(p)
         this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
-        const distance = this._startCursorPosition.distanceTo(this._currentCursorPosition);
-        this._v3_1.set(-distance.x, -distance.y, 0);
+        const distanceV = this._startCursorPosition.clone().sub(this._currentCursorPosition);
+        this._v3_1.set(-distanceV.x, -distanceV.y, 0);
         this._translateMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);   //T(v3_1)
         
         //apply matrix  TRS
