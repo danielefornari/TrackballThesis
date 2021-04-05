@@ -250,7 +250,7 @@ class Arcball extends THREE.EventDispatcher{
             }
             this.dispatchEvent(this._changeEvent);
         }
-        else {
+        else if(this._state == STATE.IDLE) {
             //operation interrupted while moving mouse
             //update state and resume last operation
             this._state = this._prevState;
@@ -437,10 +437,12 @@ class Arcball extends THREE.EventDispatcher{
     };
 
     onSinglePanEnd = (event) => {
+        console.log('singlepanend');
         this._manager.off('singlepanmove', this.onSinglePanMove);
         this._manager.off('singlepanend', this.onSinglePanEnd);
         if(this.enableAnimations) {
             this._w0 = Math.min(this.calculateAngularSpeed(this._angle0, this._angle, this._t0, this._t), this.vMax);
+            window.requestAnimationFrame(this.onRotationAnim);
         }
         else {
             this.updateTbState(STATE.IDLE, false);
