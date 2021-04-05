@@ -449,7 +449,7 @@ class Arcball extends THREE.EventDispatcher{
     onDoubleTap = (event) => {
         console.log('double_tap');
         if(event.pointerType != 'mouse') {
-            event.srcEvent.stopPropagating();
+            event.srcEvent.stopPropagation();
         }
         const center = event.center;
         const hitP = this.unprojectOnObj(this.getCursorNDC(center.x, center.y, this.canvas), this.camera);
