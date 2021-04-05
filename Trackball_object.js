@@ -404,8 +404,8 @@ class Arcball extends THREE.EventDispatcher{
             this.enlightGizmosR(true);
 
             if(this.enableAnimations) {
-                this._t0 = this.t;
-                this._t = performance.now();
+                this._t0 = performance.now();
+                this._t = this._t0;
                 this._angle0 = 0;
                 this._angle = 0;
             }
