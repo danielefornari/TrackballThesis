@@ -476,8 +476,8 @@ class Arcball extends THREE.EventDispatcher{
             console.log('2FE start');
 
             //enable 2 pointers listeners
-            this._manager.on('doublepanmove pinchmove, rotatemove', this.onDoublePanMove);
-            this._manager.on('doublepanend pinchend rotateend', this.onDoublePanEnd);
+            this._manager.on("doublepanmove pinchmove, rotatemove", this.onDoublePanMove);
+            this._manager.on("doublepanend pinchend rotateend", this.onDoublePanEnd);
 
             const center = event.center;    //middle point between fingers
             this._startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
@@ -537,8 +537,8 @@ class Arcball extends THREE.EventDispatcher{
 
     onDoublePanEnd = (event) => {
         //disable 2 pointers listeners
-        this._manager.off('doublepanmove pinchmove rotatemove', this.onDoublePanMove);
-        this._manager.off('doublepanend pinchend rotateend', this.onDoublePanEnd); 
+        this._manager.off("doublepanmove pinchmove rotatemove", this.onDoublePanMove);
+        this._manager.off("doublepanend pinchend rotateend", this.onDoublePanEnd); 
     };
 
 
