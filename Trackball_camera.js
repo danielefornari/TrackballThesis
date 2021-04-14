@@ -1,8 +1,8 @@
-//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
-import * as THREE from './node_modules/three/src/Three.js';
+//import * as THREE from './node_modules/three/src/Three.js';
 //import {Arcball} from './Arcball_object';
 //import * as HAMMERJS from 'hammerjs';
 
