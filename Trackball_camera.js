@@ -524,8 +524,8 @@ class Arcball extends THREE.EventDispatcher{
         
         //pan operation
         this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
-        const pan = this.pan(this._startCursorPosition, this._currentCursorPosition)
-        this.applyTransformMatrix(pan);
+        //const pan = this.pan(this._startCursorPosition, this._currentCursorPosition)
+        //this.applyTransformMatrix(pan);
 
         //scaling operation
         const scale = this.scale(s, scalePoint);
@@ -1168,8 +1168,9 @@ scene.add(camera);
 const lightColor = 0xFFFFFF;
 const lightIntensity = 1;
 const light = new THREE.DirectionalLight(lightColor, lightIntensity);
-light.position.set(-1, 2, 4);
 camera.add(light);
+light.position.set(0, 0, 0);
+
 
 const loader = new OBJLoader();
 loader.load('rocker_arm.obj', onLoad); 
