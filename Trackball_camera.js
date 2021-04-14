@@ -524,12 +524,12 @@ class Arcball extends THREE.EventDispatcher{
         
         //pan operation
         this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
-        //const pan = this.pan(this._startCursorPosition, this._currentCursorPosition)
-        //this.applyTransformMatrix(pan);
+        const pan = this.pan(this._startCursorPosition, this._currentCursorPosition)
+        this.applyTransformMatrix(pan);
 
         //scaling operation
-        const scale = this.scale(s, scalePoint);
-        this.applyTransformMatrix(scale);
+        //const scale = this.scale(s, scalePoint);
+        //this.applyTransformMatrix(scale);
 
         /*const transform = {
             camera: pan.camera.premultiply(scale.camera),
