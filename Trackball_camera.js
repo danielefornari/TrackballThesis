@@ -1,8 +1,8 @@
-import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
-//import * as THREE from './node_modules/three/src/Three.js';
+import * as THREE from './node_modules/three/src/Three.js';
 //import {Arcball} from './Arcball_object';
 //import * as HAMMERJS from 'hammerjs';
 
@@ -36,7 +36,6 @@ class Arcball extends THREE.EventDispatcher{
         this._v2_1 = new THREE.Vector2();
         this._v3_1 = new THREE.Vector3();
         this._v3_2 = new THREE.Vector3();
-        this._v3_3 = new THREE.Vector3();
         this._m4_1 = new THREE.Matrix4();
         this._m4_2 = new THREE.Matrix4();
 
@@ -53,7 +52,7 @@ class Arcball extends THREE.EventDispatcher{
 
 
         //object's state
-        this._objMatrixState = this.camera.matrix.clone(); //object's matrix state
+        this._cameraMatrixState = this.camera.matrix.clone(); //object's matrix state
         this._cameraProjectionState = this.camera.projectionMatrix.clone();   //camera's unprojection matrix state
         this._quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 
@@ -63,7 +62,9 @@ class Arcball extends THREE.EventDispatcher{
     
 
         //initial states for reset
-        this.gizmoMatrixState0 = new THREE.Matrix4();
+        this.zoom0 = 1;
+        this._cameraMatrixState0 = this.camera.matrix.clone();
+        this._gizmoMatrixState0 = new THREE.Matrix4();
 
 
         //double fingers touch interaction only
@@ -122,7 +123,7 @@ class Arcball extends THREE.EventDispatcher{
 
 
         //touch gestures
-        this._manager = new Hammer.Manager(canvas);
+        this._manager = new Hammer.Manager(this.canvas);
 
         this._singlePan = new Hammer.Pan({event: 'singlepan', pointers: 1, threshold: 0, direction: Hammer.DIRECTION_ALL});
         this._doublePan = new Hammer.Pan({event: 'doublepan', pointers: 2, threshold: 0, direction: Hammer.DIRECTION_ALL});
@@ -150,11 +151,17 @@ class Arcball extends THREE.EventDispatcher{
 
         this.makeGizmos(this._tbCenter, this._tbRadius);
         this.camera.parent.add(this._gizmos);
+        this.zoom0 =  this.camera.zoom;
         this._gizmoMatrixState.copy(this._gizmos.matrix);
-        this.gizmoMatrixState0.copy(this._gizmos.matrix);
-        
-        //this.drawGrid();
-        //this.dispatchEvent(this._changeEvent)
+        this._gizmoMatrixState0.copy(this._gizmos.matrix);
+
+
+        //dummy
+        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        const material = new THREE.MeshBasicMaterial({color: 0x00FF00});
+        const cube = new THREE.Mesh(geometry, material);
+        this.camera.add(cube);
+        cube.position.copy(this.camera.position);
     };
 
     onCanvasResize = () => {
@@ -391,7 +398,7 @@ class Arcball extends THREE.EventDispatcher{
         else if(this._notchCounter < 0) {
             s = 1/(Math.pow(this.scaleFactor, -this._notchCounter));
         }
-        this.applyTransformMatrix(this.scale(s, new THREE.Vector3(0, 0, 0)));
+        this.applyTransformMatrix(this.scale(s, this._gizmos.position));
 
         this.dispatchEvent(this._changeEvent);
         this.updateTbState(STATE.IDLE, false);
@@ -477,7 +484,7 @@ class Arcball extends THREE.EventDispatcher{
             const self = this;
             window.requestAnimationFrame(function(t) {
                 self.updateTbState(STATE.ANIMATION_DETAIL, true);
-                self.onDetailAnim(t, hitP, self._objMatrixState, self._gizmoMatrixState);
+                self.onDetailAnim(t, hitP, self._cameraMatrixState, self._gizmoMatrixState);
             });
         }
         else if(hitP != null && !this.enableAnimations) {
@@ -515,21 +522,29 @@ class Arcball extends THREE.EventDispatcher{
         //const d1 = new THREE.Vector3(this.camera.position.x, this.camera.position.y, 0);
         //const d2 = new THREE.Vector3(p.x, p.y, 0).applyQuaternion(this.camera.quaternion);
 
-        const onCanvas = this.getCursorOnCanvas(center.x, center.y, this.canvas);
-        const scalePoint = new THREE.Vector3(onCanvas.x, onCanvas.y, 0);
+        const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
 
         //rotation operation
         //const rotate = this.rotateObj()
 
-        
+
         //pan operation
-        this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
-        const pan = this.pan(this._startCursorPosition, this._currentCursorPosition)
-        this.applyTransformMatrix(pan);
+        //this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
+        //const pan = this.pan(this._startCursorPosition, this._currentCursorPosition);
+        //this.applyTransformMatrix(pan);
 
         //scaling operation
-        //const scale = this.scale(s, scalePoint);
-        //this.applyTransformMatrix(scale);
+        this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
+
+
+        const scale = this.scale(s, scalePoint);
+        this.applyTransformMatrix(scale);
+        this.dispatchEvent(this._changeEvent);
+
+
+
+
+
 
         /*const transform = {
             camera: pan.camera.premultiply(scale.camera),
@@ -538,46 +553,6 @@ class Arcball extends THREE.EventDispatcher{
 
         //this.applyTransformMatrix(transform);
 
-
-        /*
-        //scaling operation X = T(p)S(s)T(-p)
-        this._v3_1.set(p.x, p.y, 0);  //fingers middle point
-        
-        this._scaleMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);   //T(v3_1)
-        this._m4_1.makeScale(s, s, s);  //S(s)
-        this._scaleMatrix.multiply(this._m4_1);
-        this._m4_1.makeTranslation(-this._v3_1.x, -this._v3_1.y, -this._v3_1.z);    //T(-v3_1)
-        this._scaleMatrix.multiply(this._m4_1);
-        
-        //rotation operation    X = T(p)R(r)T(-p)
-        const r = (this._fingerRotation - event.rotation)*Math.PI/180; //angle in radians  
-        this._rotateMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);   //T(v3_1)
-        this._v3_2.set(0, 0, 1);
-        this._m4_1.makeRotationAxis(this._v3_2, r);  //R(rotation)
-        this._rotateMatrix.multiply(this._m4_1);
-        this._m4_1.makeTranslation(-this._v3_1.x, -this._v3_1.y, -this._v3_1.z);    //T(-v3_1)
-        this._rotateMatrix.multiply(this._m4_1);
-        
-        //rotate gizmos
-        const quat = new THREE.Quaternion();
-        quat.setFromAxisAngle(this._v3_2, r);
-        quat.multiply(this._quatState);
-        this._gizmos.setRotationFromQuaternion(quat);
-        
-        //translation operation T(p)
-        this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
-        const distanceV = this._startCursorPosition.clone().sub(this._currentCursorPosition);
-        this._v3_1.set(-distanceV.x, -distanceV.y, 0);
-        this._translateMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);   //T(v3_1)
-        
-        //apply matrix  TRS
-        this._m4_1.copy(this._objMatrixState).premultiply(this._translateMatrix);
-        this._m4_1.premultiply(this._rotateMatrix);
-        this._m4_1.premultiply(this._scaleMatrix);
-        this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
-        //this.camera.matrix.copy(this._m4_1);*/
-
-        this.dispatchEvent(this._changeEvent);
     };
 
     onDoublePanEnd = (event) => {
@@ -595,11 +570,11 @@ class Arcball extends THREE.EventDispatcher{
     applyTransformMatrix(transformation) {
         if(transformation.camera != undefined) {
             transformation.camera.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
-            //this.camera.updateMatrix();
+            this.camera.updateMatrix();
         }
         if(transformation.gizmo != undefined) {
             transformation.gizmo.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
-            //this._gizmos.updateMatrix();
+            this._gizmos.updateMatrix();
         }
     };
 
@@ -654,7 +629,7 @@ class Arcball extends THREE.EventDispatcher{
     calculateRotationAxis = (vec1, vec2) => {
         const m = new THREE.Matrix4();
         const q = new THREE.Quaternion();
-        m.extractRotation(this._objMatrixState);
+        m.extractRotation(this._cameraMatrixState);
         q.setFromRotationMatrix(m);
         //return this._rotationAxis.crossVectors(vec1, vec2).applyQuaternion(m).normalize();
         this._rotationAxis.crossVectors(vec1, vec2);
@@ -664,26 +639,38 @@ class Arcball extends THREE.EventDispatcher{
 
     /**
      * Detail operation consist of positioning the point of interest in front of the camera and slightly zoom the whole model
-     * @param {THREE.Vector3} h The point of interest 
+     * @param {THREE.Vector3} p The point of interest 
      * @param {Number} s Scale factor
      */
-    detail = (h, s, amount = 1) => {
+    detail = (p, s, amount = 1) => {
         console.log('detail');
-        const hitP = h.clone();
-        hitP.sub(this.camera.position);
-        const position = this._position0.clone().applyQuaternion(this.camera.quaternion);
-        position.multiplyScalar(amount); //per anim
-        hitP.add(position);
+        const hitP = p.clone();
 
+        //move center of camera (with gizmos) towards point of interest
+        hitP.sub(this._gizmos.position).multiplyScalar(amount);
         this._translateMatrix.makeTranslation(hitP.x, hitP.y, hitP.z);
 
+        const gizmoStateTemp = this._gizmoMatrixState.clone();
         this._gizmoMatrixState.premultiply(this._translateMatrix);
+        this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale)
 
-        this._m4_1.copy(this._objMatrixState).premultiply(this._translateMatrix);
-        this.applyTransformMatrix({camera: this._m4_1.clone()});
+
+        const cameraStateTemp = this._cameraMatrixState.clone();
+        this._cameraMatrixState.premultiply(this._translateMatrix);
+
+
+        //this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
+        //this.applyTransformMatrix({camera: this._m4_1.clone()});
         //this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
- 
-        this.applyTransformMatrix(this.scale(s, new THREE.Vector3(0, 0, 0)));
+
+        this.applyTransformMatrix(this.scale(s, this._gizmos.position));
+
+        console.log(this._gizmos.position);
+
+        this._gizmoMatrixState.copy(gizmoStateTemp);
+        this._cameraMatrixState.copy(cameraStateTemp);
+        //this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale)
+
     };
 
     /**
@@ -809,7 +796,9 @@ class Arcball extends THREE.EventDispatcher{
 
             if(animTime >= 1) {
                 //animation end
-                cameraState.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+                //cameraState.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+                this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
+
                 this.detail(hitP, this.scaleFactor);
 
                 this._timeStart = -1;
@@ -823,12 +812,15 @@ class Arcball extends THREE.EventDispatcher{
                 const amount = this.easeOutCubic(animTime);
                 const s = ((1-amount)+(this.scaleFactor*amount));
 
-                cameraState.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+                //cameraState.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
 
-                const start = camera.position.clone();
-                const fraction = camera.position.clone().sub(hitP.clone()).multiplyScalar(amount);
+                //const start = new THREE.Vector3().setFromMatrixPosition(this._camerastate);
+
+                //const start = camera.position.clone();
+                //const fraction = camera.position.clone().sub(hitP.clone()).multiplyScalar(amount);
   
-                this.detail(start.sub(fraction), s, amount);
+                this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
+                this.detail(hitP, s, amount);
 
                 this.dispatchEvent(this._changeEvent);
                 const self = this;
@@ -900,10 +892,23 @@ class Arcball extends THREE.EventDispatcher{
         this._m4_1.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
         //this._m4_1.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
     
-        this._m4_2.copy(this._objMatrixState).premultiply(this._translateMatrix);
+        this._m4_2.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
         //this._m4_2.premultiply(this._scaleMatrix);
         return {camera: this._m4_2.clone(), gizmo: this._m4_1.clone()};
         //this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+    };
+
+    /**
+     * Reset trackball state
+     */
+    reset = () => {
+        this.camera.zoom = this.zoom0;
+        this.camera.updateProjectionMatrix();
+        this._cameraMatrixState.copy(this._cameraMatrixState0);
+        this._gizmoMatrixState.copy(this._gizmoMatrixState0);
+        this.applyTransformMatrix({camera: this._cameraMatrixState, gizmo: this._gizmoMatrixState});
+        this.dispatchEvent(this._changeEvent);
+        
     };
 
     /**
@@ -918,7 +923,7 @@ class Arcball extends THREE.EventDispatcher{
         quat.multiply(this._quatState);
 
         this._translateMatrix.makeTranslation(-this._gizmos.position.x, -this._gizmos.position.y, -this._gizmos.position.z);
-        this._m4_1.copy(this._objMatrixState).premultiply(this._translateMatrix);
+        this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
         this._m4_1.premultiply(this._rotateMatrix);
         this._translateMatrix.makeTranslation(this._gizmos.position.x, this._gizmos.position.y, this._gizmos.position.z);
         this._m4_1.premultiply(this._translateMatrix);
@@ -941,29 +946,28 @@ class Arcball extends THREE.EventDispatcher{
             this.camera.zoom *= s;
             this.camera.updateProjectionMatrix();
 
-            console.log(s);
-            console.log(this.camera.zoom);
+            const scalePoint = p.clone();
+            console.log(scalePoint);
 
-            p.applyQuaternion(this.camera.quaternion);
+            scalePoint.sub(this._gizmos.position);
 
-            //this.camera.projectionMatrix.copy(this._m4_1);
-            //this.camera.projectionMatrixInverse.copy(this.camera.projectionMatrix).invert();
 
             //move camera to the scale point
-            this._translateMatrix.makeTranslation(p.x, p.y, 0);
-            this._m4_1.copy(this._objMatrixState).premultiply(this._translateMatrix);
+            this._translateMatrix.makeTranslation(scalePoint.x, scalePoint.y, scalePoint.z);
+            this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
 
             //move gizmos along with camera
             this._m4_2.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
 
-            const t = new THREE.Vector3().setFromMatrixPosition(this.gizmoMatrixState0);
-            const t1 = new THREE.Vector3().setFromMatrixPosition(this._m4_2);
+            const t = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState0);
+            const t1 = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
             t.sub(t1);
 
             //scale gizmos so they appear in the same spot having the same dimension
             this._scaleMatrix.makeScale(1/s, 1/s, 1/s);
             this._translateMatrix.makeTranslation(t.x, t.y, t.z);
-            this._m4_2.premultiply(this._translateMatrix);
+            this._m4_2.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
+            //this._m4_2.premultiply(this._translateMatrix);
             this._m4_2.premultiply(this._scaleMatrix);
             this._translateMatrix.makeTranslation(-t.x, -t.y, -t.z);
             this._m4_2.premultiply(this._translateMatrix);
@@ -971,8 +975,9 @@ class Arcball extends THREE.EventDispatcher{
 
 
             //move camera back
-            p.multiplyScalar(1/s);
-            this._translateMatrix.makeTranslation(-p.x, -p.y, 0);
+            scalePoint.multiplyScalar(1/s);
+            this._translateMatrix.makeTranslation(-scalePoint.x, -scalePoint.y, -scalePoint.z);
+            console.log(this._translateMatrix);
             this._m4_1.premultiply(this._translateMatrix);
 
             //move gizmo back along with camera
@@ -1120,7 +1125,7 @@ class Arcball extends THREE.EventDispatcher{
      * update the object's matrix state with the current object's matrix and reset all transformation matrices
      */
     updateMatrixState = () => {
-        this._objMatrixState.copy(this.camera.matrix);
+        this._cameraMatrixState.copy(this.camera.matrix);
         this._cameraProjectionState.copy(this.camera.projectionMatrix);
         this._gizmoMatrixState.copy(this._gizmos.matrix);
         this.zoomState = this.camera.zoom;
@@ -1151,17 +1156,24 @@ class Arcball extends THREE.EventDispatcher{
 
 
 
+
+
 const canvas = document.getElementById("canvas");
+const canvasDebug = document.getElementById("canvasDebug");
+
+
+
 let obj = new THREE.Group();
 
 //renderer
-const renderer = new THREE.WebGLRenderer({canvas});
+const renderer = new THREE.WebGLRenderer({canvas: canvas});
 
 //scene
 const scene = new THREE.Scene();
 
 //camera
 let camera = makeOrthographicCamera(renderer.domElement);
+camera.position.z = 250;
 scene.add(camera);
 
 //light
@@ -1172,14 +1184,33 @@ camera.add(light);
 light.position.set(0, 0, 0);
 
 
+//debug
+/*const rendererDebug = new THREE.WebGLRenderer({canvas: canvasDebug});
+let cameraDebug = makeOrthographicCamera(rendererDebug.domElement);
+cameraDebug.zoom = 0.4;
+cameraDebug.updateProjectionMatrix();
+cameraDebug.position.z = 1500;
+cameraDebug.far = 3000;
+scene.add(cameraDebug);
+const lightDebug = new THREE.DirectionalLight(lightColor, lightIntensity);
+cameraDebug.add(lightDebug);
+lightDebug.position.set(0, 0, 0);*/
+
+
+
+
+
+
 const loader = new OBJLoader();
 loader.load('rocker_arm.obj', onLoad); 
 
 resizeRenderer(renderer);
+//resizeRenderer(rendererDebug);
 
 let arcball;
 
 const cameraBtn = document.getElementById("cameraButton");
+const resetBtn = document.getElementById("resetButton");
 const animCheck = document.getElementById("animationCheckbox");
 const gridCheck = document.getElementById("gridCheckbox");
 const scaleSlider = document.getElementById("scaleSlider");
@@ -1200,7 +1231,10 @@ cameraBtn.addEventListener('click', function btnListener() {
         cameraBtn.innerHTML = 'Toggle Orthographic';
         renderer.render(scene, camera);
     }
-})
+});
+resetBtn.addEventListener('click', function() {
+    arcball.reset();
+});
 scaleSlider.addEventListener('change', function scaleChangeListener() {
     arcball.scaleFactor = scaleSlider.value;
 });
@@ -1222,23 +1256,24 @@ gridCheck.addEventListener('change', function gridCheckListener() {
 
 
 
-
 //obj = loadObject(renderer.domElement, group);    //load the 3D object
 //makeGizmos(tbCenter, tbRadius);  //add gizmos
 //scene.add(gizmosR);
 //resizeRenderer(renderer);
-renderer.render(scene, camera);
-
+//renderer.render(scene, camera);
+render();
 
 window.addEventListener('resize', function windowResizeListener(){
     resizeRenderer(renderer);
+    resizeRenderer(rendererDebug);
     //tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
     //camera.position.z = tbRadius*4;
     camera.position.z = 500;
     //gizmosR.clear();
     //loadObject(renderer.domElement, loader);  //replace with scaleObject()
     //makeGizmos(tbCenter, tbRadius);
-    renderer.render(scene, camera);
+    //renderer.render(scene, camera);
+    render();
 });
 
 
@@ -1250,6 +1285,9 @@ function resizeRenderer(renderer) {
     const canvas = renderer.domElement;
     const canvasWidth = canvas.clientWidth;
     const canvasHeight = canvas.clientHeight;
+
+    console.log(canvasWidth);
+    console.log(canvasHeight);
 
     if(canvas.width != canvasWidth || canvas.height != canvasHeight) {
         renderer.setSize(canvasWidth, canvasHeight, false);
@@ -1264,9 +1302,11 @@ function onLoad(o) {
 
     arcball = new Arcball(camera, renderer.domElement);
     arcball.addEventListener('change', function() {
-        renderer.render(scene, camera);
+        //renderer.render(scene, camera);
+        render();
     });
-    renderer.render(scene, camera);
+    //renderer.render(scene, camera);
+    render();
 };
 
 
@@ -1274,23 +1314,28 @@ function makeOrthographicCamera(canvas) {
     const canvasRect = canvas.getBoundingClientRect();
     const halfW = canvasRect.width/2;
     const halfH = canvasRect.height/2;
-    const near = 0.1;
-    const far = 1000;
+    const near = 0.1;   //standard value
+    const far = 2000;   //standard value
     const camera = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, near, far);
-    camera.position.z = 500;
     return camera
 };
 
 function makePerspectiveCamera(canvas) {
     const fov = 45;
     const aspect = canvas.clientWidth/canvas.clientHeight;
-    const zPosition = tbRadius*3.5;
+    //const zPosition = tbRadius*3.5;
     const near = 0.1;
-    const far = 1000;
+    const far = 2000;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    camera.position.z = zPosition;
+    //camera.position.z = zPosition;
     return camera;
 };
 
 
-//TODO: sembra che scale funzioni bene così. ora verificare segno e se aggiornare al cambio di posizione
+function render() {
+    renderer.render(scene, camera);
+    //rendererDebug.render(scene, cameraDebug);
+    
+};
+
+//TODO:pinch touch non funziona e seguire la lista
