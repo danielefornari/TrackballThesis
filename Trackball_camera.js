@@ -1,8 +1,8 @@
-//import * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
-import * as THREE from './node_modules/three/src/Three.js';
+//import * as THREE from './node_modules/three/src/Three.js';
 //import {Arcball} from './Arcball_object';
 //import * as HAMMERJS from 'hammerjs';
 
@@ -637,6 +637,19 @@ class Arcball extends THREE.EventDispatcher{
         return this._rotationAxis.normalize();
     };
 
+    changeCamera = (camera) => {
+
+        console.log(camera);
+        if(camera.type == "PerspectiveCamera") {
+            const z = this._tbRadius *3.5;
+            camera.position.z = z;
+            camera.updateMatrix();
+        }
+            this._cameraMatrixState0.copy(this.camera.matrix);
+            this.reset();
+            this.camera = camera;
+    };
+
     /**
      * Detail operation consist of positioning the point of interest in front of the camera and slightly zoom the whole model
      * @param {THREE.Vector3} p The point of interest 
@@ -907,8 +920,7 @@ class Arcball extends THREE.EventDispatcher{
         this._cameraMatrixState.copy(this._cameraMatrixState0);
         this._gizmoMatrixState.copy(this._gizmoMatrixState0);
         this.applyTransformMatrix({camera: this._cameraMatrixState, gizmo: this._gizmoMatrixState});
-        this.dispatchEvent(this._changeEvent);
-        
+        this.dispatchEvent(this._changeEvent);   
     };
 
     /**
@@ -1222,14 +1234,18 @@ const angularSlider = document.getElementById("angularSlider");
 cameraBtn.innerHTML= "Toggle Orthographic";
 cameraBtn.addEventListener('click', function btnListener() {
     if(camera.type == 'PerspectiveCamera') {
+        scene.remove(camera);
         camera = makeOrthographicCamera(renderer.domElement);
+        scene.add(camera);
         cameraBtn.innerHTML = 'Toggle Perspective';
-        renderer.render(scene, camera);
+        arcball.changeCamera(camera);
     }
     else if(camera.type == 'OrthographicCamera') {
+        scene.remove(camera);
         camera = makePerspectiveCamera(renderer.domElement);
+        scene.add(camera);
         cameraBtn.innerHTML = 'Toggle Orthographic';
-        renderer.render(scene, camera);
+        arcball.changeCamera(camera);
     }
 });
 resetBtn.addEventListener('click', function() {
