@@ -1,5 +1,6 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
+import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
 //import * as THREE from './node_modules/three/src/Three.js';
@@ -22,14 +23,15 @@ let STATE = {
  * 
  * @param {THREE.Camera} camera Virtual camera used in the scene
  * @param {HTMLElement} domElement Renderer's dom element
- * @param {THREE.Object3D} object 3D object to be manipulated
  */
 class Arcball extends THREE.EventDispatcher{
     constructor(camera, domElement) {
         super();
-        this.camera = camera;
+        this.camera = new THREE.Camera();
         this.canvas = domElement;
-        this._scene = obj.parent;
+        this._scene = camera.parent;
+        //this._scene = obj.parent;
+
 
         //global vectors and matrices that can be used in some operations to avoid creating new object at every call (e.g. every time cursor moves)
         //these operations must not overlap
@@ -38,9 +40,6 @@ class Arcball extends THREE.EventDispatcher{
         this._v3_2 = new THREE.Vector3();
         this._m4_1 = new THREE.Matrix4();
         this._m4_2 = new THREE.Matrix4();
-
-        this._position0 = this.camera.position.clone(); //camera initial position
-        this._position1 = this.camera.position.clone(); //camera current position
 
 
         //transformation matrices
@@ -52,18 +51,17 @@ class Arcball extends THREE.EventDispatcher{
 
 
         //object's state
-        this._cameraMatrixState = this.camera.matrix.clone(); //object's matrix state
-        this._cameraProjectionState = this.camera.projectionMatrix.clone();   //camera's unprojection matrix state
+        this._cameraMatrixState = new THREE.Matrix4(); //object's matrix state
+        this._cameraProjectionState = new THREE.Matrix4();   //camera's unprojection matrix state
         this._quatState = new THREE.Quaternion(); //object's quaternion value at first mouse click/tap
 
-        this.zoomState = this.camera.zoom;
+        this.zoomState = 1;
 
         this._gizmoMatrixState = new THREE.Matrix4();
     
-
         //initial states for reset
         this.zoom0 = 1;
-        this._cameraMatrixState0 = this.camera.matrix.clone();
+        this._cameraMatrixState0 = new THREE.Matrix4();
         this._gizmoMatrixState0 = new THREE.Matrix4();
 
 
@@ -84,9 +82,7 @@ class Arcball extends THREE.EventDispatcher{
         this._grid;   //Grid to be visualized during pan operation
         this._gizmos = new THREE.Group();
 
-
         this._changeEvent = {type: 'change'};
-
 
         //detail animation variables
         this.detailAnimTime = 500; //detail animation duration in ms
@@ -109,18 +105,13 @@ class Arcball extends THREE.EventDispatcher{
 
         //trackball parameters
         this._tbCenter = new THREE.Vector3(0, 0, 0);
-        this._radiusScaleFactor = 3;
-        this._tbRadius = this.calculateRadius(this._radiusScaleFactor, renderer.domElement);
+        this._tbRadius = 1;
 
         this._state = STATE.IDLE;
         this._prevState = this._state;
 
-
         this.canvas.addEventListener('mousedown', this.onMouseDown);
         this.canvas.addEventListener('wheel', this.onWheel);
-
-        window.addEventListener('resize', this.onCanvasResize);
-
 
         //touch gestures
         this._manager = new Hammer.Manager(this.canvas);
@@ -149,23 +140,16 @@ class Arcball extends THREE.EventDispatcher{
         this._manager.on('singlepanstart', this.onSinglePanStart);
         this._manager.on('doublepanstart pinchstart rotatestart', this.onDoublePanStart)
 
-        this.makeGizmos(this._tbCenter, this._tbRadius);
-        this.camera.parent.add(this._gizmos);
-        this.zoom0 =  this.camera.zoom;
-        this._gizmoMatrixState.copy(this._gizmos.matrix);
-        this._gizmoMatrixState0.copy(this._gizmos.matrix);
-
 
         //dummy
-        const geometry = new THREE.BoxGeometry(10, 10, 10);
-        const material = new THREE.MeshBasicMaterial({color: 0x00FF00});
-        const cube = new THREE.Mesh(geometry, material);
-        this.camera.add(cube);
-        cube.position.copy(this.camera.position);
-    };
+        //const geometry = new THREE.BoxGeometry(4, 4, 4);
 
-    onCanvasResize = () => {
-        this._tbRadius = this.calculateRadius(this._radiusScaleFactor, canvas);
+        //this. dummy = new THREE.Mesh(geometry, material);
+        //this.camera.add(cube);
+        //cube.position.copy(this.camera.position);
+
+        this.initialize(camera);
+        this._scene.add(this._gizmos);
     };
 
     //listener for mouse left and wheel button
@@ -223,6 +207,7 @@ class Arcball extends THREE.EventDispatcher{
                 }
                 this._startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, event.clientX, event.clientY, this.canvas));
                 console.log(this._startCursorPosition);
+                console.log(this.camera);
                 this.updateTbState(STATE.PAN, true);
                 if(this.enableGrid) {
                     this.drawGrid();
@@ -273,6 +258,7 @@ class Arcball extends THREE.EventDispatcher{
             else {
                 //continue with panning routine
                 this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, event.clientX, event.clientY, this.canvas));
+                console.log(this._currentCursorPosition);
                 this.applyTransformMatrix(this.pan(this._startCursorPosition, this._currentCursorPosition));
             }
             this.dispatchEvent(this._changeEvent);
@@ -534,7 +520,7 @@ class Arcball extends THREE.EventDispatcher{
         //this.applyTransformMatrix(pan);
 
         //scaling operation
-        this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
+        //this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
 
 
         const scale = this.scale(s, scalePoint);
@@ -605,22 +591,6 @@ class Arcball extends THREE.EventDispatcher{
     };
 
     /**
-     * Calculate the trackball radius based on the canvas size and the scaling factor
-     * @param {number} radiusScaleFactor Scaling factor for reducing radius length
-     * @param {HTMLElement} canvas The canvas where the renderer draws its output 
-     * @returns {number} Radius of the trackball
-     */
-    calculateRadius = (radiusScaleFactor, canvas) => {
-        const canvasRect = canvas.getBoundingClientRect();
-        if(canvasRect.height <= canvasRect.width) {
-            return canvasRect.height/radiusScaleFactor;
-        }
-        else {
-            return canvasRect.width/radiusScaleFactor;
-        }
-    };
-
-    /**
      * Calculate the rotation axis as the vector perpendicular vector between two vectors
      * @param {THREE.Vector3} vec1 The first vector
      * @param {THREE.Vector3} vec2 The second vector
@@ -635,19 +605,6 @@ class Arcball extends THREE.EventDispatcher{
         this._rotationAxis.crossVectors(vec1, vec2);
         this._rotationAxis.applyQuaternion(q);
         return this._rotationAxis.normalize();
-    };
-
-    changeCamera = (camera) => {
-
-        console.log(camera);
-        if(camera.type == "PerspectiveCamera") {
-            const z = this._tbRadius *3.5;
-            camera.position.z = z;
-            camera.updateMatrix();
-        }
-            this._cameraMatrixState0.copy(this.camera.matrix);
-            this.reset();
-            this.camera = camera;
     };
 
     /**
@@ -667,18 +624,17 @@ class Arcball extends THREE.EventDispatcher{
         this._gizmoMatrixState.premultiply(this._translateMatrix);
         this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale)
 
-
         const cameraStateTemp = this._cameraMatrixState.clone();
         this._cameraMatrixState.premultiply(this._translateMatrix);
+        this._cameraMatrixState.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
 
 
         //this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
         //this.applyTransformMatrix({camera: this._m4_1.clone()});
         //this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
 
+        //apply zoom
         this.applyTransformMatrix(this.scale(s, this._gizmos.position));
-
-        console.log(this._gizmos.position);
 
         this._gizmoMatrixState.copy(gizmoStateTemp);
         this._cameraMatrixState.copy(cameraStateTemp);
@@ -691,8 +647,18 @@ class Arcball extends THREE.EventDispatcher{
      */
     drawGrid = () => {
         const canvasRect = this.canvas.getBoundingClientRect(); //sostituire con document o window
-        const size = Math.max(canvasRect.width, canvasRect.height)*3;
-        const divisions = size/50;
+        let size;
+        if(this.camera.type == 'OrthographicCamera') {
+            const width = this.camera.right - this.camera.left;
+            const height = this.camera.bottom - this.camera.top;
+            size = Math.max(width, height)*2/this.camera.zoom;
+        }
+        else if(this.camera.type == 'PerspectiveCamera') {
+
+        }
+        
+        //const size = Math.max(canvasRect.width, canvasRect.height)*3;
+        const divisions = size/2*this.camera.zoom;
         this.grid = new THREE.GridHelper(size, divisions);
         this._gridPosition.copy(this.grid.position);
         this.grid.quaternion.copy(this.camera.quaternion);
@@ -752,11 +718,56 @@ class Arcball extends THREE.EventDispatcher{
      * @param {HTMLElement} canvas The canvas where the renderer draws its output
      * @returns {THREE.Vector2} Cursor normalized position inside the canvas
      */
-    getCursorOnCanvas = (x, y, canvas) => {
+    getCursorPosition = (x, y, canvas) => {
         const canvasRect = canvas.getBoundingClientRect();
-        this._v2_1.setX((x-canvasRect.left)-canvasRect.width/2);
-        this._v2_1.setY((canvasRect.bottom-y)-canvasRect.height/2);
+        //this._v2_1.setX((x-canvasRect.left)-canvasRect.width/2);
+        //this._v2_1.setY((canvasRect.bottom-y)-canvasRect.height/2);
+        this._v2_1.copy(this.getCursorNDC(x, y, canvas));
+        this._v2_1.x *= (this.camera.right - this.camera.left)/2;
+        this._v2_1.y *= (this.camera.top - this.camera.bottom)/2;
         return this._v2_1;
+  
+
+        return this._v2_1;
+    };
+
+    initialize = (camera) => {
+        const distance = camera.position.length();
+
+        if(camera.type == 'OrthographicCamera') {
+            this._tbRadius = Math.min(camera.top, camera.right)*0.66;
+
+            this.makeGizmos(this._tbCenter, this._tbRadius);
+        }
+        else if(camera.type == 'PerspectiveCamera') {
+            const fov = (camera.fov*Math.PI)/180;   //degrees to radians
+            this._tbRadius = Math.tan(fov/2)*distance*0.66;
+
+            this.makeGizmos(this._tbCenter, this._tbRadius);
+        }
+
+        const geometry = new THREE.ConeGeometry(2, 6, 12);
+        const material = new THREE.MeshBasicMaterial({color: 0x00FF00});
+        const dummy = new THREE.Mesh(geometry, material);
+        dummy.rotateX(-Math.PI/2);
+        camera.add(dummy);
+
+        camera.lookAt(this._tbCenter);
+        camera.updateMatrix();
+
+        //setting state
+        this._cameraMatrixState0.copy(camera.matrix);
+        this._cameraMatrixState.copy(this._cameraMatrixState0);
+        this._cameraProjectionState.copy(camera.projectionMatrix);
+        this.zoom0 = camera.zoom;
+        this.zoomState = this.zoom0;
+
+        /*this.dummy.position.copy(camera.position);
+        this.dummy.quaternion.copy(camera.quaternion);
+        this.dummy.lookAt(this._tbCenter);
+        this.dummy.updateMatrix();*/
+
+        this.camera = camera;
     };
 
     /**
@@ -765,7 +776,10 @@ class Arcball extends THREE.EventDispatcher{
      * @param {number} tbRadius The trackball radius
      */
     makeGizmos = (tbCenter, tbRadius) => {
-        //rotation gizmos
+
+        console.log(tbCenter);
+        console.log(tbRadius);
+        const gizmos = new THREE.Group();
 
         const curve = new THREE.EllipseCurve(tbCenter.x, tbCenter.y, tbRadius, tbRadius);
         const points = curve.getPoints(50);
@@ -785,6 +799,14 @@ class Arcball extends THREE.EventDispatcher{
 
         rotationGizmoX.rotation.x = Math.PI/2;
         rotationGizmoY.rotation.y = Math.PI/2;
+
+
+        //setting state
+        gizmos.matrix.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
+        this._gizmoMatrixState0.copy(gizmos.matrix);
+        this._gizmoMatrixState.copy(this._gizmoMatrixState);
+
+        this._gizmos.clear();
 
         this._gizmos.add(rotationGizmoX);
         this._gizmos.add(rotationGizmoY);
@@ -864,7 +886,6 @@ class Arcball extends THREE.EventDispatcher{
             const deltaTime = (time - this._timeStart)/1000;
             this._angle0 = this._angle;
             this._angle = 0.5*this.acc*Math.pow(deltaTime, 2)+w0*deltaTime+0;
-            console.log(this._angle);
             if(this._angle >= this._angle0) {
                 this.applyTransformMatrix(this.rotateObj(rotationAxis, this._angle));
                 this.dispatchEvent(this._changeEvent);
@@ -898,17 +919,19 @@ class Arcball extends THREE.EventDispatcher{
     pan = (p1, p2) => {
         const distanceV = p1.clone().sub(p2);
 
+        console.log(distanceV);
+
+        distanceV.multiplyScalar(1/this.camera.zoom);
+
         this._v3_1.set(distanceV.x, distanceV.y, 0).applyQuaternion(this.camera.quaternion);
         this._translateMatrix.makeTranslation(this._v3_1.x, this._v3_1.y, this._v3_1.z);   //T(v3_1)
 
         //move gizmos along with camera so they always appear in the same spot
         this._m4_1.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
-        //this._m4_1.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
     
         this._m4_2.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
-        //this._m4_2.premultiply(this._scaleMatrix);
+        
         return {camera: this._m4_2.clone(), gizmo: this._m4_1.clone()};
-        //this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
     };
 
     /**
@@ -953,52 +976,67 @@ class Arcball extends THREE.EventDispatcher{
      * @returns 
      */
     scale = (s, p) => {
+        const scalePoint = p.clone();
+
         if(this.camera.type == 'OrthographicCamera') {
+            //camera zoom
             this.camera.zoom = this.zoomState;
             this.camera.zoom *= s;
             this.camera.updateProjectionMatrix();
 
-            const scalePoint = p.clone();
-            console.log(scalePoint);
-
-            scalePoint.sub(this._gizmos.position);
-
-
-            //move camera to the scale point
-            this._translateMatrix.makeTranslation(scalePoint.x, scalePoint.y, scalePoint.z);
-            this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
-
-            //move gizmos along with camera
-            this._m4_2.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
-
-            const t = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState0);
-            const t1 = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
-            t.sub(t1);
+            const pos0 = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState0);
+            const pos = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
+            pos0.sub(pos);
 
             //scale gizmos so they appear in the same spot having the same dimension
             this._scaleMatrix.makeScale(1/s, 1/s, 1/s);
-            this._translateMatrix.makeTranslation(t.x, t.y, t.z);
+            this._translateMatrix.makeTranslation(pos0.x, pos0.y, pos0.z);
             this._m4_2.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
-            //this._m4_2.premultiply(this._translateMatrix);
             this._m4_2.premultiply(this._scaleMatrix);
-            this._translateMatrix.makeTranslation(-t.x, -t.y, -t.z);
+            this._translateMatrix.makeTranslation(-pos0.x, -pos0.y, -pos0.z);
             this._m4_2.premultiply(this._translateMatrix);
-            //this._m4_2.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
 
 
-            //move camera back
-            scalePoint.multiplyScalar(1/s);
-            this._translateMatrix.makeTranslation(-scalePoint.x, -scalePoint.y, -scalePoint.z);
-            console.log(this._translateMatrix);
-            this._m4_1.premultiply(this._translateMatrix);
+            //move camera and gizmos to obtain pinch effect
+            scalePoint.sub(this._gizmos.position);
 
-            //move gizmo back along with camera
+            const amount = scalePoint.clone().multiplyScalar(1/s);
+            scalePoint.sub(amount);
+            this._translateMatrix.makeTranslation(scalePoint.x, scalePoint.y, scalePoint.z);
+            this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
             this._m4_2.premultiply(this._translateMatrix);
 
             return{camera: this._m4_1.clone(), gizmo: this._m4_2.clone()};
         }
         else if(this.camera.type == 'PerspectiveCamera') {
+            //move camera
+            const distance = this.camera.position.clone().sub(scalePoint).length();
+            const amount = distance - (distance/s);
+            const direction = scalePoint.clone().sub(this.camera.position).normalize();
+            direction.multiplyScalar(amount);
 
+            this._translateMatrix.makeTranslation(direction.x, direction.y, direction.z);
+            this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
+
+            //scale gizmos
+            const pos0 = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState0);
+            const pos = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
+            pos0.sub(pos);
+
+            //scale gizmos so they appear in the same spot having the same dimension
+            this._scaleMatrix.makeScale(1/s, 1/s, 1/s);
+            this._translateMatrix.makeTranslation(pos0.x, pos0.y, pos0.z);
+            this._m4_2.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
+            this._m4_2.premultiply(this._scaleMatrix);
+            this._translateMatrix.makeTranslation(-pos0.x, -pos0.y, -pos0.z);
+            this._m4_2.premultiply(this._translateMatrix);
+
+            /*const amt = scalePoint.clone().multiplyScalar(1/s);
+            scalePoint.sub(amt);
+            this._translateMatrix.makeTranslation(scalePoint.x, scalePoint.y, scalePoint.z);
+            this._m4_2.premultiply(this._translateMatrix);*/
+
+            return{camera: this._m4_1.clone(), gizmo: this._m4_2.clone()};
         }
     };
 
@@ -1031,7 +1069,7 @@ class Arcball extends THREE.EventDispatcher{
      */
     unprojectOnTbSurface = (camera, x, y, canvas, tbRadius) => {
         if(camera.type == 'OrthographicCamera') {
-            this._v2_1.copy(this.getCursorOnCanvas(x, y, canvas));
+            this._v2_1.copy(this.getCursorPosition(x, y, canvas));
             this._v3_1.setX(this._v2_1.x);
             this._v3_1.setY(this._v2_1.y);
             let x2 = Math.pow(this._v2_1.x, 2);
@@ -1048,23 +1086,31 @@ class Arcball extends THREE.EventDispatcher{
             }
             return this._v3_1;
         }
-        else if(obj.type == 'PerspectiveCamera') {
+        else if(camera.type == 'PerspectiveCamera') {
             this._v2_1.copy(this.getCursorNDC(x, y, canvas));
             const nearPlanePoint = new THREE.Vector3(this._v2_1.x, this._v2_1.y, -1);
+
             nearPlanePoint.unproject(camera);   //unproject cursor on near plane
+
+            console.log(nearPlanePoint);
             const r0 = camera.position.clone(); //vector origin
             const rDir = new THREE.Vector3().subVectors(nearPlanePoint, r0).normalize() ;    //direction vector
             const hitPoint = new THREE.Vector2();   //intersesction point between the unprojected ray and the trackball surface
             const radius2 = Math.pow(tbRadius, 2);
+            const distance = camera.position.length();
+
         
             //for intersection with trackball's surface, consider 2D axes (X', Y') instead of 3D (X, Y, Z)
             //Y' = Z
             //X' = asse lungo cui si sviluppa la distanza dal centro della trackball al punto sulla sfera su Z=0
-            const h = nearPlanePoint.z - camera.position.z; //distance from camera to the point on near plane along Y' axis
+            //const h = nearPlanePoint.z - camera.position.z; //distance from camera to the point on near plane along Y' axis
+            const h = nearPlanePoint.z - distance; //distance from camera to the point on near plane along Y' axis
+
             const l = Math.sqrt(Math.pow(nearPlanePoint.x, 2)+Math.pow(nearPlanePoint.y, 2));   //distance from camera to the point on near plane along X' axis
         
             const m = h/l;
-            const q = camera.position.z;
+            //const q = camera.position.z;
+            const q = distance;
         
             let a = Math.pow(m, 2)+1;
             let b = 2*m*q;
@@ -1079,7 +1125,9 @@ class Arcball extends THREE.EventDispatcher{
                 if(angle >= 45) {
                     //if angle between intersection point and X' axis is >= 45°, return that point
                     //otherwise, calculate intersection point with hyperboloid
-                    let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
+                    //let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
+                    let d = new THREE.Vector2(0, distance).distanceTo(hitPoint);
+
                     return r0.add(rDir.multiplyScalar(d));
                 }
             }
@@ -1090,7 +1138,9 @@ class Arcball extends THREE.EventDispatcher{
             delta = Math.pow(b, 2)-(4*a*c);
             hitPoint.x = (-b-Math.sqrt(delta))/(2*a);
             hitPoint.y = m*hitPoint.x+q;
-            let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
+            //let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
+            let d = new THREE.Vector2(0, distance).distanceTo(hitPoint);
+
             return r0.add(rDir.multiplyScalar(d));
         }
     };
@@ -1106,28 +1156,33 @@ class Arcball extends THREE.EventDispatcher{
      */
     unprojectOnTbPlane = (camera, x, y, canvas) => {
         if(camera.type == 'OrthographicCamera') {
-            this._v2_1.copy(this.getCursorOnCanvas(x, y, canvas));
+            this._v2_1.copy(this.getCursorPosition(x, y, canvas));
             this._v3_1.set(this._v2_1.x, this._v2_1.y, 0);
 
-            //multiplication for scalar is to adapt unprojection to camera zoom (scale operation on gizmos is uniform)
-            return this._v3_1.multiplyScalar(this._gizmos.scale.x);
+            return this._v3_1;
         }
         else if(camera.type == 'PerspectiveCamera') {
             this._v2_1.copy(this.getCursorNDC(x, y, canvas));
 
             //unproject cursor on the near plane
             this._v3_1.set(this._v2_1.x, this._v2_1.y, -1);
-            this._v3_1.unproject(camera);
+
+            const distance = camera.position.length();
+
+            this._v3_1.unproject(this.camera);
+
             const r0 = camera.position.clone(); //vector origin
-            const rDir = new THREE.Vector3().subVectors(this._v3_1, r0).normalize() ;    //direction vector
+            const rDir = new THREE.Vector3().subVectors(this._v3_1, r0).normalize();    //direction vector
         
-            const h = this._v3_1.z - camera.position.z;
-            const l = Math.sqrt(Math.pow(this._v3_1.x, 2)+Math.pow(this._v3_1.y, 2));
+            const h = camera.near;
+            const l = new THREE.Vector3().subVectors(r0, this._v3_1).length();
+            
+            //const l = Math.sqrt(Math.pow(this._v3_1.x, 2)+Math.pow(this._v3_1.y, 2));
         
             const m = h/l;
-            const q = camera.position.z;
+            const q = distance;
             const X = -q/m;
-        
+
             const d = Math.sqrt(Math.pow(q, 2) + Math.pow(X, 2));
             return r0.add(rDir.multiplyScalar(d));
         }
@@ -1171,9 +1226,6 @@ class Arcball extends THREE.EventDispatcher{
 
 
 const canvas = document.getElementById("canvas");
-const canvasDebug = document.getElementById("canvasDebug");
-
-
 
 let obj = new THREE.Group();
 
@@ -1185,7 +1237,7 @@ const scene = new THREE.Scene();
 
 //camera
 let camera = makeOrthographicCamera(renderer.domElement);
-camera.position.z = 250;
+camera.position.z = 20;
 scene.add(camera);
 
 //light
@@ -1197,16 +1249,22 @@ light.position.set(0, 0, 0);
 
 
 //debug
-/*const rendererDebug = new THREE.WebGLRenderer({canvas: canvasDebug});
+let debugControl; 
+
+const canvasDebug = document.getElementById("canvasDebug");
+const rendererDebug = new THREE.WebGLRenderer({canvas: canvasDebug});
 let cameraDebug = makeOrthographicCamera(rendererDebug.domElement);
-cameraDebug.zoom = 0.4;
+cameraDebug.left = -canvasDebug.clientWidth/20;
+cameraDebug.right = canvasDebug.clientWidth/20;
+cameraDebug.top = canvasDebug.clientHeight/20;
+cameraDebug.bottom = -canvasDebug.clientHeight/20;
+
 cameraDebug.updateProjectionMatrix();
-cameraDebug.position.z = 1500;
-cameraDebug.far = 3000;
+cameraDebug.position.z = 100;
 scene.add(cameraDebug);
 const lightDebug = new THREE.DirectionalLight(lightColor, lightIntensity);
 cameraDebug.add(lightDebug);
-lightDebug.position.set(0, 0, 0);*/
+lightDebug.position.set(0, 0, 0);
 
 
 
@@ -1217,7 +1275,7 @@ const loader = new OBJLoader();
 loader.load('rocker_arm.obj', onLoad); 
 
 resizeRenderer(renderer);
-//resizeRenderer(rendererDebug);
+resizeRenderer(rendererDebug);
 
 let arcball;
 
@@ -1231,22 +1289,32 @@ const angularSlider = document.getElementById("angularSlider");
 
 
 
-cameraBtn.innerHTML= "Toggle Orthographic";
+cameraBtn.innerHTML= "Toggle Perspective";
 cameraBtn.addEventListener('click', function btnListener() {
+    const light = new THREE.DirectionalLight(lightColor, lightIntensity);
+
     if(camera.type == 'PerspectiveCamera') {
         scene.remove(camera);
         camera = makeOrthographicCamera(renderer.domElement);
+        camera.position.z = 20;
+        camera.updateMatrix();
+        camera.add(light);
         scene.add(camera);
         cameraBtn.innerHTML = 'Toggle Perspective';
-        arcball.changeCamera(camera);
+        arcball.initialize(camera);
     }
     else if(camera.type == 'OrthographicCamera') {
         scene.remove(camera);
         camera = makePerspectiveCamera(renderer.domElement);
+        camera.position.z = 20;
+        //camera.position.x = 9;
+        camera.updateMatrix();
+        camera.add(light);
         scene.add(camera);
         cameraBtn.innerHTML = 'Toggle Orthographic';
-        arcball.changeCamera(camera);
+        arcball.initialize(camera);
     }
+    renderer.render(scene, camera);
 });
 resetBtn.addEventListener('click', function() {
     arcball.reset();
@@ -1281,14 +1349,6 @@ render();
 
 window.addEventListener('resize', function windowResizeListener(){
     resizeRenderer(renderer);
-    resizeRenderer(rendererDebug);
-    //tbRadius = calculateRadius(radiusScaleFactor, renderer.domElement);
-    //camera.position.z = tbRadius*4;
-    camera.position.z = 500;
-    //gizmosR.clear();
-    //loadObject(renderer.domElement, loader);  //replace with scaleObject()
-    //makeGizmos(tbCenter, tbRadius);
-    //renderer.render(scene, camera);
     render();
 });
 
@@ -1302,9 +1362,7 @@ function resizeRenderer(renderer) {
     const canvasWidth = canvas.clientWidth;
     const canvasHeight = canvas.clientHeight;
 
-    console.log(canvasWidth);
-    console.log(canvasHeight);
-
+    renderer.setPixelRatio(canvasWidth/canvasHeight);
     if(canvas.width != canvasWidth || canvas.height != canvasHeight) {
         renderer.setSize(canvasWidth, canvasHeight, false);
     }
@@ -1313,7 +1371,7 @@ function resizeRenderer(renderer) {
 
 function onLoad(o) {
     obj = o;
-    obj.scale.multiplyScalar(26);
+    //obj.scale.multiplyScalar(26);
     scene.add(obj);
 
     arcball = new Arcball(camera, renderer.domElement);
@@ -1321,15 +1379,20 @@ function onLoad(o) {
         //renderer.render(scene, camera);
         render();
     });
-    //renderer.render(scene, camera);
+
+    //debug
+    debugControl = new OrbitControls(cameraDebug, rendererDebug.domElement);
+    debugControl.addEventListener('change', function() {
+        rendererDebug.render(scene, cameraDebug);
+    });
     render();
 };
 
 
 function makeOrthographicCamera(canvas) {
     const canvasRect = canvas.getBoundingClientRect();
-    const halfW = canvasRect.width/2;
-    const halfH = canvasRect.height/2;
+    const halfW = 16;//canvasRect.width/60;
+    const halfH = 8;//canvasRect.height/60;
     const near = 0.1;   //standard value
     const far = 2000;   //standard value
     const camera = new THREE.OrthographicCamera(-halfW, halfW, halfH, -halfH, near, far);
@@ -1350,8 +1413,8 @@ function makePerspectiveCamera(canvas) {
 
 function render() {
     renderer.render(scene, camera);
-    //rendererDebug.render(scene, cameraDebug);
+    rendererDebug.render(scene, cameraDebug);
     
 };
 
-//TODO:pinch touch non funziona e seguire la lista
+//TODO: todolist + double tap perspective + fix pan/rotate perspective
