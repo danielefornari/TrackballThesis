@@ -751,7 +751,7 @@ class Arcball extends THREE.EventDispatcher{
         const geometry = new THREE.ConeGeometry(2, 6, 4);
         const material = new THREE.MeshBasicMaterial({color: 0x555555});
         const dummy = new THREE.Mesh(geometry, material);
-        dummy.rotateX(-Math.PI/2);
+        //dummy.rotateX(-Math.PI/2);
         dummy.rotateY(Math.PI/4);
         //camera.add(dummy);
 
