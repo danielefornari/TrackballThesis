@@ -753,7 +753,7 @@ class Arcball extends THREE.EventDispatcher{
         const dummy = new THREE.Mesh(geometry, material);
         dummy.rotateX(Math.PI/2);
         dummy.rotateY(Math.PI/4);
-        dummy.translateY(3);
+        dummy.translateY(-3);
         //camera.add(dummy);
 
         const points = [];
