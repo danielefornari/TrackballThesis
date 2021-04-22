@@ -503,7 +503,6 @@ class Arcball extends THREE.EventDispatcher{
         const newDistance = this.calculateDistance(event.pointers[0], event.pointers[1]);
         const s = newDistance/this._fingerDistance;   //how much to scale
         const r = (this._fingerRotation - event.rotation)*Math.PI/180;
-        const axis = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
 
         //const d1 = new THREE.Vector3(this.camera.position.x, this.camera.position.y, 0);
         //const d2 = new THREE.Vector3(p.x, p.y, 0).applyQuaternion(this.camera.quaternion);
@@ -511,7 +510,7 @@ class Arcball extends THREE.EventDispatcher{
         const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
 
         //rotate operation
-        const rotate = this.rotateObj(this._currentCursorPosition, axis, r);
+        const rotate = this.zRotate(this._currentCursorPosition.applyQuaternion(this.camera.quaternion), r);
         this.applyTransformMatrix(rotate);
 
 
@@ -1075,20 +1074,29 @@ class Arcball extends THREE.EventDispatcher{
         }
     };
 
-    zRotate = (point, rad) => {
-        const axis = new THREE.Vector2(0, 0, 1);
+    zRotate = (p, rad) => {
+        const point = p.clone().add(this._gizmos.position);
+        const axis = new THREE.Vector3();
+        this.camera.getWorldDirection(axis).multiplyScalar(-1);
         let quat = new THREE.Quaternion().setFromAxisAngle(axis, (Math.PI*2)-rad);
-        quat.multiply(this._quatState);
 
         this._rotateMatrix.makeRotationFromQuaternion(quat);
+        quat.multiply(this._quatState);
+
 
         //rotate camera
         this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
         this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
         this._m4_1.premultiply(this._rotateMatrix);
 
+        this._m4_2.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
+        this._m4_2.premultiply(this._rotateMatrix);
+
         this._translateMatrix.makeTranslation(point.x, point.y, point.z);
         this._m4_1.premultiply(this._translateMatrix);
+        this._m4_2.premultiply(this._translateMatrix);
+
+        return{camera: this._m4_1.clone(), gizmo: this._m4_2.clone()};
     };
     
 
