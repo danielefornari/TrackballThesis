@@ -1489,4 +1489,3 @@ function render() {
     
 };
 
-//TODO: todolist + fix doublefinger (scale forse? controllare tutto)
