@@ -1,5 +1,5 @@
 import * as THREE from 'https://unpkg.com/three/build/three.module.js';
-//import {GLTFLoader} from 'https://unpkg.com/browse/three@0.127.0/examples/jsm/loaders/GLTFLoader.js'
+import {GLTFLoader} from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js'
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
@@ -64,9 +64,6 @@ class Arcball extends THREE.EventDispatcher{
         this.zoom0 = 1;
         this._cameraMatrixState0 = new THREE.Matrix4();
         this._gizmoMatrixState0 = new THREE.Matrix4();
-
-        //for unproject
-        this.matrixWorld0 = new THREE.Matrix4();
 
         //double fingers touch interaction only
         this._fingerDistance = 0; //distance between two fingers
@@ -183,6 +180,7 @@ class Arcball extends THREE.EventDispatcher{
                 }
                 this.updateTbState(STATE.ROTATE, true);
                 this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, event.clientX, event.clientY, this.canvas, this._tbRadius));
+                console.log(this.camera.zoom);
                 this.enlightGizmosR(true);
                 if(this.enableAnimations) {
                     this._t0 = this._t = performance.now();
@@ -237,7 +235,7 @@ class Arcball extends THREE.EventDispatcher{
                 const distance = this._startCursorPosition.distanceTo(this._currentCursorPosition);
                 const angle = this._startCursorPosition.angleTo(this._currentCursorPosition);
                 const amount = Math.max(distance/this._tbRadius, angle);  //effective rotation angle
-                this.applyTransformMatrix(this.rotateObj(this.calculateRotationAxis(this._startCursorPosition, this._currentCursorPosition), amount));
+                this.applyTransformMatrix(this.rotateObj(this._gizmos.position, this.calculateRotationAxis(this._startCursorPosition, this._currentCursorPosition), amount));
                 if(this.enableAnimations) {
                     this._t0 = this._t;
                     this._t = performance.now();
@@ -260,7 +258,6 @@ class Arcball extends THREE.EventDispatcher{
             else {
                 //continue with panning routine
                 this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, event.clientX, event.clientY, this.canvas));
-                //console.log(this._currentCursorPosition);
                 this.applyTransformMatrix(this.pan(this._startCursorPosition, this._currentCursorPosition));
             }
             this.dispatchEvent(this._changeEvent);
@@ -433,7 +430,7 @@ class Arcball extends THREE.EventDispatcher{
         const angle = this._startCursorPosition.angleTo(this._currentCursorPosition);
         const amount = Math.max(distance/this._tbRadius, angle);
         this._rotationAxis.copy(this.calculateRotationAxis(this._startCursorPosition, this._currentCursorPosition));
-        this.applyTransformMatrix(this.rotateObj(this._rotationAxis, amount));
+        this.applyTransformMatrix(this.rotateObj(this._gizmos.position, this._rotationAxis, amount));
         if(this.enableAnimations) {
             this._t0 = this._t;
             this._t = performance.now();
@@ -506,18 +503,22 @@ class Arcball extends THREE.EventDispatcher{
         this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
         const newDistance = this.calculateDistance(event.pointers[0], event.pointers[1]);
         const s = newDistance/this._fingerDistance;   //how much to scale
+        const r = (this._fingerRotation - event.rotation)*Math.PI/180;
+        const axis = new THREE.Vector3(0, 0, 1).applyQuaternion(this.camera.quaternion);
 
         //const d1 = new THREE.Vector3(this.camera.position.x, this.camera.position.y, 0);
         //const d2 = new THREE.Vector3(p.x, p.y, 0).applyQuaternion(this.camera.quaternion);
 
         const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
 
-        //rotation operation
-        //const rotate = this.rotateObj()
+        //rotate operation
+        const rotate = this.rotateObj(this._currentCursorPosition, axis, r);
+        this.applyTransformMatrix(rotate);
+
 
 
         //pan operation
-        //this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
+        this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
         //const pan = this.pan(this._startCursorPosition, this._currentCursorPosition);
         //this.applyTransformMatrix(pan);
 
@@ -525,9 +526,8 @@ class Arcball extends THREE.EventDispatcher{
         //this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
 
 
-        const scale = this.scale(s, scalePoint);
-        this.applyTransformMatrix(scale);
-        this.dispatchEvent(this._changeEvent);
+        /*const scale = this.scale(s, scalePoint);
+        this.applyTransformMatrix(scale);*/
 
 
 
@@ -535,11 +535,13 @@ class Arcball extends THREE.EventDispatcher{
 
 
         /*const transform = {
-            camera: pan.camera.premultiply(scale.camera),
-            gizmo: pan.gizmo.premultiply(scale.gizmo)
+            camera: pan.camera.premultiply(rotate.camera),
+            gizmo: pan.gizmo
         };*/
 
         //this.applyTransformMatrix(transform);
+        this.dispatchEvent(this._changeEvent);
+
 
     };
 
@@ -742,7 +744,7 @@ class Arcball extends THREE.EventDispatcher{
             this.makeGizmos(this._tbCenter, this._tbRadius);
         }
         else if(camera.type == 'PerspectiveCamera') {
-            const fov = (camera.fov*Math.PI)/180;   //degrees to radians
+            const fov = (camera.fov*Math.PI)/180;
             this._tbRadius = Math.tan(fov/2)*distance*0.66;
 
             this.makeGizmos(this._tbCenter, this._tbRadius);
@@ -751,8 +753,9 @@ class Arcball extends THREE.EventDispatcher{
         const geometry = new THREE.ConeGeometry(2, 6, 4);
         const material = new THREE.MeshBasicMaterial({color: 0x555555});
         const dummy = new THREE.Mesh(geometry, material);
-        dummy.rotateX(-Math.PI/2);
+        dummy.rotateX(Math.PI/2);
         dummy.rotateY(Math.PI/4);
+        dummy.translateY(-3);
         //camera.add(dummy);
 
         const points = [];
@@ -793,7 +796,6 @@ class Arcball extends THREE.EventDispatcher{
         this.dummy.updateMatrix();*/
 
         this.camera = camera;
-        this.matrixWorld0 = this.camera.matrixWorld;
     };
 
     /**
@@ -910,7 +912,7 @@ class Arcball extends THREE.EventDispatcher{
             this._angle0 = this._angle;
             this._angle = 0.5*this.acc*Math.pow(deltaTime, 2)+w0*deltaTime+0;
             if(this._angle >= this._angle0) {
-                this.applyTransformMatrix(this.rotateObj(rotationAxis, this._angle));
+                this.applyTransformMatrix(this.rotateObj(this._gizmos.position, rotationAxis, this._angle));
                 this.dispatchEvent(this._changeEvent);
                 const self = this;
                 window.requestAnimationFrame(function(t) {
@@ -940,6 +942,8 @@ class Arcball extends THREE.EventDispatcher{
     };
     
     pan = (p1, p2) => {
+        console.log(p1);
+        console.log(p2);
         const distanceV = p1.clone().sub(p2);
         distanceV.multiplyScalar(1/this.camera.zoom);
 
@@ -948,7 +952,6 @@ class Arcball extends THREE.EventDispatcher{
 
         //move gizmos along with camera so they always appear in the same spot
         this._m4_1.copy(this._gizmoMatrixState).premultiply(this._translateMatrix);
-    
         this._m4_2.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
         
         return {camera: this._m4_2.clone(), gizmo: this._m4_1.clone()};
@@ -971,22 +974,21 @@ class Arcball extends THREE.EventDispatcher{
      * @param {THREE.Vector3} axis Rotation axis
      * @param {number} rad Angle in radians
      */
-    rotateObj = (axis, rad) => {
+    rotateObj = (point, axis, rad) => {
         let quat = new THREE.Quaternion();
         quat.setFromAxisAngle(axis, (Math.PI*2)-rad);
         this._rotateMatrix.makeRotationFromQuaternion(quat);
         quat.multiply(this._quatState);
 
-        this._translateMatrix.makeTranslation(-this._gizmos.position.x, -this._gizmos.position.y, -this._gizmos.position.z);
+        //rotate camera
+        this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
         this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
         this._m4_1.premultiply(this._rotateMatrix);
-        this._translateMatrix.makeTranslation(this._gizmos.position.x, this._gizmos.position.y, this._gizmos.position.z);
+
+        this._translateMatrix.makeTranslation(point.x, point.y, point.z);
         this._m4_1.premultiply(this._translateMatrix);
 
         return {camera: this._m4_1.clone()};
-
-        //this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
-        //this.camera.matrix.copy(this._m4_1);
     };
 
     /**
@@ -997,7 +999,7 @@ class Arcball extends THREE.EventDispatcher{
      */
     scale = (s, p) => {
         const scalePoint = p.clone();
-
+        
         if(this.camera.type == 'OrthographicCamera') {
             //camera zoom
             this.camera.zoom = this.zoomState;
@@ -1022,6 +1024,18 @@ class Arcball extends THREE.EventDispatcher{
 
             const amount = scalePoint.clone().multiplyScalar(1/s);
             scalePoint.sub(amount);
+            /*let distance = this._gizmos.position.distanceTo(scalePoint);
+            console.log('distance '+distance);
+            console.log('s '+s);
+            const rDir = scalePoint.sub(this._gizmos.position).normalize().multiplyScalar(distance);
+            distance -= distance/s;
+            rDir.multiplyScalar(1/s);*/
+            //const amount = this._gizmos.position.clone().multiply(s);
+            //const rDir = this._gizmos.position.clone().sub(amount);
+
+            //this._translateMatrix.makeTranslation(rDir.x, rDir.y, rDir.z);
+            //console.log(rDir);
+
             this._translateMatrix.makeTranslation(scalePoint.x, scalePoint.y, scalePoint.z);
             this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
             this._m4_2.premultiply(this._translateMatrix);
@@ -1030,8 +1044,10 @@ class Arcball extends THREE.EventDispatcher{
         }
         else if(this.camera.type == 'PerspectiveCamera') {
             //move camera
-            const distance = this.camera.position.clone().sub(scalePoint).length();
-            const amount = distance - (distance/s);
+            const distance = this.camera.position.distanceTo(scalePoint);
+            console.log('distance: '+distance);
+            console.log('s: '+s)
+            let amount = distance - (distance/s);
             const direction = scalePoint.clone().sub(this.camera.position).normalize();
             direction.multiplyScalar(amount);
 
@@ -1059,6 +1075,23 @@ class Arcball extends THREE.EventDispatcher{
             return{camera: this._m4_1.clone(), gizmo: this._m4_2.clone()};
         }
     };
+
+    zRotate = (point, rad) => {
+        const axis = new THREE.Vector2(0, 0, 1);
+        let quat = new THREE.Quaternion().setFromAxisAngle(axis, (Math.PI*2)-rad);
+        quat.multiply(this._quatState);
+
+        this._rotateMatrix.makeRotationFromQuaternion(quat);
+
+        //rotate camera
+        this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
+        this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
+        this._m4_1.premultiply(this._rotateMatrix);
+
+        this._translateMatrix.makeTranslation(point.x, point.y, point.z);
+        this._m4_1.premultiply(this._translateMatrix);
+    };
+    
 
     /**
      * Unproject the cursor on the object surface
@@ -1107,42 +1140,30 @@ class Arcball extends THREE.EventDispatcher{
             return this._v3_1;
         }
         else if(camera.type == 'PerspectiveCamera') {
-            const oldQ = new THREE.Quaternion().setFromRotationMatrix(this._cameraMatrixState);
-            const offset = camera.quaternion.clone().multiply(oldQ.invert()).invert();
-
             this._v2_1.copy(this.getCursorNDC(x, y, canvas));
             const nearPlanePoint = new THREE.Vector3(this._v2_1.x, this._v2_1.y, -1);
 
-            nearPlanePoint.unproject(camera);   //unproject cursor on near plane
-            //nearPlanePoint.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(this.matrixWorld0);
+            //unproject curson on the near plane in camera space
+            nearPlanePoint.applyMatrix4(camera.projectionMatrixInverse);
 
-
-            const r0 = camera.position.clone(); //vector origin
-            const rDir = new THREE.Vector3().subVectors(nearPlanePoint, r0).normalize() ;    //direction vector
+            const rDir = nearPlanePoint.clone().normalize();
             const hitPoint = new THREE.Vector2();   //intersesction point between the unprojected ray and the trackball surface
+            const distance = camera.position.distanceTo(this._gizmos.position);
             const radius2 = Math.pow(tbRadius, 2);
-            //const distance = camera.position.distanceTo(this._gizmos.position);
-            const distance = camera.position.length();
-
         
             //for intersection with trackball's surface, consider 2D axes (X', Y') instead of 3D (X, Y, Z)
             //Y' = Z
-            //X' = asse lungo cui si sviluppa la distanza dal centro della trackball al punto sulla sfera su Z=0
-            //const h = nearPlanePoint.z - camera.position.z; //distance from camera to the point on near plane along Y' axis
-            //const l = Math.sqrt(Math.pow(nearPlanePoint.x, 2)+Math.pow(nearPlanePoint.y, 2));   //distance from camera to the point on near plane along X' axis
+            //X' = asse lungo cui si sviluppa la distanza dal centro della trackball al punto sulla sfera su Z=0        
+            const h = nearPlanePoint.z;
+            const l = Math.sqrt(Math.pow(nearPlanePoint.x, 2) + Math.pow(nearPlanePoint.y, 2));
 
-            const h = -this.camera.near; //distance from camera to the point on near plane along Y' axis
-            const i = r0.clone().distanceTo(nearPlanePoint);
-            const l = Math.sqrt(Math.pow(i, 2) - Math.pow(h, 2));
-        
             const m = h/l;
-            //const q = camera.position.z;
             const q = distance;
         
 
             /*
-             * y = mx + q
-             * x^2 + y^2 = r^2
+             *|y = mx + q
+             *|x^2 + y^2 = r^2
              *
              * (m^2 + 1")x^2 + (2mq)x + q^2 + r^2 = 0
              */
@@ -1153,17 +1174,18 @@ class Arcball extends THREE.EventDispatcher{
         
             if(delta >= 0) {
                 //intersection with sphere
-                //hitPoint.x = (-b-Math.sqrt(delta))/(2*a);
-                hitPoint.x = (-b-Math.sqrt(delta))/(2*a);
-                hitPoint.y = m*hitPoint.x+q;
+                hitPoint.setX((-b-Math.sqrt(delta))/(2*a));
+                hitPoint.setY(m*hitPoint.x+q);
+
                 let angle = hitPoint.angle()*180/Math.PI;
                 if(angle >= 45) {
                     //if angle between intersection point and X' axis is >= 45°, return that point
                     //otherwise, calculate intersection point with hyperboloid
-                    //let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
-                    let d = new THREE.Vector2(0, distance).distanceTo(hitPoint);
-
-                    return r0.add(rDir.multiplyScalar(d)).applyQuaternion(offset);
+            
+                    let d = Math.sqrt(Math.pow(hitPoint.x, 2) + Math.pow((distance - hitPoint.y), 2));
+                    rDir.multiplyScalar(d);
+                    rDir.z += distance;
+                    return rDir;
                 }
             }
             //intersection with hyperboloid
@@ -1171,12 +1193,14 @@ class Arcball extends THREE.EventDispatcher{
             b = q;
             c = -radius2/2;
             delta = Math.pow(b, 2)-(4*a*c);
-            hitPoint.x = (-b-Math.sqrt(delta))/(2*a);
-            hitPoint.y = m*hitPoint.x+q;
-            //let d = new THREE.Vector2(0, camera.position.z).distanceTo(hitPoint);
-            let d = new THREE.Vector2(0, distance).distanceTo(hitPoint);
+            hitPoint.setX((-b-Math.sqrt(delta))/(2*a));
+            hitPoint.setY(m*hitPoint.x+q);
 
-            return r0.add(rDir.multiplyScalar(d)).applyQuaternion(offset);
+            let d = Math.sqrt(Math.pow(hitPoint.x, 2) + Math.pow((distance - hitPoint.y), 2));
+
+            rDir.multiplyScalar(d);
+            rDir.z += distance;
+            return rDir;
         }
     };
 
@@ -1197,42 +1221,32 @@ class Arcball extends THREE.EventDispatcher{
             return this._v3_1;
         }
         else if(camera.type == 'PerspectiveCamera') {
-            const oldP = new THREE.Vector3().setFromMatrixPosition(this._cameraMatrixState);
-            const offset = camera.position.clone().sub(oldP);
-
             this._v2_1.copy(this.getCursorNDC(x, y, canvas));
 
-            //unproject cursor on the near plane
+            //unproject cursor on the near plane in camera space
             this._v3_1.set(this._v2_1.x, this._v2_1.y, -1);
-            this._v3_1.unproject(this.camera);
             
-            //this._v3_1.applyMatrix4(camera.projectionMatrixInverse).applyMatrix4(this.matrixWorld0);
+            this._v3_1.applyMatrix4(camera.projectionMatrixInverse);
 
-            const distance = camera.position.length();
-            const r0 = camera.position.clone(); //vector origin
-            const rDir = this._v3_1.clone().sub(r0).normalize();    //direction vector
+            const rDir = this._v3_1.clone().normalize();    //direction vector
 
-            
-            //const r0 = new THREE.Vector3().setFromMatrixPosition(this._cameraMatrixState);
-            //const rDir = this._v3_1.clone().sub(r0).normalize();    //direction vector
-            //const distance = r0.length();
+            const h = this._v3_1.z;
+            const l = Math.sqrt(Math.pow(this._v3_1.x, 2) + Math.pow(this._v3_1.y, 2));
+            const distance = camera.position.distanceTo(this._gizmos.position);
 
-            const h = -camera.near;
-            const i = r0.clone().distanceTo(this._v3_1);
-            const l = Math.sqrt(Math.pow(i, 2) - Math.pow(h, 2));
-
-
-            //const l = r0.clone().sub(this._v3_1).length();
-            //const l1 = this.camera.position.clone().sub(this._gizmos.position).normalize().multiplyScalar(h);
-
-            //const l = Math.sqrt(Math.pow(this._v3_1.x, 2)+Math.pow(this._v3_1.y, 2));
-        
+            /*
+             *|y = mx + q
+             *|y = 0
+             *
+             * x = -q/m
+            */
             const m = h/l;
             const q = distance;
             const X = -q/m;
 
             const d = Math.sqrt(Math.pow(q, 2) + Math.pow(X, 2));
-            return r0.add(rDir.multiplyScalar(d).sub(offset));
+            return rDir.multiplyScalar(d);
+            //return r0.add(rDir.multiplyScalar(d));
         }
     };
 
@@ -1240,12 +1254,22 @@ class Arcball extends THREE.EventDispatcher{
      * update the object's matrix state with the current object's matrix and reset all transformation matrices
      */
     updateMatrixState = () => {
+        //update camera and gizmos state
         this._cameraMatrixState.copy(this.camera.matrix);
-        this.matrixWorld0.copy(this.camera.matrixWorld);
-        this._cameraProjectionState.copy(this.camera.projectionMatrix);
         this._gizmoMatrixState.copy(this._gizmos.matrix);
-        this.zoomState = this.camera.zoom;
-        this.camera.updateProjectionMatrix();
+
+        if(this.camera.type == 'OrthographicCamera') {
+            this._cameraProjectionState.copy(this.camera.projectionMatrix);
+            this.camera.updateProjectionMatrix();
+            this.zoomState = this.camera.zoom;
+        }
+        else if(this.camera.type == 'PerspectiveCamera') {
+            //update tb radius
+            const distance = this.camera.position.distanceTo(this._gizmos.position);
+            const fov = (camera.fov*Math.PI)/180;
+
+            this._tbRadius = Math.tan(fov/2)*distance*0.66;
+        }
 
         //reset all matrices
         this._translateMatrix.makeTranslation(0, 0, 0);
@@ -1268,8 +1292,6 @@ class Arcball extends THREE.EventDispatcher{
         }
     };
 };
-
-
 
 
 
@@ -1318,11 +1340,11 @@ lightDebug.position.set(0, 0, 0);
 
 
 
-const loader = new OBJLoader();
-loader.load('rocker_arm.obj', onLoad); 
+//const loader = new OBJLoader();
+//loader.load('rocker_arm.obj', onLoad); 
 
-//const loader = new GLTFLoader();
-//loader.load('../../../../Downloads/adamHead/adamHead.gltf', onLoad);
+const loader = new GLTFLoader();
+loader.load('./adamHead/adamHead.gltf', onLoad);
 
 
 resizeRenderer(renderer);
@@ -1421,7 +1443,7 @@ function resizeRenderer(renderer) {
 
 
 function onLoad(o) {
-    obj = o;
+    obj = o.scene;
     scene.add(obj);
 
     arcball = new Arcball(camera, renderer.domElement);
@@ -1453,7 +1475,7 @@ function makePerspectiveCamera(canvas) {
     const fov = 45;
     const aspect = canvas.clientWidth/canvas.clientHeight;
     //const zPosition = tbRadius*3.5;
-    const near = 2;
+    const near = 0.1;
     const far = 2000;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
     //camera.position.z = zPosition;
@@ -1467,4 +1489,4 @@ function render() {
     
 };
 
-//TODO: todolist + fix pan/rotate perspective (pan: dalcolare l (quello giusto))
+//TODO: todolist + fix doublefinger (scale forse? controllare tutto)
