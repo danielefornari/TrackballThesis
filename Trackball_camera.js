@@ -6,7 +6,6 @@ import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.
 
 //import * as THREE from './node_modules/three/src/Three.js';
 //import {Arcball} from './Arcball_object';
-//import * as HAMMERJS from 'hammerjs';
 
 
 //trackball's state
