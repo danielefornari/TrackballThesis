@@ -1349,11 +1349,11 @@ lightDebug.position.set(0, 0, 0);
 
 
 
-//const loader = new OBJLoader();
-//loader.load('rocker_arm.obj', onLoad); 
+const loader = new OBJLoader();
+loader.load('rocker_arm.obj', onLoad); 
 
-const loader = new GLTFLoader();
-loader.load('./lieutenantHead/lieutenantHead.gltf', onLoad);
+//const loader = new GLTFLoader();
+//loader.load('./candlestick/scene.gltf', onLoad);
 
 
 resizeRenderer(renderer);
@@ -1452,7 +1452,7 @@ function resizeRenderer(renderer) {
 
 
 function onLoad(o) {
-    obj = o.scene;
+    obj = o;
     scene.add(obj);
 
     arcball = new Arcball(camera, renderer.domElement);
