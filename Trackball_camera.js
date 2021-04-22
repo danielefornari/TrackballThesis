@@ -1101,8 +1101,18 @@ class Arcball extends THREE.EventDispatcher{
     unprojectOnObj = (cursor, camera) => {
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(cursor, camera);
+
+        let obj;
+        for(let i=0; i<this._scene.children.length; i++)
+        {
+            if(this._scene.children[i].type == 'Group' && this._scene.children[i].uuid != this._gizmos.uuid) {
+                obj = this._scene.children[i];
+                break;
+            }
+        }
         const intersect = raycaster.intersectObject(obj, true);
         if(intersect.length == 0) {
+            console.log('null');
             return  null;
         }
         else {
@@ -1343,7 +1353,7 @@ lightDebug.position.set(0, 0, 0);
 //loader.load('rocker_arm.obj', onLoad); 
 
 const loader = new GLTFLoader();
-loader.load('./adamHead/adamHead.gltf', onLoad);
+loader.load('./lieutenantHead/lieutenantHead.gltf', onLoad);
 
 
 resizeRenderer(renderer);
