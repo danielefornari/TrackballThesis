@@ -461,9 +461,9 @@ class Arcball extends THREE.EventDispatcher{
 
     onDoubleTap = (event) => {
         console.log('double_tap');
-        //const center = event.center;
+        const center = event.center;
         //const center = new THREE.Vector2(291, 144);
-        const center = new THREE.Vector2((canvas.clientWidth/2)+1, (canvas.clientHeight/2)+1);
+        //const center = new THREE.Vector2((canvas.clientWidth/2)+1, (canvas.clientHeight/2)+1);
         const hitP = this.unprojectOnObj(this.getCursorNDC(center.x, center.y, this.canvas), this.camera);
         if(hitP != null && this.enableAnimations) {
             const self = this;
