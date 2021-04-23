@@ -221,8 +221,8 @@ class Arcball extends THREE.EventDispatcher{
         if(this._state == STATE.ROTATE) {
             if(event.ctrlKey || event.metaKey) {
                 //switch to pan operation
-                this._startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, event.clientX, event.clientY, this.canvas));
                 this.updateTbState(STATE.PAN, true);
+                this._startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, event.clientX, event.clientY, this.canvas));
                 if(this.enableGrid) {
                     this.drawGrid();
                 }
@@ -247,8 +247,8 @@ class Arcball extends THREE.EventDispatcher{
         else if(this._state == STATE.PAN) {
             if(!this._wheelDown && !(event.ctrlKey || event.metaKey)) {
                 //switch to rotate operation
-                this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, event.clientX, event.clientY, this.canvas, this._tbRadius));
                 this.updateTbState(STATE.ROTATE, true);
+                this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, event.clientX, event.clientY, this.canvas, this._tbRadius));
                 if(this.enableGrid) {
                     scene.remove(this.grid);
                 }
@@ -266,12 +266,12 @@ class Arcball extends THREE.EventDispatcher{
             //update state and resume last operation
             this._state = this._prevState;
             if(this._state == STATE.PAN) {
-                this._startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, event.clientX, event.clientY, this.canvas));
                 this.updateTbState(STATE.PAN, true);
+                this._startCursorPosition.copy(this.unprojectOnTbPlane(this.camera, event.clientX, event.clientY, this.canvas));
             }
             else if(this._state == STATE.ROTATE) {
-                this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, event.clientX, event.clientY, this.canvas, this._tbRadius));
                 this.updateTbState(STATE.ROTATE, true);
+                this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, event.clientX, event.clientY, this.canvas, this._tbRadius));
             }
         }
     };
@@ -401,8 +401,8 @@ class Arcball extends THREE.EventDispatcher{
             console.log("singlepanstart");
             const center = event.center;
 
-            this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, center.x, center.y, this.canvas, this._tbRadius));
             this.updateTbState(STATE.ROTATE, true);
+            this._startCursorPosition.copy(this.unprojectOnTbSurface(this.camera, center.x, center.y, this.canvas, this._tbRadius));
             this.enlightGizmosR(true);
 
             if(this.enableAnimations) {
@@ -461,8 +461,9 @@ class Arcball extends THREE.EventDispatcher{
 
     onDoubleTap = (event) => {
         console.log('double_tap');
-        const center = event.center;
+        //const center = event.center;
         //const center = new THREE.Vector2(291, 144);
+        const center = new THREE.Vector2((canvas.clientWidth/2)+1, (canvas.clientHeight/2)+1);
         const hitP = this.unprojectOnObj(this.getCursorNDC(center.x, center.y, this.canvas), this.camera);
         if(hitP != null && this.enableAnimations) {
             const self = this;
@@ -515,7 +516,6 @@ class Arcball extends THREE.EventDispatcher{
         const rotationPoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);
         const rotate = this.zRotate(rotationPoint, r);
         //this.applyTransformMatrix(rotate);
-
 
 
         //pan operation
@@ -1411,7 +1411,7 @@ const loader = new OBJLoader();
 loader.load('./rocker_arm.obj', onLoad); 
 
 //const loader = new GLTFLoader();
-//loader.load('./candlestick/scene.gltf', onLoad);
+//loader.load('./test_gltf_1.glb', onLoad);
 
 
 resizeRenderer(renderer);
@@ -1511,6 +1511,27 @@ function resizeRenderer(renderer) {
 
 function onLoad(o) {
     obj = o;
+    //obj.position.set(0, 0, 0);
+    /*const bb = new THREE.Box3().setFromObject(obj);
+    const bbCenter = new THREE.Vector3();
+    bb.getCenter(bbCenter);
+    const bbSize = new THREE.Vector3();
+     bb.getSize(bbSize);
+    const bbMax = Math.max(bbSize.x, bbSize.y, bbSize.z);
+
+
+    let viewMin;
+    if(camera.type == 'OrthographicCamera') {
+        viewMin = Math.min(camera.top, camera.right)*0.66;
+    }
+    else if(camera.type == 'PerspectiveCamera') {
+        viewMin = Math.tan(fov/2)*distance*0.66;
+    }
+
+    const scale = (viewMin/bbMax)*2;
+    obj.position.sub(bbCenter);
+    obj.scale.set(scale, scale, scale);*/
+
     scene.add(obj);
 
     arcball = new Arcball(camera, renderer.domElement);
