@@ -1,10 +1,10 @@
-i//mport * as THREE from 'https://unpkg.com/three/build/three.module.js';
+import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
 import {GLTFLoader} from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js'
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
-import * as THREE from './node_modules/three/src/Three.js';
+//import * as THREE from './node_modules/three/src/Three.js';
 //import {Arcball} from './Arcball_object';
 
 
@@ -508,12 +508,11 @@ class Arcball extends THREE.EventDispatcher{
         //const d1 = new THREE.Vector3(this.camera.position.x, this.camera.position.y, 0);
         //const d2 = new THREE.Vector3(p.x, p.y, 0).applyQuaternion(this.camera.quaternion);
 
-        const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
+        //const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
 
         //rotate operation
         //const prev = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
-        const offset = this._gizmos.position.clone().project(this.camera);
-        const rotationPoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(offset);
+        const rotationPoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);
         const rotate = this.zRotate(rotationPoint, r);
         //this.applyTransformMatrix(rotate);
 
