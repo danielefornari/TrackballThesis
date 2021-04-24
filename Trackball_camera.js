@@ -493,7 +493,6 @@ class Arcball extends THREE.EventDispatcher{
             this._fingerDistance = this.calculateDistance(event.pointers[0], event.pointers[1]);
             this._fingerRotation = event.rotation;
             this.updateTbState(STATE.TOUCH_MULTI, true);
-            this._quatState.copy(this._gizmos.quaternion);
         }
     };
 
@@ -509,40 +508,44 @@ class Arcball extends THREE.EventDispatcher{
         //const d1 = new THREE.Vector3(this.camera.position.x, this.camera.position.y, 0);
         //const d2 = new THREE.Vector3(p.x, p.y, 0).applyQuaternion(this.camera.quaternion);
 
-        //const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
+        //scaling operation
+        ///const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
+        //const scalePoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);
+        //const scale = this.scale(s, scalePoint);
 
         //rotate operation
-        //const prev = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
         const rotationPoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);
         const rotate = this.zRotate(rotationPoint, r);
-        //this.applyTransformMatrix(rotate);
-
+        //const rotate = {camera: new THREE.Matrix4(), gizmo: new THREE.Matrix4()};
 
         //pan operation
-        //this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
         const pan = this.pan(this._startCursorPosition, this._currentCursorPosition);
+        //const pan = {camera: new THREE.Matrix4(), gizmo: new THREE.Matrix4()};
+        
         //this.applyTransformMatrix(pan);
-
         //this.applyTransformMatrix(rotate);
+        //this.applyTransformMatrix(scale);
 
-        //scaling operation
-        //this._gizmoMatrixState.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
+        this._m4_1.copy(this._cameraMatrixState).premultiply(pan.camera);
+        this._m4_1.premultiply(rotate.camera);
+        //this._m4_1.premultiply(scale.camera);
+        this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
+        this.camera.updateMatrix();
 
+        this._m4_2.copy(this._gizmoMatrixState).premultiply(pan.gizmo);
+        this._m4_2.premultiply(rotate.gizmo);
+        //this._m4_2.premultiply(scale.gizmo);
+        this._m4_2.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
+        this._gizmos.updateMatrix();
 
-        /*const scale = this.scale(s, scalePoint);
-        this.applyTransformMatrix(scale);*/
-
-
-
-        const transform = {
-            camera: pan.camera.premultiply(rotate.camera),
-            gizmo: pan.gizmo.premultiply(rotate.gizmo)
+        /*const transform = {
+            camera: pan.camera.multiply(rotate.camera).multiply(scale.camera),
+            gizmo: pan.gizmo.multiply(rotate.gizmo).multiply(scale.gizmo)
         };
 
-        this.applyTransformMatrix(transform);
+        this.applyTransformMatrix(transform);*/
+
         this.dispatchEvent(this._changeEvent);
-
-
     };
 
     onDoublePanEnd = (event) => {
@@ -995,14 +998,14 @@ class Arcball extends THREE.EventDispatcher{
         let quat = new THREE.Quaternion();
         quat.setFromAxisAngle(axis, (Math.PI*2)-rad);
 
-        this._translateMatrix.makeTranslation(point.x, point.y, point.z);
+        this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
         this._rotateMatrix.makeRotationFromQuaternion(quat);
         quat.multiply(this._quatState);
 
         //rotate camera
-        this._m4_1.makeTranslation(-point.x, -point.y, -point.z);
-        this._m4_1.premultiply(this._rotateMatrix);
-        this._m4_1.premultiply(this._translateMatrix);
+        this._m4_1.makeTranslation(point.x, point.y, point.z);
+        this._m4_1.multiply(this._rotateMatrix);
+        this._m4_1.multiply(this._translateMatrix);
 
 
         /*this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
@@ -1032,14 +1035,14 @@ class Arcball extends THREE.EventDispatcher{
 
             const pos0 = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState0);
             const pos = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
-            pos0.sub(pos);
+            pos0.sub(this._gizmos.position);
 
             this._scaleMatrix.makeScale(1/s, 1/s, 1/s);
-            this._translateMatrix.makeTranslation(-pos0.x, -pos0.y, -pos0.z);
+            this._translateMatrix.makeTranslation(pos0.x, pos0.y, pos0.z);
 
-            this._m4_2.makeTranslation(pos0.x, pos0.y, pos0.z);
-            this._m4_2.premultiply(this._scaleMatrix);
-            this._m4_2.premultiply(this._translateMatrix);
+            this._m4_2.makeTranslation(-pos0.x, -pos0.y, -pos0.z);
+            this._m4_2.multiply(this._scaleMatrix);
+            this._m4_2.multiply(this._translateMatrix);
 
             //scale gizmos so they appear in the same spot having the same dimension
             /*this._scaleMatrix.makeScale(1/s, 1/s, 1/s);
@@ -1068,7 +1071,7 @@ class Arcball extends THREE.EventDispatcher{
             //console.log(rDir);
 
             this._m4_1.makeTranslation(scalePoint.x, scalePoint.y, scalePoint.z);
-            this._m4_2.premultiply(this._m4_1);
+            this._m4_2.multiply(this._m4_1);
 
             /*this._translateMatrix.makeTranslation(scalePoint.x, scalePoint.y, scalePoint.z);
             this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
@@ -1078,28 +1081,37 @@ class Arcball extends THREE.EventDispatcher{
         }
         else if(this.camera.type == 'PerspectiveCamera') {
             //move camera
-            const distance = this.camera.position.distanceTo(scalePoint);
+            let distance = new THREE.Vector3().setFromMatrixPosition(this._cameraMatrixState).distanceTo(scalePoint);
 
             let amount = distance - (distance/s);
-            const direction = scalePoint.clone().sub(this.camera.position).normalize();
+            let direction = scalePoint.clone().sub(this.camera.position).normalize();
             direction.multiplyScalar(amount);
 
-            this._translateMatrix.makeTranslation(direction.x, direction.y, direction.z);
-            this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
+            /*this._translateMatrix.makeTranslation(direction.x, direction.y, direction.z);
+            this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);*/
 
             this._m4_1.makeTranslation(direction.x, direction.y, direction.z);
 
-            //scale gizmos
+            //follow camera with gizmos for pinch effect
+            distance = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState).distanceTo(scalePoint);
+            amount = distance - (distance/s);
+            direction = scalePoint.clone().sub(this._gizmos.position).normalize();
+            direction.multiplyScalar(amount);
+            
+            this._m4_2.makeTranslation(direction.x, direction.y, direction.z);
+
+            //scale gizmos so they appear in the same spot having the same dimension
             const pos0 = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState0);
             const pos = new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState);
             pos0.sub(pos);
 
-            //scale gizmos so they appear in the same spot having the same dimension
             this._scaleMatrix.makeScale(1/s, 1/s, 1/s);
             this._translateMatrix.makeTranslation(-pos0.x, -pos0.y, -pos0.z);
-            this._m4_2.makeTranslation(pos0.x, pos0.y, pos0.z);
-            this._m4_2.premultiply(this._scaleMatrix);
-            this._m4_2.premultiply(this._translateMatrix);
+            this._m4_2.multiply(this._translateMatrix);
+            this._m4_2.multiply(this._scaleMatrix);
+            this._translateMatrix.makeTranslation(pos0.x, pos0.y, pos0.z);
+            this._m4_2.multiply(this._translateMatrix);
+
 
             /*this._scaleMatrix.makeScale(1/s, 1/s, 1/s);
             this._translateMatrix.makeTranslation(pos0.x, pos0.y, pos0.z);
@@ -1123,17 +1135,14 @@ class Arcball extends THREE.EventDispatcher{
         let quat = new THREE.Quaternion().setFromAxisAngle(axis, (Math.PI*2)-rad);
 
         this._rotateMatrix.makeRotationFromQuaternion(quat);
-        this._translateMatrix.makeTranslation(point.x, point.y, point.z);
+        this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
 
         quat.multiply(this._quatState);
 
-        this._m4_1.makeTranslation(-point.x, -point.y, -point.z);
-        this._m4_1.premultiply(this._rotateMatrix);
-        this._m4_1.premultiply(this._translateMatrix);
+        this._m4_1.makeTranslation(point.x, point.y, point.z);
+        this._m4_1.multiply(this._rotateMatrix);
+        this._m4_1.multiply(this._translateMatrix);
         
-
-    
-
         //rotate camera
         /*this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
         this._m4_1.copy(this._cameraMatrixState).premultiply(this._translateMatrix);
@@ -1312,7 +1321,9 @@ class Arcball extends THREE.EventDispatcher{
             const X = -q/m;
 
             const d = Math.sqrt(Math.pow(q, 2) + Math.pow(X, 2));
-            return rDir.multiplyScalar(d);
+            rDir.multiplyScalar(d);
+            rDir.z += distance;
+            return rDir;
             //return r0.add(rDir.multiplyScalar(d));
         }
     };
@@ -1407,11 +1418,11 @@ lightDebug.position.set(0, 0, 0);
 
 
 
-const loader = new OBJLoader();
-loader.load('./rocker_arm.obj', onLoad); 
+//const loader = new OBJLoader();
+//loader.load('./rocker_arm.obj', onLoad); 
 
-//const loader = new GLTFLoader();
-//loader.load('./test_gltf_1.glb', onLoad);
+const loader = new GLTFLoader();
+loader.load('./popcorn_bucket.glb', onLoad);
 
 
 resizeRenderer(renderer);
@@ -1510,13 +1521,13 @@ function resizeRenderer(renderer) {
 
 
 function onLoad(o) {
-    obj = o;
+    obj = o.scene;
     //obj.position.set(0, 0, 0);
-    /*const bb = new THREE.Box3().setFromObject(obj);
+    const bb = new THREE.Box3().setFromObject(obj);
     const bbCenter = new THREE.Vector3();
     bb.getCenter(bbCenter);
     const bbSize = new THREE.Vector3();
-     bb.getSize(bbSize);
+    bb.getSize(bbSize);
     const bbMax = Math.max(bbSize.x, bbSize.y, bbSize.z);
 
 
@@ -1529,8 +1540,9 @@ function onLoad(o) {
     }
 
     const scale = (viewMin/bbMax)*2;
-    obj.position.sub(bbCenter);
-    obj.scale.set(scale, scale, scale);*/
+    obj.scale.set(scale, scale, scale);
+    obj.position.set(0, 0, 0);
+
 
     scene.add(obj);
 
