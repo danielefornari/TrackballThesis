@@ -510,8 +510,8 @@ class Arcball extends THREE.EventDispatcher{
 
         //scaling operation
         ///const scalePoint = new THREE.Vector3(this._currentCursorPosition.x, this._currentCursorPosition.y, 0).applyQuaternion(this.camera.quaternion);
-        //const scalePoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);
-        //const scale = this.scale(s, scalePoint);
+        const scalePoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);
+        const scale = this.scale(s, scalePoint);
 
         //rotate operation
         const rotationPoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);
@@ -528,13 +528,13 @@ class Arcball extends THREE.EventDispatcher{
 
         this._m4_1.copy(this._cameraMatrixState).premultiply(pan.camera);
         this._m4_1.premultiply(rotate.camera);
-        //this._m4_1.premultiply(scale.camera);
+        this._m4_1.premultiply(scale.camera);
         this._m4_1.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
         this.camera.updateMatrix();
 
         this._m4_2.copy(this._gizmoMatrixState).premultiply(pan.gizmo);
         this._m4_2.premultiply(rotate.gizmo);
-        //this._m4_2.premultiply(scale.gizmo);
+        this._m4_2.premultiply(scale.gizmo);
         this._m4_2.decompose(this._gizmos.position, this._gizmos.quaternion, this._gizmos.scale);
         this._gizmos.updateMatrix();
 
@@ -1541,7 +1541,7 @@ function onLoad(o) {
 
     const scale = (viewMin/bbMax)*2;
     obj.scale.set(scale, scale, scale);
-    obj.position.set(0, 0, 0);
+    obj.position.sub(bbCenter);
 
 
     scene.add(obj);
