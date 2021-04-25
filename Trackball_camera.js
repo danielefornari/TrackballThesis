@@ -143,7 +143,8 @@ class Arcball extends THREE.EventDispatcher{
 
 
         //dummy
-        let dummy = new THREE.Object3D();
+        this.dummy = new THREE.Object3D();
+        this.zAxisDebug = null;
         //const geometry = new THREE.BoxGeometry(4, 4, 4);
 
         //this. dummy = new THREE.Mesh(geometry, material);
@@ -152,6 +153,7 @@ class Arcball extends THREE.EventDispatcher{
 
         this.initialize(camera);
         this._scene.add(this._gizmos);
+        //this._scene.add(this.zAxisDebug);
     };
 
     //listener for mouse left and wheel button
@@ -506,12 +508,9 @@ class Arcball extends THREE.EventDispatcher{
         //const center = new THREE.Vector2(canvas.clientWidth/2, canvas.clientHeight/2);
         this._currentCursorPosition.copy(this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas));
         const newDistance = this.calculateDistance(event.pointers[0], event.pointers[1]);
-        const offset = this._currentCursorPosition.clone().sub(this._startCursorPosition).applyQuaternion(this.camera.quaternion);
+        const offset = this._startCursorPosition.clone().sub(this._currentCursorPosition).applyQuaternion(this.camera.quaternion);
         const s = newDistance/this._fingerDistance;   //how much to scale
         const r = (this._fingerRotation - event.rotation)*Math.PI/180;
-
-        //const d1 = new THREE.Vector3(this.camera.position.x, this.camera.position.y, 0);
-        //const d2 = new THREE.Vector3(p.x, p.y, 0).applyQuaternion(this.camera.quaternion);
 
         //scaling operation
         //const scalePoint = this._gizmos.position;
@@ -519,7 +518,7 @@ class Arcball extends THREE.EventDispatcher{
         const scale = this.scale(s, scalePoint);
 
         //rotate operation
-        const rotationPoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position)//.add(new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState).add(offset));
+        const rotationPoint = this._currentCursorPosition.clone().applyQuaternion(this.camera.quaternion).add(this._gizmos.position);//.add(new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState)).add(new THREE.Vector3().setFromMatrixPosition(pan.gizmo).multiplyScalar(2));
         const rotate = this.zRotate(rotationPoint, r);
         //const rotate = {camera: new THREE.Matrix4(), gizmo: new THREE.Matrix4()};
 
@@ -527,6 +526,7 @@ class Arcball extends THREE.EventDispatcher{
         const pan = this.pan(this._startCursorPosition, this._currentCursorPosition);
         //const pan = {camera: new THREE.Matrix4(), gizmo: new THREE.Matrix4()};
         
+
         //this.applyTransformMatrix(pan);
         //this.applyTransformMatrix(rotate);
         //this.applyTransformMatrix(scale);
@@ -557,6 +557,8 @@ class Arcball extends THREE.EventDispatcher{
         //disable 2 pointers listeners
         this._manager.off("doublepanmove pinchmove rotatemove", this.onDoublePanMove);
         this._manager.off("doublepanend pinchend rotateend", this.onDoublePanEnd); 
+        this._scene.remove(this.zAxisDebug);
+        this.zAxisDebug = null;
         this.updateTbState(STATE.IDLE, false);
     };
 
@@ -1198,6 +1200,26 @@ class Arcball extends THREE.EventDispatcher{
         this._m4_1.makeTranslation(point.x, point.y, point.z);
         this._m4_1.multiply(this._rotateMatrix);
         this._m4_1.multiply(this._translateMatrix);
+
+
+        //draw rotation axis
+        const length = 100;
+        const p1 = this._rotationAxis.clone().multiplyScalar(length);
+        const p2 = this._rotationAxis.clone().multiplyScalar(-length);
+        const points = [p1, p2];
+        const axisMaterial = new THREE.LineBasicMaterial({color: 0xFFFF00});
+        const axisGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        if(this.zAxisDebug == null) {
+            this.zAxisDebug = new THREE.LineSegments(axisGeometry, axisMaterial);
+            this.zAxisDebug.position.copy(point);
+            this._scene.add(this.zAxisDebug);
+        }
+        else {
+            this.zAxisDebug.copy(new THREE.LineSegments(axisGeometry, axisMaterial));
+            this.zAxisDebug.position.copy(point);
+        }
+
+        //this._scene.add(this.zAxisDebug);
         
         //rotate camera
         /*this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
@@ -1378,7 +1400,8 @@ class Arcball extends THREE.EventDispatcher{
 
             const d = Math.sqrt(Math.pow(q, 2) + Math.pow(X, 2));
             rDir.multiplyScalar(d);
-            rDir.z += distance;
+            //rDir.z = distance;
+            rDir.z = 0;
             return rDir;
             //return r0.add(rDir.multiplyScalar(d));
         }
