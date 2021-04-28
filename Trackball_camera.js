@@ -1644,7 +1644,7 @@ animCheck.addEventListener('change', function animCheckListener() {
     arcball.enableAnimations = animCheck.checked;
 });
 gridCheck.addEventListener('change', function gridCheckListener() {
-    arcball.showGrid = gridCheck.checked;
+    arcball.enableGrid = gridCheck.checked;
 });
 
 
