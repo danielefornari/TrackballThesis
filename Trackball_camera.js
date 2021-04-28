@@ -1283,7 +1283,7 @@ class Arcball extends THREE.EventDispatcher{
 
 
         //draw rotation axis
-        const length = 100;
+        /*const length = 100;
         const p1 = this._rotationAxis.clone().multiplyScalar(length);
         const p2 = this._rotationAxis.clone().multiplyScalar(-length);
         const points = [p1, p2];
@@ -1297,7 +1297,7 @@ class Arcball extends THREE.EventDispatcher{
         else {
             this.zAxisDebug.copy(new THREE.LineSegments(axisGeometry, axisMaterial));
             this.zAxisDebug.position.copy(point);
-        }
+        }*/
 
         //this._scene.add(this.zAxisDebug);
         
