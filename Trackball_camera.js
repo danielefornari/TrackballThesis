@@ -139,17 +139,13 @@ class Arcball extends THREE.EventDispatcher{
         this._manager.get('doublepan').recognizeWith('pinch');
         this._manager.get('doublepan').recognizeWith('rotate');
 
-
         this._manager.get('pinch').recognizeWith('singlepan');
         this._manager.get('pinch').recognizeWith('doublepan');
         this._manager.get('pinch').recognizeWith('rotate');
 
-
         this._manager.get('rotate').recognizeWith('singlepan');
         this._manager.get('rotate').recognizeWith('pinch');
         this._manager.get('rotate').recognizeWith('doublepan');
-
-
 
         this._manager.on('doubletap', this.onDoubleTap);
         this._manager.on('singlepanstart', this.onSinglePanStart);
@@ -1158,7 +1154,7 @@ class Arcball extends THREE.EventDispatcher{
         const sizeInverse = 1/size;
 
         //draw debug point
-        /*const geometry = new THREE.SphereGeometry(2);
+        const geometry = new THREE.SphereGeometry(2);
         const material = new THREE.MeshBasicMaterial({color: 0x00FFFF});
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.copy(scalePoint)
@@ -1168,7 +1164,7 @@ class Arcball extends THREE.EventDispatcher{
         }
         else {
             this.scalePointDebug.copy(mesh);
-        }*/
+        }
         
         if(this.camera.type == 'OrthographicCamera') {
             //camera zoom
@@ -1288,7 +1284,7 @@ class Arcball extends THREE.EventDispatcher{
 
 
         //draw rotation axis
-        /*const length = 100;
+        const length = 100;
         const p1 = this._rotationAxis.clone().multiplyScalar(length);
         const p2 = this._rotationAxis.clone().multiplyScalar(-length);
         const points = [p1, p2];
@@ -1302,7 +1298,7 @@ class Arcball extends THREE.EventDispatcher{
         else {
             this.zAxisDebug.copy(new THREE.LineSegments(axisGeometry, axisMaterial));
             this.zAxisDebug.position.copy(point);
-        }*/
+        }
 
         return{camera: this._m4_1.clone(), gizmo: this._m4_1.clone()};
     };
