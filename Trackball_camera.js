@@ -68,6 +68,7 @@ class Arcball extends THREE.EventDispatcher{
     
         //initial states for reset
         this.zoom0 = 1;
+        this._fov0 = 0;
         this._cameraMatrixState0 = new THREE.Matrix4();
         this._gizmoMatrixState0 = new THREE.Matrix4();
         this._dummyMatrixState0 = new THREE.Matrix4();
@@ -136,11 +137,18 @@ class Arcball extends THREE.EventDispatcher{
         this._manager.add([this._singlePan, this._doubleTap, this._doublePan, this._pinch, this._rotate]);
         this._manager.get('doublepan').recognizeWith('singlepan');
         this._manager.get('doublepan').recognizeWith('pinch');
+        this._manager.get('doublepan').recognizeWith('rotate');
+
 
         this._manager.get('pinch').recognizeWith('singlepan');
+        this._manager.get('pinch').recognizeWith('doublepan');
+        this._manager.get('pinch').recognizeWith('rotate');
+
 
         this._manager.get('rotate').recognizeWith('singlepan');
         this._manager.get('rotate').recognizeWith('pinch');
+        this._manager.get('rotate').recognizeWith('doublepan');
+
 
 
         this._manager.on('doubletap', this.onDoubleTap);
@@ -244,26 +252,32 @@ class Arcball extends THREE.EventDispatcher{
 
     onWheel = (event) => {
         event.preventDefault();
-        if(this._state != STATE.IDLE) {
-            this._prevState = this._state;
-        }
-
-        this.updateTbState(STATE.SCALE, true);
-        console.log('wheel_scroll');
         const notchDeltaY = 125;    //distance of one notch of mouse wheel
         const sgn = event.deltaY/notchDeltaY;
-        let s = 1;
-        this._notchCounter += sgn;
-        if(this._notchCounter > 0) {
-            s = Math.pow(this.scaleFactor, this._notchCounter);
-        }
-        else if(this._notchCounter < 0) {
-            s = 1/(Math.pow(this.scaleFactor, -this._notchCounter));
-        }
-        this.applyTransformMatrix(this.scale(s, this._gizmos.position));
 
+        if(event.ctrlKey || event.metaKey) {
+            this.setFov(this.camera.fov + sgn);
+        }
+        else {
+            if(this._state != STATE.IDLE) {
+                this._prevState = this._state;
+            }
+    
+            this.updateTbState(STATE.SCALE, true);
+            console.log('wheel_scroll');
+
+            let s = 1;
+            this._notchCounter += sgn;
+            if(this._notchCounter > 0) {
+                s = Math.pow(this.scaleFactor, this._notchCounter);
+            }
+            else if(this._notchCounter < 0) {
+                s = 1/(Math.pow(this.scaleFactor, -this._notchCounter));
+            }
+            this.applyTransformMatrix(this.scale(s, this._gizmos.position));
+            this.updateTbState(STATE.IDLE, false);
+        }
         this.dispatchEvent(this._changeEvent);
-        this.updateTbState(STATE.IDLE, false);
     };
 
 
@@ -565,7 +579,7 @@ class Arcball extends THREE.EventDispatcher{
         this._currentFingerRotation = event.rotation;
         const rotationPoint = this.unprojectOnTbPlane(this.camera, center.x, center.y, this.canvas).applyQuaternion(this.camera.quaternion).add(this._gizmos.position); //togliere quaternion?
         //const amount = (this._startFingerRotation - this._currentFingerRotation)*Math.PI/180;
-        const amount = this.degToRad(this._startFingerRotation - this._currentFingerRotation);
+        const amount = THREE.MathUtils.DEG2RAD * (this._startFingerRotation - this._currentFingerRotation);
 
         const rotate = this.zRotate(rotationPoint, amount);
         this.applyTransformMatrix(rotate);
@@ -620,7 +634,6 @@ class Arcball extends THREE.EventDispatcher{
         this._manager.off('pinchmove', this.onPinchMove);
         this._manager.off('pinchend', this.onPinchEnd);
     };
-
 
 
     /**
@@ -683,6 +696,11 @@ class Arcball extends THREE.EventDispatcher{
         return this._rotationAxis.normalize();
     };
 
+    /**
+     * Perform degrees to radians conversion
+     * @param {Number} deg Value in degree
+     * @returns {Number} Corresponding value in radians
+     */
     degToRad = (deg) => {
         return deg*Math.PI/180;
     };
@@ -723,7 +741,7 @@ class Arcball extends THREE.EventDispatcher{
     };
 
     /**
-     * Draw a grid on the canvas
+     * Draw a grid and add it to the scene
      */
     drawGrid = () => {
         let size;
@@ -735,7 +753,7 @@ class Arcball extends THREE.EventDispatcher{
             divisions = (size*0.5)*this.camera.zoom;
         }
         else if(this.camera.type == 'PerspectiveCamera') {
-            const fov = this.degToRad(this.camera.fov);
+            const fov = THREE.MathUtils.DEG2RAD * this.camera.fov;
             const distance = this.camera.position.distanceTo(this._gizmos.position);
             const distance0 = new THREE.Vector3().setFromMatrixPosition(this._cameraMatrixState0).distanceTo(new THREE.Vector3().setFromMatrixPosition(this._gizmoMatrixState0));
             size = Math.tan(fov*0.5)*distance*8;
@@ -823,6 +841,10 @@ class Arcball extends THREE.EventDispatcher{
         return this._v2_1;
     };
 
+    /**
+     * Initialize gizmos and camera state
+     * @param {THREE.Camera} camera 
+     */
     initialize = (camera) => {
         const distance = camera.position.length();
 
@@ -844,7 +866,8 @@ class Arcball extends THREE.EventDispatcher{
         }
         else if(camera.type == 'PerspectiveCamera') {
             //const fov = (camera.fov*Math.PI)/180;
-            const halfFov = this.degToRad(camera.fov)*0.5;  
+            this._fov0 = camera.fov;
+            const halfFov = THREE.MathUtils.DEG2RAD * this._fov0*0.5;  
             this._tbRadius = Math.tan(halfFov)*distance*0.66;
 
             this.makeGizmos(this._tbCenter, this._tbRadius);
@@ -1042,6 +1065,13 @@ class Arcball extends THREE.EventDispatcher{
         }
     };
     
+    /**
+     * Perform pan operation
+     * @param {THREE.Vector3} p1 Initial point
+     * @param {THREE.Vector3} p2 Ending point
+     * @param {Boolean} adjust If movement should be adjusted considering camera zoom/distance
+     * @returns 
+     */
     pan = (p1, p2, adjust = false) => {
         const distanceV = p1.clone().sub(p2);
         if(this.camera.type == 'OrthographicCamera') {
@@ -1061,6 +1091,11 @@ class Arcball extends THREE.EventDispatcher{
         return {camera: this._m4_1.clone(), gizmo: this._m4_1.clone()};
     };
 
+    /**
+     * Per
+     * @param {*} rad 
+     * @returns 
+     */
     radToDeg = (rad) => {
         return rad*180/Math.PI;
     };
@@ -1070,6 +1105,11 @@ class Arcball extends THREE.EventDispatcher{
      */
     reset = () => {
         this.camera.zoom = this.zoom0;
+    
+        if(this.camera.type == 'PerspectiveCamera') {
+            this.camera.fov = this._fov0;
+        }
+
         this.camera.updateProjectionMatrix();
         this._cameraMatrixState.copy(this._cameraMatrixState0);
         this._cameraMatrixState.decompose(this.camera.position, this.camera.quaternion, this.camera.scale);
@@ -1221,6 +1261,23 @@ class Arcball extends THREE.EventDispatcher{
         }
     };
 
+    setFov = (value) => {
+        if(this.camera.type == 'PerspectiveCamera') {
+            if(value < 0) {
+                value = 0;
+            }
+            this.camera.fov = value;
+            this.camera.updateProjectionMatrix();
+
+        }
+    };
+
+    /**
+     * Perform rotation around z axis in a given point by given amount
+     * @param {THREE.Vector3} point The point where z axis is passing trough
+     * @param {Number} rad Amount of rotation in radians
+     * @returns The computed transormation matix
+     */
     zRotate = (point, rad) => {
         this._rotateMatrix.makeRotationAxis(this._rotationAxis, rad);
         this._translateMatrix.makeTranslation(-point.x, -point.y, -point.z);
@@ -1347,7 +1404,7 @@ class Arcball extends THREE.EventDispatcher{
                 hitPoint.setY(m*hitPoint.x+q);
 
                 //let angle = hitPoint.angle()*180/Math.PI;
-                let angle = this.radToDeg(hitPoint.angle());
+                let angle = THREE.MathUtils.RAD2DEG * hitPoint.angle();
 
                 if(angle >= 45) {
                     //if angle between intersection point and X' axis is >= 45°, return that point
@@ -1446,7 +1503,7 @@ class Arcball extends THREE.EventDispatcher{
         else if(this.camera.type == 'PerspectiveCamera') {
             //update tb radius
             const distance = this.camera.position.distanceTo(this._gizmos.position);
-            const fov = this.degToRad(this.camera.fov);
+            const fov = THREE.MathUtils.DEG2RAD * this.camera.fov;
 
             this._tbRadius = Math.tan(fov*0.5)*distance*0.66;
         }
