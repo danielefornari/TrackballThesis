@@ -21,6 +21,26 @@
                 </div>
 
                 <div>
+                    <input type="checkbox" id="enabledCheckbox" checked>
+                    <label>Enabled</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="rotateCheckbox" checked>
+                    <label>Enable rotate</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="panCheckbox" checked>
+                    <label>Enable pan</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="zoomCheckbox" checked>
+                    <label>Enable zoom</label>
+                </div>
+
+                <div>
                     <input type="range" min="1.1" max="3" step="0.05" value="1.25" id="scaleSlider" oninput="scaleOutput.value = scaleSlider.value" onchange="">
                     <label>Scale:</label>
                     <output id="scaleOutput">1.25</output>
@@ -39,11 +59,28 @@
                 </div>
 
                 <div>
-                    <button type="button" id="cameraButton">camera</button>
+                    <input type="range" min="0", max="50" step="1" value="0" id="minSlider" oninput="minOutput.value = minSlider.value" onchange="">
+                    <label for="minZoom">Min zoom:</label>
+                    <output id="minOutput">0</output>
                 </div>
 
                 <div>
-                    <button type="button" id="resetButton">Reset</button>
+                    <input type="range" min="0", max="50" step="1" value="50" id="maxSlider" oninput="maxOutput.value = maxSlider.value" onchange="">
+                    <label for="maxZoom">Max zoom:</label>
+                    <output id="maxOutput">50</output>
+                </div>
+
+
+                <div>
+                    <button type="button" id="cameraButton" style="margin-top: 1%; margin-bottom: 1%;">Camera</button>
+                </div>
+
+                <div>
+                    <button type="button" id="stateButton" style="margin-top: 1%; margin-bottom: 1%;">State</button>
+                </div>
+                
+                <div>
+                    <button type="button" id="resetButton" style="margin-top: 1%; margin-bottom: 1%;">Reset</button>
                 </div>
 
                 <div>
