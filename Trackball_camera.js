@@ -1,10 +1,10 @@
-import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
+//import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
 import {GLTFLoader} from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js'
 import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/OBJLoader.js';
 import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 import * as HAMMERJS from 'https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js'
 
-//import * as THREE from './node_modules/three/src/Three.js';
+import * as THREE from './node_modules/three/src/Three.js';
 //import {Arcball} from './Arcball_object';
 
 
@@ -544,6 +544,8 @@ class Arcball extends THREE.EventDispatcher{
             }
     
             this._currentFingerRotation = event.rotation;
+            //this.camera.getWorldDirection(this._rotationAxis);  //rotation axis
+
             const rotationPoint = this.unprojectOnTbPlane(this.camera, center.x, center.y, this.domElement).applyQuaternion(this.camera.quaternion).multiplyScalar(1/this.camera.zoom).add(this._gizmos.position);
             const amount = THREE.MathUtils.DEG2RAD * (this._startFingerRotation - this._currentFingerRotation);
     
@@ -1159,7 +1161,7 @@ class Arcball extends THREE.EventDispatcher{
         let sizeInverse = 1/size;
 
         //draw debug point
-        const geometry = new THREE.SphereGeometry(0.1);
+        const geometry = new THREE.SphereGeometry(2);
         const material = new THREE.MeshBasicMaterial({color: 0x00FFFF});
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.copy(scalePoint)
@@ -1201,7 +1203,8 @@ class Arcball extends THREE.EventDispatcher{
 
 
             //move camera and gizmos to obtain pinch effect
-            scalePoint.sub(this._gizmos.position);
+            //scalePoint.sub(this._gizmos.position);
+            scalePoint.sub(pos);
 
             const amount = scalePoint.clone().multiplyScalar(sizeInverse);
             scalePoint.sub(amount);
@@ -1355,7 +1358,11 @@ class Arcball extends THREE.EventDispatcher{
      */
     unprojectOnObj = (cursor, camera) => {
         const raycaster = new THREE.Raycaster();
+        raycaster.near = camera.near;
+        raycaster.far = camera.far;
         raycaster.setFromCamera(cursor, camera);
+        //raycaster.ray.origin.add(raycaster.ray.direction.clone().multiplyScalar(0.1));
+        //raycaster.set(raycaster.ray.origin+raycaster.ray.direction*0.001, raycaster.ray.direction);
 
         /*for(let i=0; i<this.scene.children.length; i++)
         {
@@ -1426,6 +1433,12 @@ class Arcball extends THREE.EventDispatcher{
             //X' = asse lungo cui si sviluppa la distanza dal centro della trackball al punto sulla sfera su Z=0        
             const h = nearPlanePoint.z;
             const l = Math.sqrt(Math.pow(nearPlanePoint.x, 2) + Math.pow(nearPlanePoint.y, 2));
+
+            if(l == 0) {
+                //ray aligned to camera
+                rDir.set(nearPlanePoint.x, nearPlanePoint.y, tbRadius);
+                return rDir;
+            }
 
             const m = h/l;
             const q = distance;
@@ -1518,6 +1531,11 @@ class Arcball extends THREE.EventDispatcher{
              *
              * x = -q/m
             */
+             if(l == 0) {
+                rDir.set(0, 0, 0);
+                return rDir;
+            }
+            
             const m = h/l;
             const q = distance;
             const X = -q/m;
